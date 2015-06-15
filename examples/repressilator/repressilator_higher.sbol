@@ -1,0 +1,190 @@
+
+####################### Set up general templates ################################
+
+DNASequence => Sequence
+   encoding = <IUPAC DNA>
+
+DNAComponent => ComponentDefinition
+   type = <SBOL:DNA>
+
+CDS => DNAComponent
+   role = <SBOL:CDS>
+
+Promotor => DNAComponent
+   role = <SBOL:Promoter>
+
+Terminator => DnaComponent
+  role = <SBOL:Terminator>
+
+Gene => ComponentDefinition
+   type = [SBOL:DNA]
+   role = <SBOL:Gene>
+
+
+################################# Define coding sequences ###################################
+
+#### Sequence Definitions ####
+clSeq : DNASequence
+   elements = "ACCCA"
+
+laclSeq : DNASequence
+   elements = "AGTCCT"
+
+tetrSeq : DNASequence
+   elements = "AGGCT"
+
+gfpSeq : DNASequence
+   elements = "ACTTCG"
+
+##### Componont Definitions #####
+clCDS : CDS
+   sequence = clseq
+
+laclCDS : CDS
+   sequence = laclSeq
+
+tetrCDS : CDS
+   sequence = tetrSeq
+
+gfpCDS : CDS
+   sequence = gfpSeq
+
+#############################################################################################
+
+
+################################ Define Promotors ###########################################
+
+#### Sequence Definitions ####
+clPSeq : DNASequence
+   elements = "ACCACCA"
+
+laclPSeq : DNASequence
+   elements = "AGTCACCT"
+
+tetrPSeq : DNASequence
+   elements = "AGGGGCT"
+
+gfpPSeq : DNASequence
+   elements = "ACTTCCG"
+
+##### Componont Definitions #####
+clPromotor : CDS
+   sequence = clPseq
+
+laclPromotor : CDS
+   sequence = laclPSeq
+
+tetrPromotor : CDS
+   sequence = tetrPSeq
+
+gfpPromotor : CDS
+   sequence = gfpPSeq
+
+##############################################################################################
+
+
+################################ Define Terminators ###########################################
+
+#### Sequence Definitions ####
+clTSeq : DNASequence
+   elements = "ACCACCA"
+
+laclTSeq : DNASequence
+   elements = "AGTCACCT"
+
+tetrTSeq : DNASequence
+   elements = "AGGGGCT"
+
+gfpTSeq : DNASequence
+   elements = "ACTTCCG"
+
+##### Componont Definitions #####
+clTerminator : CDS
+   sequence = clTseq
+
+laclTerminator : CDS
+   sequence = laclTSeq
+
+tetrTerminator : CDS
+   sequence = tetrTSeq
+
+gfpTerminator : CDS
+   sequence = gfpTSeq
+
+
+##############################################################################################
+
+cl : Gene
+  subComponent
+    pltet01 : Promotor
+  subComponent
+    cl-lite : CDS
+       sequence = clseq
+  subComponent
+    term1 : Terminator
+
+lacl : Gene
+  subComponent
+    pr : Promotor
+  subComponent
+    lacl_lite : CDS
+  subComponent
+    term2 : Terminator
+
+TetR : Gene
+  subComponent
+    plac01 : Promotor
+  subComponent
+    tetR_lite : CDS
+  subComponent
+    term3 : Terminator
+
+GFP : Gene
+   subComponent
+     pltet01 : Promotor
+   subComponent
+     gfp_aav : CDS
+   subComponent
+     term4 : Terminator
+
+
+driver(x) => Paricipation
+   participant = x
+   role = <SBOL : driver >
+
+driven(x) => Participation
+   participant = x
+   role = <SBOL : driven >
+
+repressor(x) => Participation
+   participant = x
+   role = <SBOL : Repressor >
+
+repressed(x) => Participation
+   participant = x
+   role = <SBOL : Repressed
+
+----------------------
+drives(promotor,cds) => Interaction
+   type = <SBOL : Drives>
+   driver(promotor)
+   driven(cds)
+----------------------
+--------------------------
+represses(a,b) => Interaction
+   type = <SBOL: Represses>
+   repressor(a)
+   repressed(b)
+
+--------------------------
+
+repressilator : ModuleDefinition
+   name = "Repressilator"
+   description = "A cycle of repression interactions"
+
+   cl represses lacl
+   #Dont want to have to specify the properties of a functional component if need be. Can have defaults
+   # such as: access = public, direction = None ...
+   lacl represses TetR
+   TetR represses GFP
+   TetR represses cl

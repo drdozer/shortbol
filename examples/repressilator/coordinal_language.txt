@@ -1,0 +1,60 @@
+
+
+# The SequenceConstraint class can be used to assert restrictions on the relative, sequence-based positions of pairs of component objects contained by the same parent ComponentDefininition.
+# Has the following properties:
+    Restriction: #What kind of restriction?, precedes component, on opposite strand to component
+    Subject: URI pointing to a Component contained by the same ComponentDefinintion that contains the sequence constraint
+    Object: URI != Subject, pointing to a Component contained by the same ComponentDefinition that contains the sequence constaint
+
+
+
+
+## Assigning strandedness ##
+
+cds1
+cds2
+
+posstrand(cds1) # CDS1 is on the positive strand
+negstrand(cds2) # CDS2 is on the negative strand
+
+!! Do we have mutable variables? !!
+
+
+#The following can only be applied to components defined within the same component definition. Therefore should only be defined within a component definition block?
+
+## Generic coordinal Language ##
+
+Promoter
+CDS1
+CDS2
+Terminator
+
+Promotor < CDS  #Promotor precedes CDS
+
+Terminator > CDS #Terminator takes place after CDS
+
+CDS1 touches_with CDS2 # CDS1 and CDS2 are touching. CDS1 is on the left and CDS2 is on the right.
+
+CDS1 overlaps_with CDS2 # CDS1 overlaps with CDS2 on the left
+
+CDS1 starts_with CDS2 # CDS1 and CDS2 start at the same position but CDS1 exends further to the right.
+
+CDS1 contains CDS2 # CDS1 fully contains CDS2. CDS2 does not have start or finish positions equal to CDS1
+
+CDS1 finishes_with CDS2 #CDS1 has a start position before CDS2 but they both have the same finish position.
+
+CDS1 = CDS2 # Both CDS1 and CDS2 are the same.
+
+
+## Sequence/Strand Specific Language (Language which can compare components on both the opposite and same strand) ##
+
+CDS1 same_strand CDS2  #CDS1 must be on the same stand as CDS2
+
+CDS1 opposite_strand CDS2 #CDS2 must be on the opposite strand as CDS2
+
+CDS1 < CDS2 #CDS1 precedes the 5prime of CDS2. If CDS1 is on the positive strand, the to
+
+CDS1 precedes_3 CDS2
+
+
+
