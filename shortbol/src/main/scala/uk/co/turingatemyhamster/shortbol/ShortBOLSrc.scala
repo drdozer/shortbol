@@ -109,11 +109,14 @@ object ShortBOLSrc {
     """.stripMargin
     ))
 
-    val raw = p.ConstructorDef.parse(
+    println()
+    println("Raw input")
+    val raw = p.TopLevels.parse(
     """T(a) => F
       |  name = a
       |
-      |ta : T("bob")""".stripMargin
+      |ta : T("bob")
+      |""".stripMargin
     )
 
     val expansion = p.InstanceExp.parse(
@@ -124,5 +127,23 @@ object ShortBOLSrc {
 
     println(raw)
     println(expansion)
+
+    val fastparse.Result.Success(raws, _) = raw
+    val cstrs = Ops.constructors(raws)
+    val inds = Ops.individuals(raws)
+
+    val cfi = Ops.constructorsForIndividuals(cstrs, inds)
+
+    val expanded = cfi map (Ops.expand _ tupled)
+
+    println(cstrs)
+    println(inds)
+    println(cfi)
+    println(expanded)
+
+    val pp = new PrettyPrint(System.out)
+    for(x <- raws)
+      pp.append(x)
+
   }
 }
