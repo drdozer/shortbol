@@ -1,0 +1,116 @@
+import genomic
+import genomic_generic
+
+
+flatToggle : ModuleDefinition
+  name = "Flat toggle switch"
+  description "A flat representation of a generic toggle switch"
+  
+  subComponent
+    A : ProteinComponent
+
+  subComponent
+    B : ProteinComponent
+
+  subComponent
+    pA : Promoter
+
+  subComponent
+    pB : Promoter
+
+  subComponent
+    A_cds : CDS
+
+  subComponent
+    B_cds : CDS
+
+  repression(A, pA)
+  repression(B, pB)
+  production(A_cds, A)
+  production(B_cds, B)
+  drives(pA, B)
+  drives(pB, A)
+
+
+
+b_producer_repressed_by_a : ModuleDefinition
+  description = "Produces b, repressed by a"
+
+  subComponent
+    protein as a
+    cds as B_cds
+    protein as B
+    promoter as pA
+
+  repression(A, pA)
+  drives(pA, B_cds)
+  production(B_cds, B)
+
+a_producer_repressed_by_b : ModuleDefinition
+  description = "Produces a, repressed by b"
+
+  subComponent
+    protein as B
+    cds as A_cds
+    protein as A
+    promoter as pB
+
+  repression(B, pB)
+  drives(pB, A_cds)
+  production(A_cds, A)
+
+toggle_switch : ModuleDefinition
+  subModule
+    b_producer_repressed_by_a
+    a_producer_repressed_by_b
+
+  subComponent
+    protein as A
+      same_as b_producer_repressed_by_a -> A
+      same_as a_producer_repressed_by_b -> A
+    protein as B
+      same_as b_producer_repressed_by_a -> B
+      same_as a_producer_repressed_by_b -> B
+
+
+Prod_resp(X, Y) => ModuleDefinition
+  subComponent
+    X as x
+    Y as y
+    cds as Y_cds
+    promoter as pX
+
+  repression(x, pX)
+  drives(pX, Y_cds)
+  production(Y_cds, y)
+
+toggle_switch_xy : ModuleDefinition
+  subComonent
+    protein as A
+      same_as aRepB -> x
+      same_as bRepA -> x
+    protein as B
+      same_as aRepB -> y
+      same_as bRepA -> y
+
+  subModule
+    Prod_resp(A, B) as aRepB
+    Prod_resp(B, A) as bRepA
+
+  
+    
+generic_prod_resp : Prod_resp(protein, protein)
+
+toggle_switch_rename : ModuleDefinition
+  subModule
+    generic_prod_resp as aRepB
+    generic_prod_resp as bRepA
+
+  subComonent   
+    protein as A
+      replaces aRepB -> x
+      replaces bRepA -> x
+    protein as B
+      replaces aRepB -> y
+      replaces bRepA -> y
+

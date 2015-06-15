@@ -1,0 +1,67 @@
+# DNA/RNA/Protein
+
+DnaComponent => ComponentDefinition
+  type = <SBOL:DNA>
+
+RnaComponent => ComponnetDefinition
+  type = <SBOL:RNA>
+
+ProteinComponent => ComponentDefinition
+  type = <SBOL:Protein>
+
+
+# Common DNA components
+
+Promoter => DnaComponent
+  role = <SBOL:Promoter>
+
+RBS => DnaComponent
+  role = <SBOL:RBS>
+
+CDS => DnaComponent
+  role = <SBOL:CDS>
+
+Terminator => DnaComponent
+  role = <SBOL:Terminator>
+
+
+# Common RNA components
+
+CDS_RNA => RnaComponent
+  role = <SBOL:CDS>
+
+
+# Common Protein components
+
+
+# Transcription/translation
+
+
+Transcription(cds, cds_rna) => Interaction
+  type = <SBOL:Transcription>
+  participation
+    participant = cds
+    role = <SBOL:Transcriptional_template>
+  participation
+    participant = cds_rna
+    role = <SBOL:Transcriptional_product>
+
+Translation(cds_rna, protein) => Interaction
+  type = <SBOL:Translation>
+  participation
+    participant = cds_rna
+    role = <SBOL:Translation_template>
+  participation
+    participant = protein
+    role = <SBOL:Translation_product>
+
+ProteinProduction(cds, cds_rna, protein) => Interaction*
+  Transcription(cds, cds_rna)
+  Translation(cds_rna, protein)
+
+activates(tf, p) => Interaction
+  type = <SBOL:...
+
+md : ModuleDefinition
+  lac activates pLac
+  #activates(lac, pLac)
