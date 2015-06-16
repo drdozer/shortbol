@@ -3,7 +3,7 @@ package uk.co.turingatemyhamster.shortbol
 /**
  * Created by nmrp3 on 12/06/15.
  */
-object ShortBOLSrc {
+object ShortbolSrc {
 
   def main(args: Array[String]): Unit = {
 
