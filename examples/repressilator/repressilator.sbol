@@ -1,0 +1,94 @@
+DNASequence => Sequence
+   encoding = <IUPAC DNA>
+
+clSeq : DNASequence
+   elements = "ACCCA"
+
+DNAComponent => ComponentDefinition
+   type = <SBOL:DNA>
+
+CDS => DNAComponent 
+   role = <SBOL:CDS>
+
+Promotor => DNAComponent
+   role = <SBOL:Promoter>
+
+Terminator => DnaComponent
+  role = <SBOL:Terminator>
+
+Gene => ComponentDefinition
+   type = [SBOL:DNA]
+   role = <SBOL:Gene>
+
+#implement a 'composes' constructor?
+  
+cl : Gene
+  subComponent
+    pltet01 : Promotor
+  subComponent
+    cl-lite : CDS
+       sequence = clseq
+  subComponent
+    term1 : Terminator
+
+lacl : Gene
+  subComponent
+    pr : Promotor
+  subComponent
+    lacl_lite : CDS
+  subComponent
+    term2 : Terminator
+
+TetR : Gene
+  subComponent
+    plac01 : Promotor
+  subComponent
+    tetR_lite : CDS
+  subComponent
+    term3 : Terminator
+      
+GFP : Gene
+   subComponent
+     pltet01 : Promotor
+     
+   subComponent
+     gfp_aav : CDS
+   subComponent
+     term4 : Terminator
+-----------------------
+#Promotor drives a coding sequence 
+drives(promotor,cds) => Interaction
+   type = <SBOL : Drives>
+   participation
+     participant = promotor
+     role = ?
+   participation
+     participant = cds
+     role = ?  
+----------------------
+-------------------
+represses(a,b) => Interaction
+   type = <SBOL: Repressor>
+   participation
+       participant = a
+       role = <SBOL: ?>
+   participation
+       participant = b
+       role = <SBOL: ?>
+
+--------------------
+
+repressilator : ModuleDefinition
+   name = "Repressilator"
+   description = "A cycle of repression interactions"
+   
+   cl represses lacl
+   lacl represses TetR
+   TetR represses GFP
+   TetR represses cl
+
+
+
+
+
+

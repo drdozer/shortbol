@@ -3,7 +3,7 @@
 DnaComponent => ComponentDefinition
   type = <SBOL:DNA>
 
-RnaComponent => ComponnetDefinition
+RnaComponent => ComponentDefinition
   type = <SBOL:RNA>
 
 ProteinComponent => ComponentDefinition
@@ -29,6 +29,31 @@ Terminator => DnaComponent
 
 CDS_RNA => RnaComponent
   role = <SBOL:CDS>
+
+# Common annotations
+
+INLINE_LOCATION => Location
+    range
+        orientation = <SBOL: inline>
+
+REVERSE_COMP_LOCATION => Location
+    range
+        orientation = <SBOL: reverseComplement>
+
+Annotate_Sequence_Inline(s,e) => SequenceAnnotation
+    location : INLINE_LOCATION
+        range
+            start = s
+            end = e
+
+Annotate_Sequence_Reverse(s,e) => SequenceAnnotation
+    location : REVERSE_LOCATION
+        range
+            start = s
+            end = e
+
+has_component(x) => subComponent
+    x
 
 
 # Common Protein components

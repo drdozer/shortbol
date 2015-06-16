@@ -1,0 +1,559 @@
+import genomic_generics
+
+##################### Define the sequences ##############################
+
+################################
+#SBOL#
+<sbol:Sequence rdf:about="http://partsregistry.org/seq/BBa_B0034">
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/seq/BBa_B0034"/>
+
+<sbol:displayId>BBa_B0034</sbol:displayId>
+
+<sbol:elements>aaagaggagaaa</sbol:elements>
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> #DNA encoding
+
+</sbol:Sequence>
+######
+
+#shortBOL#
+BBa_B0034 : dna
+    elements = "aaagaggagaaa"
+######
+################################
+
+################################
+#SBOL#
+<sbol:Sequence rdf:about="http://partsregistry.org/seq/BBa_R0040"> 1
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/seq/BBa_R0040"/> 2
+
+<sbol:displayId>BBa_R0040</sbol:displayId> 3
+
+<sbol:elements>tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac</sbol:elements> 4
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 5
+
+</sbol:Sequence>
+######
+#shortBOL#
+BBa_R0040 : dna
+    elements = "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac"
+######
+################################
+
+################################
+#SBOL#
+<sbol:Sequence rdf:about="http://partsregistry.org/seq/BBa_C0062"> 7
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/seq/BBa_C0062"/> 8
+
+<sbol:displayId>BBa_C0062</sbol:displayId> 9
+
+<sbol:elements>atgcttatctgatatgactaaaatggtacattgtgaatattatttactcgcgatcatttatcctcattcta 10
+
+tggttaaatctgatatttcaatcctagataattaccctaaaaaatggaggcaatattatgatgacgctaatttaataaaatatgat 11
+
+cctatagtagattattctaactccaatcattcaccaattaattggaatatatttgaaaacaatgctgtaaataaaaaatctccaaa 12
+
+tgtaattaaagaagcgaaaacatcaggtcttatcactgggtttagtttccctattcatacggctaacaatggcttcggaatgctta 13
+
+gttttgcacattcagaaaaagacaactatatagatagtttatttttacatgcgtgtatgaacataccattaattgttccttctcta 14
+
+gttgataattatcgaaaaataaatatagcaaataataaatcaaacaacgatttaaccaaaagagaaaaagaatgtttagcgtgggc 15
+
+atgcgaaggaaaaagctcttgggatatttcaaaaatattaggttgcagtgagcgtactgtcactttccatttaaccaatgcgcaaa 16
+
+tgaaactcaatacaacaaaccgctgccaaagtatttctaaagcaattttaacaggagcaattgattgcccatactttaaaaattaa 17
+
+taacactgatagtgctagtgtagatcac</sbol:elements> 18
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 19
+
+</sbol:Sequence>
+######
+#shortBOL#
+BBa_C0062 : dna
+    elements = "atgcttatctgatatgactaaaatggtacattgtgaatattatttactcgcgatcatttatcctcattcta
+    tggttaaatctgatatttcaatcctagataattaccctaaaaaatggaggcaatattatgatgacgctaatttaataaaatatgat
+    cctatagtagattattctaactccaatcattcaccaattaattggaatatatttgaaaacaatgctgtaaataaaaaatctccaaa
+    tgtaattaaagaagcgaaaacatcaggtcttatcactgggtttagtttccctattcatacggctaacaatggcttcggaatgctta
+    gttttgcacattcagaaaaagacaactatatagatagtttatttttacatgcgtgtatgaacataccattaattgttccttctcta
+    gttgataattatcgaaaaataaatatagcaaataataaatcaaacaacgatttaaccaaaagagaaaaagaatgtttagcgtgggc
+    atgcgaaggaaaaagctcttgggatatttcaaaaatattaggttgcagtgagcgtactgtcactttccatttaaccaatgcgcaaa
+    tgaaactcaatacaacaaaccgctgccaaagtatttctaaagcaattttaacaggagcaattgattgcccatactttaaaaattaa
+    taacactgatagtgctagtgtagatcac"
+######
+################################
+
+################################
+#SBOL#
+<sbol:Sequence rdf:about="http://partsregistry.org/seq/BBa_R0062"> 21
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/seq/BBa_R0062"/> 22
+
+<sbol:displayId>BBa_R0062</sbol:displayId> 23
+
+<sbol:elements>acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa</sbol:elements> 24
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 25
+
+</sbol:Sequence>
+######
+#shortBOL#
+BBa_R0062 : dna
+    elements = "acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa"
+######
+################################
+
+################################
+#SBOL#
+<sbol:Sequence rdf:about="http://partsregistry.org/seq/BBa_B0015"> 27
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/seq/BBa_B0015"/> 28
+
+<sbol:displayId>BBa_B0015</sbol:displayId> 29
+
+<sbol:elements>ccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtg 30
+
+aacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttata</sbol:elements> 31
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 32
+
+</sbol:Sequence>
+######
+#shortBOL#
+BBa_B0015 : dna
+    elements = "ccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttata"
+######
+################################
+
+#########################################################################
+
+##################### Define the Components ##############################
+
+################################
+#SBOL#
+<sbol:component> 22
+
+<sbol:Component rdf:about="http://partsregistry.org/cd/BBa_F2620/pLuxR"> 23
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/pLuxR"/> 24
+
+<sbol:displayId>pLuxR</sbol:displayId> 25
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 26
+
+<sbol:definition rdf:resource="http://partsregistry.org/cd/BBa_R0062"/> 27
+
+</sbol:Component> 28
+
+</sbol:component>
+<sbol:ComponentDefinition rdf:about="http://partsregistry.org/cd/BBa_R0062"> 19
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_R0062"/> 20
+
+<sbol:displayId>BBa_R0062</sbol:displayId> 21
+
+<dcterms:title>pLuxR</dcterms:title> 22
+
+<dcterms:description>LuxR inducible promoter</dcterms:description> 23
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 24
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000167"/> 25
+
+<sbol:sequence rdf:resource="http://partsregistry.org/seq/BBa_R0062"/> 26
+
+</sbol:ComponentDefinition>
+<sbol:sequenceAnnotation> 23
+
+<sbol:SequenceAnnotation rdf:about="http://partsregistry.org/cd/BBa_F2620/anno5"> 24
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/anno5"/> 25
+
+<sbol:displayId>anno5</sbol:displayId> 26
+
+<sbol:location> 27
+
+<sbol:Range rdf:about="http://partsregistry.org/cd/BBa_F2620/anno5/location5"> 28
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/anno5/location5"/> 29
+
+<sbol:displayId>location5</sbol:displayId> 30
+
+<sbol:start>901</sbol:start> 31
+
+<sbol:end>956</sbol:end> 32
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 33
+
+</sbol:Range> 34
+
+</sbol:location> 35
+
+<sbol:component rdf:resource="http://partsregistry.org/cd/BBa_F2620/pLuxR"/> 36
+
+</sbol:SequenceAnnotation> 37
+
+</sbol:sequenceAnnotation> 38
+
+######
+
+#shortBOL#
+pLuxR : Promotor
+    description = "LuxR inducible promoter"
+    #name is auto dervied from the variable name
+    #displayId is auto dervived from the variable name
+    sequence = BBa_R0062
+    Annotate_Sequence_Inline(901,956)
+
+#######
+################################
+
+################################
+#SBOL#
+<sbol:component> 30
+
+<sbol:Component rdf:about="http://partsregistry.org/cd/BBa_F2620/luxR"> 31
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/luxR"/> 32
+
+<sbol:displayId>luxR</sbol:displayId> 33
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 34
+
+<sbol:definition rdf:resource="http://partsregistry.org/cd/BBa_C0062"/> 35
+
+</sbol:Component> 36
+
+</sbol:component>
+<sbol:ComponentDefinition rdf:about="http://partsregistry.org/cd/BBa_C0062"> 37
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_C0062"/> 38
+
+<sbol:displayId>BBa_C0062</sbol:displayId> 39
+
+<dcterms:title>luxR</dcterms:title> 40
+
+<dcterms:description>luxR coding sequence</dcterms:description> 41
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 42
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000316"/> 43
+
+<sbol:sequence rdf:resource="http://partsregistry.org/seq/BBa_C0062"/> 44
+
+</sbol:ComponentDefinition>
+<sbol:sequenceAnnotation> 7
+
+<sbol:SequenceAnnotation rdf:about="http://partsregistry.org/cd/BBa_F2620/anno3"> 8
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/anno3"/> 9
+
+<sbol:displayId>anno3</sbol:displayId> 10
+
+<sbol:location> 11
+
+<sbol:Range rdf:about="http://partsregistry.org/cd/BBa_F2620/anno3/location3"> 12
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/anno3/location3"/> 13
+
+<sbol:displayId>location3</sbol:displayId> 14
+
+<sbol:start>69</sbol:start> 15
+
+<sbol:end>770</sbol:end> 16
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 17
+
+</sbol:Range> 18
+
+</sbol:location> 19
+
+<sbol:component rdf:resource="http://partsregistry.org/cd/BBa_F2620/luxR"/> 20
+
+</sbol:SequenceAnnotation> 21
+
+</sbol:sequenceAnnotation>
+######
+
+#shortBOL#
+luxR : cds
+    description = "luxR coding sequence"
+    #name is auto dervied from the variable name
+    #displayId is auto dervived from the variable name
+    sequence = BBa_C0062
+    Annotate_Sequence_Inline(69,770)
+
+#######
+################################
+
+################################
+#SBOL#
+<sbol:component> 38
+
+<sbol:Component rdf:about="http://partsregistry.org/cd/BBa_F2620/pTetR"> 39
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/pTetR"/> 40
+
+<sbol:displayId>pTetR</sbol:displayId> 41
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 42
+
+<sbol:definition rdf:resource="http://partsregistry.org/cd/BBa_R0040"/> 43
+
+</sbol:Component> 44
+
+</sbol:component>
+<sbol:ComponentDefinition rdf:about="http://partsregistry.org/cd/BBa_R0040"> 46
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_R0040"/> 47
+
+<sbol:displayId>BBa_R0040</sbol:displayId> 48
+
+<dcterms:title>pTetR</dcterms:title> 49
+
+<dcterms:description>TetR repressible promoter</dcterms:description> 50
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 51
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000167"/> 52
+
+<sbol:sequence rdf:resource="http://partsregistry.org/seq/BBa_R0040"/> 53
+
+</sbol:ComponentDefinition>
+<sbol:sequenceAnnotation> 39
+
+<sbol:SequenceAnnotation rdf:about="http://partsregistry.org/cd/BBa_F2620/anno1"> 40
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/anno1"/> 41
+
+<sbol:displayId>anno1</sbol:displayId> 42
+
+<sbol:location> 43
+
+<sbol:Range rdf:about="http://partsregistry.org/cd/BBa_F2620/anno1/location1"> 44
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/anno1/location1"/> 45
+
+<sbol:displayId>location1</sbol:displayId> 46
+
+<sbol:start>1</sbol:start> 47
+
+<sbol:end>55</sbol:end> 48
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 49
+
+</sbol:Range> 50
+
+</sbol:location> 51
+
+<sbol:component rdf:resource="http://partsregistry.org/cd/BBa_F2620/pTetR"/> 52
+
+</sbol:SequenceAnnotation> 53
+
+</sbol:sequenceAnnotation> 54
+
+<sbol:sequenceAnnotation>
+######
+
+#shortBOL#
+pTetR : Promotor
+    description = "TetR repressible promoter"
+    #name is auto dervied from the variable name
+    #displayId is auto dervived from the variable name
+    sequence = BBa_R0040
+    Annotate_Sequence_Inline(1,55)
+
+#######
+################################
+
+
+################################
+#SBOL#
+<sbol:component> 46
+
+<sbol:Component rdf:about="http://partsregistry.org/cd/BBa_F2620/ter"> 47
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/ter"/> 48
+
+<sbol:displayId>ter</sbol:displayId> 49
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 50
+
+<sbol:definition rdf:resource="http://partsregistry.org/cd/BBa_B0015"/> 51
+
+</sbol:Component> 52
+
+</sbol:component>
+<sbol:ComponentDefinition rdf:about="http://partsregistry.org/cd/BBa_B0015"> 28
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_B0015"/> 29
+
+<sbol:displayId>BBa_B0015</sbol:displayId> 30
+
+<dcterms:title>BBa_B0015</dcterms:title> 31
+
+<dcterms:description>Double terminator</dcterms:description> 32
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 33
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000141"/> 34
+
+<sbol:sequence rdf:resource="http://partsregistry.org/seq/BBa_B0015"/> 35
+
+</sbol:ComponentDefinition>
+<sbol:sequenceAnnotation> 55
+
+<sbol:SequenceAnnotation rdf:about="http://partsregistry.org/cd/BBa_F2620/anno4"> 56
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/anno4"/> 57
+
+<sbol:displayId>anno4</sbol:displayId> 58
+
+<sbol:location> 59
+
+<sbol:Range rdf:about="http://partsregistry.org/cd/BBa_F2620/anno4/location4"> 60
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/anno4/location4"/> 61
+
+<sbol:displayId>location4</sbol:displayId> 62
+
+<sbol:start>771</sbol:start> 63
+
+<sbol:end>900</sbol:end> 64
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 65
+
+</sbol:Range> 66
+
+</sbol:location> 67
+
+<sbol:component rdf:resource="http://partsregistry.org/cd/BBa_F2620/ter"/> 68
+
+</sbol:SequenceAnnotation> 69
+
+Section B Examples of Serialization Page 72 of 84
+
+</sbol:sequenceAnnotation>
+######
+
+#shortBOL#
+doubleT : Terminator
+    description = "Double terminator"
+    #name is auto dervied from the variable name
+    #displayId is auto dervived from the variable name
+    sequence = BBa_B0015
+    Annotate_Sequence_Inline(771,900)
+
+#######
+################################
+
+################################
+#SBOL#
+<sbol:component> 54
+
+<sbol:Component rdf:about="http://partsregistry.org/cd/BBa_F2620/rbs"> 55
+
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/rbs"/> 1
+
+<sbol:displayId>rbs</sbol:displayId> 2
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 3
+
+<sbol:definition rdf:resource="http://partsregistry.org/cd/BBa_B0034"/> 4
+
+</sbol:Component> 5
+
+</sbol:component>
+<sbol:ComponentDefinition rdf:about="http://partsregistry.org/cd/BBa_B0034"> 55
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_B0034"/> 56
+
+<sbol:displayId>BBa_B0034</sbol:displayId> 57
+
+<dcterms:title>BBa_B0034</dcterms:title> 58
+
+<dcterms:description>RBS based on Elowitz repressilator</dcterms:description> 59
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 60
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000139"/> 61
+
+<sbol:sequence rdf:resource="http://partsregistry.org/seq/BBa_B0034"/> 62
+
+</sbol:ComponentDefinition>
+<sbol:sequenceAnnotation> 2
+
+<sbol:SequenceAnnotation rdf:about="http://partsregistry.org/cd/BBa_F2620/anno2"> 3
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/anno2"/> 4
+
+<sbol:displayId>anno2</sbol:displayId> 5
+
+<sbol:location> 6
+
+<sbol:Range rdf:about="http://partsregistry.org/cd/BBa_F2620/anno2/location2"> 7
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620/anno2/location2"/> 8
+
+<sbol:displayId>location2</sbol:displayId> 9
+
+<sbol:start>56</sbol:start> 10
+
+<sbol:end>68</sbol:end> 11
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 12
+
+</sbol:Range> 13
+
+</sbol:location> 14
+
+<sbol:component rdf:resource="http://partsregistry.org/cd/BBa_F2620/rbs"/> 15
+
+</sbol:SequenceAnnotation> 16
+
+</sbol:sequenceAnnotation>
+######
+
+#shortBOL#
+fRBS : rbs
+    description = "RBS based on Elowitz repressilator"
+    #name is auto dervied from the variable name
+    #displayId is auto dervived from the variable name
+    sequence = BBa_B0034
+    Annotate_Sequence_Inline(56,68)
+
+#######
+################################
+
+##################### Define the Parent Component Definition ##############################
+#SBOL#
+<sbol:ComponentDefinition rdf:about="http://partsregistry.org/cd/BBa_F2620"> 15
+
+<sbol:persistentIdentity rdf:resource="http://partsregistry.org/cd/BBa_F2620"/> 16
+
+<sbol:displayId>BBa_F2620</sbol:displayId> 17
+
+<dcterms:title>BBa_F2620</dcterms:title> 18
+
+<dcterms:description>3OC6HSL -&gt; PoPS Receiver</dcterms:description> 19
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 20
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:00001411"/>
+######
+#shortBOL#
+pops_receiver = DNAComponent
+    role = <SBOL: Receiver>
+    description = "3OC6HSL -&gt; PoPS Receiver"
+    has_component(fRBS)
+    has_component(doubleT)
+    has_component(pLuxR)
+    has_component(pTetR)
+    has_component(luxR)
+#######
+###########################################################################################
