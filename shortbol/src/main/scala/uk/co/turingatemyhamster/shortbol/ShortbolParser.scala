@@ -126,6 +126,6 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
     ~ IndentedInstanceBody).map(shortbol.ConstructorDef.apply _ tupled)
 
 
-  val TopLevel = P((InstanceExp ~ Nl.rep) | (ConstructorDef ~ Nl.rep))
+  val TopLevel: Parser[TopLevel] = P((InstanceExp ~ Nl.rep) | (ConstructorDef ~ Nl.rep))
   val TopLevels = P(TopLevel.rep)
 }

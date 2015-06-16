@@ -134,7 +134,10 @@ object ShortBOLSrc {
 
     val cfi = Ops.constructorsForIndividuals(cstrs, inds)
 
-    val expanded = cfi map (Ops.expand _ tupled)
+    val ex = ExpansionContext(cstrs, Bindings(Map()))
+
+    import ex._
+    val expanded = ex.expansion(raws)(ex.SeqExpander(ex.TopLevelExpander))
 
     println(cstrs)
     println(inds)
@@ -144,6 +147,11 @@ object ShortBOLSrc {
     val pp = new PrettyPrint(System.out)
     for(x <- raws)
       pp.append(x)
+
+    println()
+
+    for(e <- expanded)
+      pp.append(e)
 
   }
 }
