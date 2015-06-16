@@ -123,5 +123,11 @@ class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     append(ni.nested)
   }
 
+  def append(tlss: Seq[TopLevel]): Unit = {
+    for(tls <- tlss) {
+      append(tls)
+      append("\n")
+    }
+  }
 
 }

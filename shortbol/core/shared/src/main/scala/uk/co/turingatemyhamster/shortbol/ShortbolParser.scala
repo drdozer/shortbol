@@ -25,7 +25,7 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
     override def toString = s"&($p)"
   }
 
-  val IndentSpaces = P( fastparse.parsers.Combinators.Repeat(" ", min = indent, delimiter = Pass, until = Pass) )
+  val IndentSpaces = P( " ".rep(indent) )
   val Indent = P( "\n".rep(1) ~ IndentSpaces )
   def IndentBlock[T](p: ShortbolParser => Parser[T]) = P( LookaheadValue("\n".rep(1) ~ IndentSpaces.!) ~ Index ).flatMap{
     case (nextIndent, offsetIndex) =>
@@ -101,7 +101,8 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
 
   val InstanceBody = P((Indent ~ BodyStmt).rep)
 
-  val IndentedInstanceBody = P(IndentBlock(_.InstanceBody) | P("\n").map(_ => Nil))
+  val NoBody = P("\n").map(_ => Nil)
+  val IndentedInstanceBody = P(IndentBlock(_.InstanceBody) | NoBody)
 
   val NestedInstance = InstanceExp.map(shortbol.NestedInstance)
   

@@ -11,5 +11,5 @@ lazy val core = crossProject.settings(
   )
   
 lazy val coreJs = core.js
-lazy val coreJVM = core.jvm
+lazy val coreJVM = core.jvm.settings(packAutoSettings : _*)
 
