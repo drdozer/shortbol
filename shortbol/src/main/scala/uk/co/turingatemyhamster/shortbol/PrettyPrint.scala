@@ -24,6 +24,15 @@ class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     case ConstructorDef(id, args, cstr, body) =>
       append(indentStr)
       append(id)
+      if(args.nonEmpty) {
+        append("(")
+        append(args.head)
+        for(a <- args.tail) {
+          append(", ")
+          append(a)
+        }
+        append(")")
+      }
       append(" => ")
       append(cstr)
       append("\n")

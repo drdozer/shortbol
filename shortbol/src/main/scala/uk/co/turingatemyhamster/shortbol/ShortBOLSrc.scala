@@ -136,8 +136,9 @@ object ShortBOLSrc {
 
     val ex = ExpansionContext(cstrs, Bindings(Map()))
 
-    import ex._
-    val expanded = ex.expansion(raws)(ex.SeqExpander(ex.TopLevelExpander))
+    import Expander.ops._
+
+    val expanded = raws expandWith ex
 
     println(cstrs)
     println(inds)
