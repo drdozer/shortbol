@@ -14,8 +14,8 @@
 cds1
 cds2
 
-posstrand(cds1) # CDS1 is on the positive strand
-negstrand(cds2) # CDS2 is on the negative strand
+onPosStrand(cds1) # CDS1 is on the positive strand
+onNegStrand(cds2) # CDS2 is on the negative strand
 
 !! Do we have mutable variables? !!
 
@@ -38,23 +38,36 @@ CDS1 touches_with CDS2 # CDS1 and CDS2 are touching. CDS1 is on the left and CDS
 CDS1 overlaps_with CDS2 # CDS1 overlaps with CDS2 on the left
 
 CDS1 starts_with CDS2 # CDS1 and CDS2 start at the same position but CDS1 exends further to the right.
-
+     *begins_with*
 CDS1 contains CDS2 # CDS1 fully contains CDS2. CDS2 does not have start or finish positions equal to CDS1
 
 CDS1 finishes_with CDS2 #CDS1 has a start position before CDS2 but they both have the same finish position.
-
+     *ends_with*
 CDS1 = CDS2 # Both CDS1 and CDS2 are the same.
 
 
-## Sequence/Strand Specific Language (Language which can compare components on both the opposite and same strand) ##
+## Sequence/Strand Specific Language (Language which can compare components on both the opposite and same strand. If strandedness is not assigned then the above rules will apply) ##
 
-CDS1 same_strand CDS2  #CDS1 must be on the same stand as CDS2
+CDS1 same_strand_as CDS2  #CDS1 must be on the same stand as CDS2
 
-CDS1 opposite_strand CDS2 #CDS2 must be on the opposite strand as CDS2
+CDS1 opposite_strand_to CDS2 #CDS1 must be on the opposite strand as CDS2
 
-CDS1 < CDS2 #CDS1 precedes the 5prime of CDS2. If CDS1 is on the positive strand, the to
+CDS1 < CDS2 #CDS1 precedes the 5prime of CDS2 (upstream). If CDS1 is on the positive strand it is on the left of CDS2 else if CDS1 is on the negative strand then it is to the right of CDS2
 
-CDS1 precedes_3 CDS2
+CDS1 > CDS2 #CDS1 comes after CDS2(downstream). if CDS1 is on the positive strand it is on the right of CDS2 else if CDS1 is on the negative strand then it is to the left of CDS2
 
+CDS1 touches_3prime_of CDS2 #if both CDS1 and CDS2 are on the same strand then the 5' end of CDS1 is touching the 3'end of CDS2. If they are on opposite strands then the 3' end of CDS1 is touching the 3' end of CDS2.
 
+CDS1 touches_5prime_of CDS2 #if both CDS1 and CDS2 are on the same strand then the 3' end of CDS1 is touching the 5'end of CDS2. If they are on opposite strand then the 5' end of CDS1 is touching the 5' end of CDS2
 
+CDS1 overlaps_5prime_of CDS2 #if both CDS1 and CDS2 are on the same strand then the 3'end of CDS1 is overlapping with the 5'end of CDS2. If they are opposite strands then the 5'end of CDS1 is overlaping with 5'end of CDS2
+
+CDS1 overlaps_3prime_of CDS2 #if both CDS1 and CDS2 are on the same strand then the 5'end of CDS1 is overlapping with the 3'end of CDS2. If they are on opposite strands then the 3' end of CDS1 is overlapping with the 3'end of CDS2
+
+CDS1 starts_5prime_of CDS2 #if both CDS1 and CDS2 are on the same strand then both CDS1 and CDS2 share the same 5' start position but CDS2 extends further downstream of CDS1. If they are on opposite strands then 3' end position of CDS1 is equal to the 5' start position of CDS2 and CDS2 extends further upstream of CDS1
+
+CDS1 finishes_3prime_of CDS2 #if both CDS1 and CDS2 are on the same strand then both CDS1 and CDS2 share the same 3' end position but CDS2 extends further upstream of CDS1. If they are on opposite strand then  the 5' start position of CDS1 is equal to the 3' end position of CDS2 and CDS2 extends further downstream
+
+CDS1 contains CDS2 # CDS1 fully contains CDS2. CDS2 does not have start or finish positions equal to CDS1
+
+CDS1 = CDS2 # Both CDS1 and CDS2 have the same length and position in the sequence. Set CDS1 opposite_strand CDS2 to say they are equal but on opposite strands. (defaults to both being on the same strand)

@@ -18,3 +18,4 @@ terminator : Terminator
 cds_rna : CDS_RNA
 
 proteinProduction : ProteinProduction(cds, cds_rna, protein)
+
