@@ -70,14 +70,15 @@ object Expander {
     def expandWith(id: Identifier, ec: ExpansionContext): Identifier = id match {
       case ln: LocalName =>
         ec.bndgs.bs.get(ln).collect{ case i : Identifier => i } getOrElse id
+      case _ => id
     }
   }
 
   implicit val ValueExpExpander: Expander[ValueExp] = new Expander[ValueExp] {
     def expandWith(ve: ValueExp, ec: ExpansionContext): ValueExp = ve match {
       case ln: LocalName =>
-        println(s"Replacing ${ve} as ${ln} with ${ec.bndgs.bs.get(ln)} from ${ec.bndgs.bs}")
         ec.bndgs.bs.get(ln) getOrElse ve
+      case _ => ve
     }
   }
 
@@ -87,4 +88,5 @@ case class ExpansionContext(cstrs: Constructors, bndgs: Bindings) {
 
   def withContext(names: Seq[LocalName], values: Seq[ValueExp]) =
     copy(cstrs, bndgs.copy(bndgs.bs ++ (names zip values)))
+
 }
