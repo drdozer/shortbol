@@ -1,0 +1,79 @@
+import genomic_generics
+
+##################### Define the sequences ##############################
+
+BBa_B0034 : DNASequence
+    elements = "aaagaggagaaa"
+
+BBa_R0040 : DNASequence
+    elements = "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac"
+
+BBa_C0062 : DNASequence
+    elements = "atgcttatctgatatgactaaaatggtacattgtgaatattatttactcgcgatcatttatcctcattcta
+    tggttaaatctgatatttcaatcctagataattaccctaaaaaatggaggcaatattatgatgacgctaatttaataaaatatgat
+    cctatagtagattattctaactccaatcattcaccaattaattggaatatatttgaaaacaatgctgtaaataaaaaatctccaaa
+    tgtaattaaagaagcgaaaacatcaggtcttatcactgggtttagtttccctattcatacggctaacaatggcttcggaatgctta
+    gttttgcacattcagaaaaagacaactatatagatagtttatttttacatgcgtgtatgaacataccattaattgttccttctcta
+    gttgataattatcgaaaaataaatatagcaaataataaatcaaacaacgatttaaccaaaagagaaaaagaatgtttagcgtgggc
+    atgcgaaggaaaaagctcttgggatatttcaaaaatattaggttgcagtgagcgtactgtcactttccatttaaccaatgcgcaaa
+    tgaaactcaatacaacaaaccgctgccaaagtatttctaaagcaattttaacaggagcaattgattgcccatactttaaaaattaa
+    taacactgatagtgctagtgtagatcac"
+
+BBa_R0062 : DNASequence
+    elements = "acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa"
+
+
+BBa_B0015 : DNASequence
+    elements = "ccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttata"
+
+#########################################################################
+
+##################### Define the Components ##############################
+
+pLuxR : Promotor
+    description = "LuxR inducible promoter"
+    #name is auto dervied from the variable name
+    #displayId is auto dervived from the variable name
+    sequence = BBa_R0062
+    Annotate_Sequence_Inline(901,956)
+
+luxR : cds
+    description = "luxR coding sequence"
+    #name is auto dervied from the variable name
+    #displayId is auto dervived from the variable name
+    sequence = BBa_C0062
+    Annotate_Sequence_Inline(69,770)
+
+pTetR : Promotor
+    description = "TetR repressible promoter"
+    #name is auto dervied from the variable name
+    #displayId is auto dervived from the variable name
+    sequence = BBa_R0040
+    Annotate_Sequence_Inline(1,55)
+
+doubleT : Terminator
+    description = "Double terminator"
+    #name is auto dervied from the variable name
+    #displayId is auto dervived from the variable name
+    sequence = BBa_B0015
+    Annotate_Sequence_Inline(771,900)
+
+fRBS : rbs
+    description = "RBS based on Elowitz repressilator"
+    #name is auto dervied from the variable name
+    #displayId is auto dervived from the variable name
+    sequence = BBa_B0034
+    Annotate_Sequence_Inline(56,68)
+
+########################################################################
+
+##################### Define the Parent Component Definition ##############################
+pops_receiver = DNAComponent
+    role = <SBOL: Receiver>
+    description = "3OC6HSL -&gt; PoPS Receiver"
+    has_component(fRBS)
+    has_component(doubleT)
+    has_component(pLuxR)
+    has_component(pTetR)
+    has_component(luxR)
+###########################################################################################

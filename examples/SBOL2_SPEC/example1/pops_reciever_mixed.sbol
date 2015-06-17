@@ -18,7 +18,7 @@ import genomic_generics
 ######
 
 #shortBOL#
-BBa_B0034 : dna
+BBa_B0034 : DNASequence
     elements = "aaagaggagaaa"
 ######
 ################################
@@ -38,7 +38,7 @@ BBa_B0034 : dna
 </sbol:Sequence>
 ######
 #shortBOL#
-BBa_R0040 : dna
+BBa_R0040 : DNASequence
     elements = "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac"
 ######
 ################################
@@ -74,7 +74,7 @@ taacactgatagtgctagtgtagatcac</sbol:elements> 18
 </sbol:Sequence>
 ######
 #shortBOL#
-BBa_C0062 : dna
+BBa_C0062 : DNASequence
     elements = "atgcttatctgatatgactaaaatggtacattgtgaatattatttactcgcgatcatttatcctcattcta
     tggttaaatctgatatttcaatcctagataattaccctaaaaaatggaggcaatattatgatgacgctaatttaataaaatatgat
     cctatagtagattattctaactccaatcattcaccaattaattggaatatatttgaaaacaatgctgtaaataaaaaatctccaaa
@@ -102,7 +102,7 @@ BBa_C0062 : dna
 </sbol:Sequence>
 ######
 #shortBOL#
-BBa_R0062 : dna
+BBa_R0062 : DNASequence
     elements = "acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa"
 ######
 ################################
@@ -124,7 +124,7 @@ aacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttata</sbol:elements> 31
 </sbol:Sequence>
 ######
 #shortBOL#
-BBa_B0015 : dna
+BBa_B0015 : DNASequence
     elements = "ccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttata"
 ######
 ################################
