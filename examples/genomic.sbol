@@ -1,7 +1,9 @@
 
+############### Generic Components ##################
+
 #Common sequence annotations
 DNASequence => Sequence
-   encoding = <IUPAC DNA>
+   encoding = <SBOL:IUPACDNA>
 
 # DNA/RNA/Protein
 
@@ -28,13 +30,13 @@ CDS => DnaComponent
 Terminator => DnaComponent
   role = <SBOL:Terminator>
 
-
 # Common RNA components
 
 CDS_RNA => RnaComponent
   role = <SBOL:CDS>
+######################################################
 
-# Common annotations
+############### Generic Annotations ##################
 
 INLINE_RANGE => Range
     orientation = <SBOL:inline>
@@ -51,36 +53,108 @@ RevComp(s,e) => SequenceAnnotation
     location: REVERSE_COMP_RANGE
         start = s
         end = e
+######################################################
 
-# Common Protein components
+############### Generic Participations ###############
 
+driver(x) => Paricipation
+   participant = x
+   role = <SBOL:driver>
+
+driven(x) => Participation
+   participant = x
+   role = <SBOL:driven>
+
+repressor(x) => Participation
+   participant = x
+   role = <SBOL:Repressor>
+
+repressed(x) => Participation
+   participant = x
+   role = <SBOL:Repressed>
+
+activated(x) => Participation
+    participant = x
+    role = <SBOL:activated>
+
+activator(x) => Participation
+    participant = x
+    role = <SBOL:activator>
+
+transcription_template(x) => Participation
+   participant = x
+   role =<SBOL:Transcriptional_template>
+
+transcription_product(x) =>
+   participant = x
+   role = <SBOL:Transcriptional_product>
+
+translation_template(x) =>
+   participant = x
+   role = <SBOL:Translation_template>
+
+translation_product(x) =>
+   participant = x
+   role = <SBOL:Translation_product>
+
+inhibitor(x) =>
+   participant = x
+   role = <SBOL:http://identifiers.org/biomodels.sbo/SBO:0000020> #inhibitor
+
+inhibited(x) =>
+   participant = x
+   role = <SBOL:http://identifiers.org/biomodels.sbo/SBO:0000598> #Promotor
+
+######################################################
+
+############### Generic Interactions ##################
 # Transcription/translation
 
 Transcription(cds, cds_rna) => Interaction
   type = <SBOL:Transcription>
-  participation
-    participant = cds
-    role = <SBOL:Transcriptional_template>
-  participation
-    participant = cds_rna
-    role = <SBOL:Transcriptional_product>
+  transcription_template(cds)
+  transcription_product(cds_rna)
 
 Translation(cds_rna, protein) => Interaction
   type = <SBOL:Translation>
-  participation
-    participant = cds_rna
-    role = <SBOL:Translation_template>
-  participation
-    participant = protein
-    role = <SBOL:Translation_product>
+  translation_template(cds_rna)
+  translation_product(protein)
 
 ProteinProduction(cds, cds_rna, protein) => Interaction*
   Transcription(cds, cds_rna)
   Translation(cds_rna, protein)
 
-activates(tf, p) => Interaction
-  type = <SBOL:...
+activates(tf, promotor) => Interaction
+  type = <SBOL:Activates>
+  activator(tf)
+  activated(promotor)
 
-md : ModuleDefinition
-  lac activates pLac
-  #activates(lac, pLac)
+drives(promotor,cds) => Interaction
+   type = <SBOL:Drives>
+   driver(promotor)
+   driven(cds)
+
+represses(a,b) => Interaction
+   type = <SBOL:Represses>
+   repressor(a)
+   repressed(b)
+
+inhibits(tf,promotor) => Interaction
+   type = <SBOL:http://identifiers.org/biomodels.sbo/SBO:0000169> #inhibits
+   inhibitor(tf)
+   inhibited(promotor)
+
+
+######################################################
+
+############### Generic Module Definitons ##################
+
+InverterModule => ModuleDefinition
+    role = <SBOL:http://parts.igem.org/cgi/partsdb/pgroup.cgi?pgroup=inverter>
+
+ToggleModule => ModuleDefinition
+    role = <SBOL:http://sbolstandard.org/example/module_role/toggle_switch>
+
+
+############################################################
+
