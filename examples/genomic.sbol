@@ -39,27 +39,23 @@ CDS_RNA => RnaComponent
 
 INLINE_LOCATION => Location
     range
-        orientation = <SBOL: inline>
+        orientation = <SBOL:inline>
 
 REVERSE_COMP_LOCATION => Location
     range
-        orientation = <SBOL: reverseComplement>
+        orientation = <SBOL:reverseComplement>
 
-Annotate_Sequence_Inline(s,e) => SequenceAnnotation
+Inline(s,e) => SequenceAnnotation
     location : INLINE_LOCATION
         range
             start = s
             end = e
 
-Annotate_Sequence_Reverse(s,e) => SequenceAnnotation
-    location : REVERSE_LOCATION
+RevComp(s,e) => SequenceAnnotation
+    location: REVERSE_COMP_LOCATION
         range
             start = s
             end = e
-
-has_component(x) => subComponent
-    x
-
 
 # Common Protein components
 
