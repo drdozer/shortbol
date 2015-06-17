@@ -25,8 +25,8 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
     override def toString = s"&($p)"
   }
 
-  val IndentSpaces = P( " ".rep(indent) )
-  val Indent = P( "\n".rep(1) ~ IndentSpaces )
+  def IndentSpaces = P( " ".rep(indent) )
+  def Indent = P( "\n".rep(1) ~ IndentSpaces )
   def IndentBlock[T](p: ShortbolParser => Parser[T]) = P( LookaheadValue("\n".rep(1) ~ IndentSpaces.!) ~ Index ).flatMap{
     case (nextIndent, offsetIndex) =>
       if (nextIndent.length <= indent) {
@@ -37,96 +37,97 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
       }
   }
 
-  val Colon = P(":")
-  val Underscore = P("_")
-  val Period = P(".")
-  val Hyphen = P("-")
-  val Tilde = P("~")
-  val Lt = P("<")
-  val Gt = P(">")
-  val Bang = P("!")
-  val Star = P("*")
-  val SQuote = P("'")
-  val DQuote = P("\"")
-  val DQuote_¬ = P(CharPred(_ != '"'))
-  val LEllipse = P("(")
-  val REllipse = P(")")
-  val SemiColon = P(";")
-  val At = P("@")
-  val Amph = P("&")
-  val Eq = P("=")
-  val Plus = P("+")
-  val Dollar = P("$")
-  val Coma = P(",")
-  val Question = P("?")
-  val Percent = P("%")
-  val Hash = P("#")
-  val LBox = P("[")
-  val RBox = P("]")
-  val BackSlash = P("/")
-  val Space = P(" ")
-  val Nl = P("\n")
+  def Colon = P(":")
+  def Underscore = P("_")
+  def Period = P(".")
+  def Hyphen = P("-")
+  def Tilde = P("~")
+  def Lt = P("<")
+  def Gt = P(">")
+  def Bang = P("!")
+  def Star = P("*")
+  def SQuote = P("'")
+  def DQuote = P("\"")
+  def DQuote_¬ = P(CharPred(_ != '"'))
+  def LEllipse = P("(")
+  def REllipse = P(")")
+  def SemiColon = P(";")
+  def At = P("@")
+  def Amph = P("&")
+  def Eq = P("=")
+  def Plus = P("+")
+  def Dollar = P("$")
+  def Coma = P(",")
+  def Question = P("?")
+  def Percent = P("%")
+  def Hash = P("#")
+  def LBox = P("[")
+  def RBox = P("]")
+  def BackSlash = P("/")
+  def Space = P(" ")
+  def Nl = P("\n")
 
-  val RightArr = P("=>")
+  def RightArr = P("=>")
 
 
-  val Letter = P( CharPred(isLetter) )
-  val Digit = P( CharPred(isDigit) )
+  def Letter = P( CharPred(isLetter) )
+  def Digit = P( CharPred(isDigit) )
 
-  val NCName0 = P( Letter | Underscore )
-  val NCNameChar = P( NCName0 | Digit | Period | Hyphen )
-  val NCName = P( NCName0 ~ NCNameChar.rep )
+  def NCName0 = P( Letter | Underscore )
+  def NCNameChar = P( NCName0 | Digit | Period | Hyphen )
+  def NCName = P( NCName0 ~ NCNameChar.rep )
 
-  val LocalName = P( NCName.! )
+  def LocalName = P( NCName.! )
     .map(shortbol.LocalName.apply)
-  val NSPrefix = P( NCName.! )
+  def NSPrefix = P( NCName.! )
     .map(shortbol.NSPrefix.apply)
-  val QName = P(NSPrefix ~ Colon ~ LocalName)
+  def QName = P(NSPrefix ~ Colon ~ LocalName)
     .map(shortbol.QName.apply _ tupled)
 
-  val UrlUnreserved = P( NCNameChar | Tilde )
-  val UrlReserved = P( Bang | Star | SQuote | LEllipse | REllipse | SemiColon | Colon | At | Amph | Eq | Plus | Dollar
+  def UrlUnreserved = P( NCNameChar | Tilde )
+  def UrlReserved = P( Bang | Star | SQuote | LEllipse | REllipse | SemiColon | Colon | At | Amph | Eq | Plus | Dollar
     | Coma | Question | Percent | Hash | LBox | RBox | BackSlash)
 
-  val Url = P( (UrlUnreserved | UrlReserved).rep.! ).map(shortbol.Url)
+  def Url = P( (UrlUnreserved | UrlReserved).rep.! ).map(shortbol.Url)
 
-  val QuotedIdentifier = P(Lt ~ (QName | Url) ~ Gt)
-  val Identifier = P( QuotedIdentifier | LocalName )
+  def QuotedIdentifier = P(Lt ~ (QName | Url) ~ Gt)
+  def Identifier = P( QuotedIdentifier | LocalName )
 
-  val StringLiteral = P(DQuote ~ DQuote_¬.rep.! ~ DQuote).map(shortbol.StringLiteral)
-  val IntegerLiteral = P(Digit.rep(1).!).map(_.toInt).map(shortbol.IntegerLiteral)
-  val ValueExp = P(Identifier | StringLiteral | IntegerLiteral)
+  def StringLiteral = P(DQuote ~ DQuote_¬.rep.! ~ DQuote).map(shortbol.StringLiteral)
+  def IntegerLiteral = P(Digit.rep(1).!).map(_.toInt).map(shortbol.IntegerLiteral)
+  def ValueExp = P(Identifier | StringLiteral | IntegerLiteral)
 
-  val Assignment = P(Identifier ~ Space.rep ~ Eq ~ Space.rep ~ ValueExp).map(shortbol.Assignment.apply _ tupled)
+  def Assignment = P(Identifier ~ Space.rep ~ Eq ~ Space.rep ~ ValueExp).map(shortbol.Assignment.apply _ tupled)
 
-  val InstanceBody = P((Indent ~ BodyStmt).rep)
+  def InstanceBody = P((Indent ~ BodyStmt).rep)
 
-  val NoBody = P("\n").map(_ => Nil)
-  val IndentedInstanceBody = P(IndentBlock(_.InstanceBody) | NoBody)
+  def NoBody = P("\n").map(_ => Nil)
+  def IndentedInstanceBody = P(IndentBlock(_.InstanceBody) | NoBody)
 
-  val NestedInstance = InstanceExp.map(shortbol.NestedInstance)
-  
-  val NestedAssignment = P(Identifier ~ Space.rep
+  def NestedInstance = InstanceExp.map(shortbol.NestedInstance)
+
+  def NestedAssignment = P(Identifier ~ Space.rep
     ~ IndentedInstanceBody).map(shortbol.NestedAssignment.apply _ tupled)
 
-  val ComaSep = P(Space.rep ~ Coma ~ Space.rep)
-  val ArgList = P(LEllipse ~ LocalName.rep(0, ComaSep) ~ REllipse)
-  val ArgListO = P(ArgList | Pass.map(_ => Nil))
+  def ComaSep = P(Space.rep ~ Coma ~ Space.rep)
+  def NoArgs = P(Pass).map(_ => Nil)
+  def ArgList = P(LEllipse ~ LocalName.rep(0, ComaSep) ~ REllipse)
+  def ArgListO = P(ArgList | NoArgs)
 
-  val ValueList = P(LEllipse ~ ValueExp.rep(0, ComaSep) ~ REllipse)
-  val ValueListO = P(ValueList | Pass.map(_ => Nil))
-  
-  val TpeConstructor = P(Identifier ~ Space.rep ~ ValueListO).map(shortbol.TpeConstructor.apply _ tupled)
+  def ValueList = P(LEllipse ~ ValueExp.rep(0, ComaSep) ~ REllipse)
+  def ValueListO = P(ValueList | NoArgs)
 
-  lazy val InstanceExp: Parser[shortbol.InstanceExp] = P(Identifier ~ Space.rep ~ Colon ~ Space.rep ~ TpeConstructor ~ Space.rep
+  def TpeConstructor = P(Identifier ~ Space.rep ~ ValueListO).map(shortbol.TpeConstructor.apply _ tupled)
+
+  def InstanceExp: Parser[shortbol.InstanceExp] = P(Identifier ~ Space.rep ~ Colon ~ Space.rep ~ TpeConstructor ~ Space.rep
     ~ IndentedInstanceBody).map(shortbol.InstanceExp.apply _ tupled)
 
-  lazy val BodyStmt: Parser[shortbol.BodyStmt] = P(Assignment | NestedInstance | NestedAssignment)
+  def BodyStmt: Parser[shortbol.BodyStmt] = P(Assignment | NestedInstance | NestedAssignment)
 
-  val ConstructorDef = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~ Space.rep ~ TpeConstructor ~ Space.rep
+  def ConstructorDef = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~ Space.rep ~ TpeConstructor ~ Space.rep
     ~ IndentedInstanceBody).map(shortbol.ConstructorDef.apply _ tupled)
 
 
-  val TopLevel: Parser[TopLevel] = P((InstanceExp ~ Nl.rep) | (ConstructorDef ~ Nl.rep))
-  val TopLevels = P(TopLevel.rep)
+  def TopLevel: Parser[TopLevel] = P((InstanceExp ~ Nl.rep) | (ConstructorDef ~ Nl.rep))
+  def TopLevels = P(TopLevel.rep)
 }
