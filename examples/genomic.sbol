@@ -14,7 +14,6 @@ RnaComponent => ComponentDefinition
 ProteinComponent => ComponentDefinition
   type = <SBOL:Protein>
 
-
 # Common DNA components
 
 Promoter => DnaComponent
@@ -37,31 +36,25 @@ CDS_RNA => RnaComponent
 
 # Common annotations
 
-INLINE_LOCATION => Location
-    range
-        orientation = <SBOL:inline>
+INLINE_RANGE => Range
+    orientation = <SBOL:inline>
 
-REVERSE_COMP_LOCATION => Location
-    range
-        orientation = <SBOL:reverseComplement>
+REVERSE_COMP_RANGE => Range
+    orientation = <SBOL:reverseComplement>
 
 Inline(s,e) => SequenceAnnotation
-    location : INLINE_LOCATION
-        range
-            start = s
-            end = e
+    location : INLINE_RANGE
+        start = s
+        end = e
 
 RevComp(s,e) => SequenceAnnotation
-    location: REVERSE_COMP_LOCATION
-        range
-            start = s
-            end = e
+    location: REVERSE_COMP_RANGE
+        start = s
+        end = e
 
 # Common Protein components
 
-
 # Transcription/translation
-
 
 Transcription(cds, cds_rna) => Interaction
   type = <SBOL:Transcription>
