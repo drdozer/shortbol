@@ -1,0 +1,1685 @@
+import genomic_generics
+
+##################### Define the sequences ##############################
+
+#########################################################
+#############SBOL###############
+<sbol:Sequence rdf:about="http://www.virtualparts.org/part/BBa_J61101"> 8
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/BBa_J61101"/> 9
+
+<sbol:displayId>BBa_J61101</sbol:displayId> 10
+
+<sbol:elements>aaagacaggacc</sbol:elements> 11
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 12
+
+</sbol:Sequence>
+################################
+
+###########shortBOL#############
+BBa_J61101_seq : DNASequence
+    elements = "aaagacaggacc"
+######
+#########################################################
+#############SBOL###############
+<sbol:Sequence rdf:about="http://www.virtualparts.org/part/BBa_J61120"> 14
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/BBa_J61120"/> 15
+
+<sbol:displayId>BBa_J61120</sbol:displayId> 16
+
+<sbol:elements>aaagacaggacc</sbol:elements> 17
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 18
+
+</sbol:Sequence>
+################################
+###########shortBOL#############
+BBa_J61120_seq : DNASequence
+    elements = "aaagacaggacc"
+################################
+#########################################################
+#############SBOL###############
+<sbol:Sequence rdf:about="http://www.virtualparts.org/part/BBa_E0040"> 20
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/BBa_E0040"/> 21
+
+<sbol:displayId>BBa_E0040</sbol:displayId> 22
+
+<sbol:elements>atgcgtaaaggagaagaacttttcactggagttgtcccaattcttgttgaattagatggtgatgttaatgg 23
+
+gcacaaattttctgtcagtggagagggtgaaggtgatgcaacatacggaaaacttacccttaaatttatttgcactactggaaaac 24
+
+tacctgttccatggccaacacttgtcactactttcggttatggtgttcaatgctttgcgagatacccagatcatatgaaacagcat 25
+
+gactttttcaagagtgccatgcccgaaggttatgtacaggaaagaactatatttttcaaagatgacgggaactacaagacacgtgc 26
+
+tgaagtcaagtttgaaggtgatacccttgttaatagaatcgagttaaaaggtattgattttaaagaagatggaaacattcttggac 27
+
+acaaattggaatacaactataactcacacaatgtatacatcatggcagacaaacaaaagaatggaatcaaagttaacttcaaaatt 28
+
+agacacaacattgaagatggaagcgttcaactagcagaccattatcaacaaaatactccaattggcgatggccctgtccttttacc 29
+
+agacaaccattacctgtccacacaatctgccctttcgaaagatcccaacgaaaagagagaccacatggtccttcttgagtttgtaa 30
+
+cagctgctgggattacacatggcatggatgaactatacaaataataa</sbol:elements> 31
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 32
+
+</sbol:Sequence>
+################################
+###########shortBOL#############
+BBa_E0040_seq : DNASequence
+    elements = "atgcgtaaaggagaagaacttttcactggagttgtcccaattcttgttgaattagatggtgatgttaatgg
+    gcacaaattttctgtcagtggagagggtgaaggtgatgcaacatacggaaaacttacccttaaatttatttgcactactggaaaac
+    tacctgttccatggccaacacttgtcactactttcggttatggtgttcaatgctttgcgagatacccagatcatatgaaacagcat
+    gactttttcaagagtgccatgcccgaaggttatgtacaggaaagaactatatttttcaaagatgacgggaactacaagacacgtgc
+    tgaagtcaagtttgaaggtgatacccttgttaatagaatcgagttaaaaggtattgattttaaagaagatggaaacattcttggac
+    acaaattggaatacaactataactcacacaatgtatacatcatggcagacaaacaaaagaatggaatcaaagttaacttcaaaatt
+    agacacaacattgaagatggaagcgttcaactagcagaccattatcaacaaaatactccaattggcgatggccctgtccttttacc
+    agacaaccattacctgtccacacaatctgccctttcgaaagatcccaacgaaaagagagaccacatggtccttcttgagtttgtaa
+    cagctgctgggattacacatggcatggatgaactatacaaataataa"
+################################
+#########################################################
+#############SBOL###############
+<sbol:Sequence rdf:about="http://www.virtualparts.org/part/ECK120033736"> 34
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/ECK120033736"/> 35
+
+<sbol:displayId>ECK120033736</sbol:displayId> 36
+
+<sbol:elements>ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggtt 37
+
+ttcttttctcttctcaa</sbol:elements> 38
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 39
+
+</sbol:Sequence>
+################################
+###########shortBOL#############
+ECK120033736_seq : DNASequence
+    elements = "ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa"
+################################
+#########################################################
+#############SBOL###############
+<sbol:Sequence rdf:about="http://www.virtualparts.org/part/BBa_R0010"> 41
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/BBa_R0010"/> 42
+
+<sbol:displayId>BBa_R0010</sbol:displayId> 43
+
+<sbol:elements>tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac</sbol:elements> 44
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 45
+
+</sbol:Sequence>
+################################
+###########shortBOL#############
+BBa_R0010_seq : DNASequence
+    elements = "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac"
+################################
+#########################################################
+#############SBOL###############
+<sbol:Sequence rdf:about="http://www.virtualparts.org/part/BBa_R0040"> 47
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/BBa_R0040"/> 48
+
+<sbol:displayId>BBa_R0040</sbol:displayId> 49
+
+<sbol:elements>tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac</sbol:elements> 50
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 51
+
+</sbol:Sequence>
+################################
+###########shortBOL#############
+BBa_R0040_seq : DNASequence
+    elements = "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac"
+################################
+#########################################################
+#############SBOL###############
+<sbol:Sequence rdf:about="http://www.virtualparts.org/part/BBa_J61130"> 53
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/BBa_J61130"/> 54
+
+<sbol:displayId>BBa_J61130</sbol:displayId> 55
+
+<sbol:elements>aaagaaacgaca</sbol:elements> 56
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 57
+
+</sbol:Sequence>
+######
+###########shortBOL#############
+BBa_J61130_seq : DNASequence
+    elements = "aaagaaacgaca"
+################################
+#########################################################
+#############SBOL###############
+<sbol:Sequence rdf:about="http://www.virtualparts.org/part/BBa_C0040"> 59
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/BBa_C0040"/> 60
+
+<sbol:displayId>BBa_C0040</sbol:displayId> 61
+
+<sbol:elements>atgtccagattagataaaagtaaagtgattaacagcgcattagagctgcttaatgaggtcggaatcgaagg 62
+
+tttaacaacccgtaaactcgcccagaagctaggtgtagagcagcctacattgtattggcatgtaaaaaataagcgggctttgctcg 63
+
+acgccttagccattgagatgttagataggcaccatactcacttttgccctttagaaggggaaagctggcaagattttttacgtaat 64
+
+aacgctaaaagttttagatgtgctttactaagtcatcgcgatggagcaaaagtacatttaggtacacggcctacagaaaaacagta 65
+
+tgaaactctcgaaaatcaattagcctttttatgccaacaaggtttttcactagagaatgcattatatgcactcagcgctgtggggc 66
+
+attttactttaggttgcgtattggaagatcaagagcatcaagtcgctaaagaagaaagggaaacacctactactgatagtatgccg 67
+
+ccattattacgacaagctatcgaattatttgatcaccaaggtgcagagccagccttcttattcggccttgaattgatcatatgcgg 68
+
+attagaaaaacaacttaaatgtgaaagtgggtccgctgcaaacgacgaaaactacgctttagtagcttaataa</sbol:elemen 69
+
+ts> 1
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 2
+
+</sbol:Sequence>
+################################
+###########shortBOL#############
+BBa_C0040_seq : DNASequence
+    elements = "atgtccagattagataaaagtaaagtgattaacagcgcattagagctgcttaatgaggtcggaatcgaagg
+    tttaacaacccgtaaactcgcccagaagctaggtgtagagcagcctacattgtattggcatgtaaaaaataagcgggctttgctcg
+    acgccttagccattgagatgttagataggcaccatactcacttttgccctttagaaggggaaagctggcaagattttttacgtaat
+    aacgctaaaagttttagatgtgctttactaagtcatcgcgatggagcaaaagtacatttaggtacacggcctacagaaaaacagta
+    tgaaactctcgaaaatcaattagcctttttatgccaacaaggtttttcactagagaatgcattatatgcactcagcgctgtggggc
+    attttactttaggttgcgtattggaagatcaagagcatcaagtcgctaaagaagaaagggaaacacctactactgatagtatgccg
+    ccattattacgacaagctatcgaattatttgatcaccaaggtgcagagccagccttcttattcggccttgaattgatcatatgcgg
+    attagaaaaacaacttaaatgtgaaagtgggtccgctgcaaacgacgaaaactacgctttagtagcttaataa"
+################################
+#########################################################
+#############SBOL###############
+<sbol:Sequence rdf:about="http://www.virtualparts.org/part/BBa_C0012"> 4
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/BBa_C0012"/> 5
+
+<sbol:displayId>BBa_C0012</sbol:displayId> 6
+
+<sbol:elements>atggtgaatgtgaaaccagtaacgttatacgatgtcgcagagtatgccggtgtctcttatcagaccgtttccc 7
+
+gcgtggtgaaccaggccagccacgtttctgcgaaaacgcgggaaaaagtggaagcggcgatggcggagctgaattacattcccaaccg 8
+
+cgtggcacaacaactggcgggcaaacagtcgttgctgattggcgttgccacctccagtctggccctgcacgcgccgtcgcaaattgtc 9
+
+gcggcgattaaatctcgcgccgatcaactgggtgccagcgtggtggtgtcgatggtagaacgaagcggcgtcgaagcctgtaaagcgg 10
+
+cggtgcacaatcttctcgcgcaacgcgtcagtgggctgatcattaactatccgctggatgaccaggatgccattgctgtggaagctgc 11
+
+ctgcactaatgttccggcgttatttcttgatgtctctgaccagacacccatcaacagtattattttctcccatgaagacggtacgcga 12
+
+ctgggcgtggagcatctggtcgcattgggtcaccagcaaatcgcgctgttagcgggcccattaagttctgtctcggcgcgtctgcgtc 13
+
+tggctggctggcataaatatctcactcgcaatcaaattcagccgatagcggaacgggaaggcgactggagtgccatgtccggttttca 14
+
+acaaaccatgcaaatgctgaatgagggcatcgttcccactgcgatgctggttgccaacgatcagatggcgctgggcgcaatgcgcgcc 15
+
+attaccgagtccgggctgcgcgttggtgcggatatctcggtagtgggatacgacgataccgaagacagctcatgttatatcccgccgt 16
+
+taaccaccatcaaacaggattttcgcctgctggggcaaaccagcgtggaccgcttgctgcaactctctcagggccaggcggtgaaggg 17
+
+caatcagctgttgcccgtctcactggtgaaaagaaaaaccaccctggcgcccaatacgcaaaccgcctctccccgcgcgttggccgat 18
+
+tcattaatgcagctggcacgacaggtttcccgactggaaagcgggcaggctgcaaacgacgaaaactacgctttagtagcttaataa</sbol:elements> 19
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 20
+
+</sbol:Sequence>
+################################
+###########shortBOL#############
+BBa_C0012_seq : DNASequence
+    elements = "atggtgaatgtgaaaccagtaacgttatacgatgtcgcagagtatgccggtgtctcttatcagaccgtttccc
+    gcgtggtgaaccaggccagccacgtttctgcgaaaacgcgggaaaaagtggaagcggcgatggcggagctgaattacattcccaaccg
+    cgtggcacaacaactggcgggcaaacagtcgttgctgattggcgttgccacctccagtctggccctgcacgcgccgtcgcaaattgtc
+    gcggcgattaaatctcgcgccgatcaactgggtgccagcgtggtggtgtcgatggtagaacgaagcggcgtcgaagcctgtaaagcgg
+    cggtgcacaatcttctcgcgcaacgcgtcagtgggctgatcattaactatccgctggatgaccaggatgccattgctgtggaagctgc
+    ctgcactaatgttccggcgttatttcttgatgtctctgaccagacacccatcaacagtattattttctcccatgaagacggtacgcga
+    ctgggcgtggagcatctggtcgcattgggtcaccagcaaatcgcgctgttagcgggcccattaagttctgtctcggcgcgtctgcgtc
+    tggctggctggcataaatatctcactcgcaatcaaattcagccgatagcggaacgggaaggcgactggagtgccatgtccggttttca
+    acaaaccatgcaaatgctgaatgagggcatcgttcccactgcgatgctggttgccaacgatcagatggcgctgggcgcaatgcgcgcc
+    attaccgagtccgggctgcgcgttggtgcggatatctcggtagtgggatacgacgataccgaagacagctcatgttatatcccgccgt
+    taaccaccatcaaacaggattttcgcctgctggggcaaaccagcgtggaccgcttgctgcaactctctcagggccaggcggtgaaggg
+    caatcagctgttgcccgtctcactggtgaaaagaaaaaccaccctggcgcccaatacgcaaaccgcctctccccgcgcgttggccgat
+    tcattaatgcagctggcacgacaggtttcccgactggaaagcgggcaggctgcaaacgacgaaaactacgctttagtagcttaataa"
+################################
+#########################################################
+#############SBOL###############
+<sbol:Sequence rdf:about="http://www.virtualparts.org/part/ECK120029600"> 22
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/ECK120029600"/> 23
+
+<sbol:displayId>ECK120029600</sbol:displayId> 24
+
+<sbol:elements>ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggtt 25
+
+ttcttttctcttctcaa</sbol:elements> 26
+
+<sbol:encoding rdf:resource="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"/> 27
+/
+</sbol:Sequence>
+################################
+###########shortBOL#############
+ECK120029600_seq : DNASequence
+    elements = "ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa"
+################################
+#########################################################
+
+##################### Define the inidividual Component Definitions ##############################
+
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.partsregistry.org/BBa_J61130"> 65
+
+<sbol:persistentIdentity rdf:resource="http://www.partsregistry.org/BBa_J61130"/> 66
+
+<sbol:displayId>BBa_J61130</sbol:displayId> 67
+
+<dcterms:title>BBa_J61101 RBS</dcterms:title> 68
+
+<dcterms:description>RBS2</dcterms:description> 69
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 1
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000139"/> 2
+
+<sbol:sequence rdf:resource="http://www.virtualparts.org/part/BBa_J61130"/> 3
+################################
+###########shortBOL#############
+BBa_J61130_RBS : rbs
+    description = "RBS2"
+    name = "BBa_J61101 RBS"
+    sequence = BBa_J61130_seq
+################################
+#########################################################
+#############SBOL###############
+</sbol:ComponentDefinition>
+
+<sbol:ComponentDefinition rdf:about="http://www.partsregistry.org/BBa_C0012"> 40
+
+<sbol:persistentIdentity rdf:resource="http://www.partsregistry.org/BBa_C0012"/> 41
+
+<sbol:displayId>BBa_C0012</sbol:displayId> 42
+
+<dcterms:title>lacI</dcterms:title> 43
+
+<dcterms:description>lacI coding sequence</dcterms:description> 44
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 45
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000316"/> 46
+
+<sbol:sequence rdf:resource="http://www.virtualparts.org/part/BBa_C0012"/> 47
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+BBa_C0012_CDS : cds
+    description = "lacI coding sequence"
+    name="lacI"
+    sequence = BBa_C0012_seq
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.partsregistry.org/ECK120033736"> 49
+
+<sbol:persistentIdentity rdf:resource="http://www.partsregistry.org/ECK120033736"/> 50
+
+<sbol:displayId>ECK120033736</sbol:displayId> 51
+
+<dcterms:title>ECK120033736</dcterms:title> 52
+
+<dcterms:description>Terminator2</dcterms:description> 53
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 54
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000141"/> 55
+
+<sbol:sequence rdf:resource="http://www.virtualparts.org/part/ECK120033736"/> 56
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+ECK120033736_terminator : terminator
+    description = "Terminator2" #Not the film..
+    name = "ECK120033736"
+    sequence = ECK120033736_seq
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.partsregistry.org/BBa_R0040"> 58
+
+<sbol:persistentIdentity rdf:resource="http://www.partsregistry.org/BBa_R0040"/> 59
+
+<sbol:displayId>BBa_R0040</sbol:displayId> 60
+
+<dcterms:title>pTetR</dcterms:title> 61
+
+<dcterms:description>pTet promoter</dcterms:description> 62
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 63
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000167"/> 64
+
+<sbol:sequence rdf:resource="http://www.virtualparts.org/part/BBa_R0040"/> 65
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+BBa_R0040_promotor : promotor
+    description = "pTet promoter"
+    name = "pTetR"
+    sequence = BBa_R0040_seq
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://identifiers.org/uniprot/Q6QR72"> 67
+
+<sbol:persistentIdentity rdf:resource="http://identifiers.org/uniprot/Q6QR72"/> 68
+
+<sbol:displayId>Q6QR72</sbol:displayId> 69
+
+<dcterms:title>TetR</dcterms:title> 1
+
+<dcterms:description>TetR protein</dcterms:description> 2
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#Protein"/> 3
+
+<sbol:role rdf:resource="http://identifiers.org/biomodels.sbo/SBO:0000020"/> 4
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+Q6QR72_protein : protein
+    description = "TetR protein"
+    name = "TetR"
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://identifiers.org/uniprot/P03023"> 6
+
+<sbol:persistentIdentity rdf:resource="http://identifiers.org/uniprot/P03023"/> 7
+
+<sbol:displayId>P03023</sbol:displayId> 8
+
+<dcterms:title>LacI</dcterms:title> 9
+
+<dcterms:description>LacI protein</dcterms:description> 10
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#Protein"/> 11
+
+<sbol:role rdf:resource="http://identifiers.org/biomodels.sbo/SBO:0000020"/> 12
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+P03023_protein : protein
+    name = "LacI"
+    description = "LacI protein"
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.partsregistry.org/BBa_J61120"> 14
+
+<sbol:persistentIdentity rdf:resource="http://www.partsregistry.org/BBa_J61120"/> 15
+
+<sbol:displayId>BBa_J61120</sbol:displayId> 16
+
+<dcterms:title>BBa_J61101 RBS</dcterms:title> 17
+
+<dcterms:description>RBS2</dcterms:description> 18
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 19
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000139"/> 20
+
+<sbol:sequence rdf:resource="http://www.virtualparts.org/part/BBa_J61120"/> 21
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+BBa_J61120_RBS : rbs
+    description = "RBS2"
+    name = "BBa_J61101 RBS"
+    sequence = BBa_J61120_seq
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.partsregistry.org/BBa_E0040"> 23
+
+<sbol:persistentIdentity rdf:resource="http://www.partsregistry.org/BBa_E0040"/> 24
+
+<sbol:displayId>BBa_E0040</sbol:displayId> 25
+
+<dcterms:title>gfp</dcterms:title> 26
+
+<dcterms:description>gfp coding sequence</dcterms:description> 27
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 28
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000316"/> 29
+
+<sbol:sequence rdf:resource="http://www.virtualparts.org/part/BBa_E0040"/> 30
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+BBa_E0040_CDS : cds
+    description = "gfp coding sequence"
+    name = "gfp"
+    sequence = BBa_E0040_seq
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.partsregistry.org/ECK120029600"> 32
+
+<sbol:persistentIdentity rdf:resource="http://www.partsregistry.org/ECK120029600"/> 33
+
+<sbol:displayId>ECK120029600</sbol:displayId> 34
+
+<dcterms:title>ECK120029600</dcterms:title> 35
+
+<dcterms:description>Terminator1</dcterms:description> 36
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 37
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000141"/> 38
+
+<sbol:sequence rdf:resource="http://www.virtualparts.org/part/ECK120029600"/> 39
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+ECK120029600_terminator : terminator
+    description = "Terminator1"
+    name = "ECK120029600"
+    sequence = ECK120029600_seq
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.partsregistry.org/BBa_J61101"> 55
+
+<sbol:persistentIdentity rdf:resource="http://www.partsregistry.org/BBa_J61101"/> 56
+
+<sbol:displayId>BBa_J61101</sbol:displayId> 57
+
+<dcterms:title>BBa_J61101 RBS</dcterms:title> 58
+
+<dcterms:description>RBS1</dcterms:description> 59
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 60
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000139"/> 61
+
+<sbol:sequence rdf:resource="http://www.virtualparts.org/part/BBa_J61101"/> 62
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+BBa_J61101_RBS : rbs
+    description = "RBS1"
+    name = "BBa_J61101 RBS"
+    sequence = BBa_J61101_seq
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.partsregistry.org/BBa_R0010"> 64
+
+<sbol:persistentIdentity rdf:resource="http://www.partsregistry.org/BBa_R0010"/> 65
+
+<sbol:displayId>BBa_R0010</sbol:displayId> 66
+
+<dcterms:title>pLacI</dcterms:title> 67
+
+<dcterms:description>pLacI promoter</dcterms:description> 68
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 69
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000167"/> 1
+
+<sbol:sequence rdf:resource="http://www.virtualparts.org/part/BBa_R0010"/> 2
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+BBa_R0010_promotor : promotor
+    description = "pLacI promoter"
+    name = "pLacI"
+    sequence = BBa_R0010_seq
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://identifiers.org/uniprot/P42212"> 60
+
+<sbol:persistentIdentity rdf:resource="http://identifiers.org/uniprot/P42212"/> 61
+
+<sbol:displayId>P42212</sbol:displayId> 62
+
+<dcterms:title>GFP</dcterms:title> 63
+
+<dcterms:description>GFP protein</dcterms:description> 64
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#Protein"/> 65
+
+<sbol:role rdf:resource="http://identifiers.org/biomodels.sbo/SBO:0000011"/> 66
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+P42212_protein : protein
+    description = "GFP protein"
+    name = "GFP"
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.partsregistry.org/BBa_C0040"> 68
+
+<sbol:persistentIdentity rdf:resource="http://www.partsregistry.org/BBa_C0040"/> 69
+
+<sbol:displayId>BBa_C0040</sbol:displayId> 1
+
+<dcterms:title>tetR</dcterms:title> 2
+
+<dcterms:description>tetR coding sequence</dcterms:description> 3
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 4
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000316"/> 5
+
+<sbol:sequence rdf:resource="http://www.virtualparts.org/part/BBa_C0040"/> 6
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+BBa_C0040_CDS : cds
+    description = "tetR coding sequence"
+    name = "tetR"
+    sequence = BBa_C0040_sequence
+################################
+#########################################################
+
+#####################################################################################
+
+#################### Define Parent Component Definitions ############################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1"> 5
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1"/> 6
+
+<sbol:displayId>pIKELeftCassette_1</sbol:displayId> 7
+
+<dcterms:title>TetR Inverter</dcterms:title> 8
+
+<dcterms:description>TetR Inverter</dcterms:description> 9
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 10
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000280"/> 11
+
+<sbol:component> 12
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/ECK120029600"> 13
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/ECK120029600"/> 14
+
+<sbol:displayId>ECK120029600</sbol:displayId> 15
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 16
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/ECK120029600"/> 17
+
+</sbol:Component> 18
+
+</sbol:component> 19
+
+<sbol:component> 20
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/BBa_R0040"> 21
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/BBa_R0040"/> 22
+
+<sbol:displayId>BBa_R0040</sbol:displayId> 23
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 24
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/BBa_R0040"/> 25
+
+</sbol:Component> 26
+
+</sbol:component> 27
+
+<sbol:component> 28
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/BBa_C0012"> 29
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/BBa_C0012"/> 30
+
+<sbol:displayId>BBa_C0012</sbol:displayId> 31
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 32
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/BBa_C0012"/> 33
+
+</sbol:Component> 34
+
+</sbol:component> 35
+
+<sbol:component> 36
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/BBa_J61101"> 37
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/BBa_J61101"/> 38
+
+<sbol:displayId>BBa_J61101</sbol:displayId> 39
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 40
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/BBa_J61101"/> 41
+
+</sbol:Component> 42
+
+</sbol:component> 43
+
+<sbol:sequenceAnnotation> 44
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/anno3"> 45
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/anno3"/> 46
+
+<sbol:displayId>anno3</sbol:displayId> 47
+
+<sbol:location> 48
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/anno3/range"> 49
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/anno3/range"/> 50
+
+<sbol:displayId>range</sbol:displayId> 51
+
+<sbol:start>69</sbol:start> 52
+
+<sbol:end>1197</sbol:end> 53
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 54
+
+</sbol:Range> 55
+
+</sbol:location> 56
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/BBa_C0012"/> 57
+
+</sbol:SequenceAnnotation> 58
+
+</sbol:sequenceAnnotation> 59
+
+<sbol:sequenceAnnotation> 60
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/anno4"> 61
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/anno4"/> 62
+
+<sbol:displayId>anno4</sbol:displayId> 63
+
+<sbol:location> 64
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/anno4/range"> 65
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/anno4/range"/> 66
+
+<sbol:displayId>range</sbol:displayId> 67
+
+<sbol:start>1198</sbol:start> 68
+
+<sbol:end>1288</sbol:end> 69
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 1
+
+</sbol:Range> 2
+
+</sbol:location> 3
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/ECK120029600"/> 4
+
+</sbol:SequenceAnnotation> 5
+
+</sbol:sequenceAnnotation> 6
+
+<sbol:sequenceAnnotation> 7
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/anno2"> 8
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/anno2"/> 9
+
+<sbol:displayId>anno2</sbol:displayId> 10
+
+<sbol:location> 11
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/anno2/range"> 12
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/anno2/range"/> 13
+
+<sbol:displayId>range</sbol:displayId> 14
+
+<sbol:start>56</sbol:start> 15
+
+<sbol:end>68</sbol:end> 16
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 17
+
+</sbol:Range> 18
+
+</sbol:location> 19
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/BBa_J61101"/> 20
+
+</sbol:SequenceAnnotation> 21
+
+</sbol:sequenceAnnotation> 22
+
+<sbol:sequenceAnnotation> 23
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/anno1"> 24
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/anno1"/> 25
+
+<sbol:displayId>anno1</sbol:displayId> 26
+
+<sbol:location> 27
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKELeftCassette_1/anno1/range"> 28
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/anno1/range"/> 29
+
+<sbol:displayId>range</sbol:displayId> 30
+
+<sbol:start>1</sbol:start> 31
+
+<sbol:end>55</sbol:end> 32
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 33
+
+</sbol:Range> 34
+
+</sbol:location> 35
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1/BBa_R0040"/> 36
+
+</sbol:SequenceAnnotation> 37
+
+</sbol:sequenceAnnotation> 38
+
+</sbol:ComponentDefinition>
+################################
+
+###########shortBOL#############
+pIKELeftCassette_1 : DNAComponent
+    role = <SBOL:inverter>
+    name="TetR Inverter"
+    description = "TetR Inverter"
+    component ECK120029600_terminator
+        at Inline(1198,1288)
+    component BBa_R0040_promotor
+        at Inline(1,55)
+    component BBa_C0012_CDS
+        at Inline(69,1197)
+    component BBa_J61101_RBS
+        at Inline(56,68)
+
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1"> 41
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1"/> 42
+
+<sbol:displayId>pIKERightCassette_1</sbol:displayId> 43
+
+<dcterms:title>LacI Inverter</dcterms:title> 44
+
+<dcterms:description>LacI Inverter</dcterms:description> 45
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 46
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000280"/> 47
+
+<sbol:component> 48
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_R0010"> 49
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_R0010"/> 50
+
+<sbol:displayId>BBa_R0010</sbol:displayId> 51
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 52
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/BBa_R0010"/> 53
+
+</sbol:Component> 54
+
+</sbol:component> 55
+
+<sbol:component> 56
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_C0040"> 57
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_C0040"/> 58
+
+<sbol:displayId>BBa_C0040</sbol:displayId> 59
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 60
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/BBa_C0040"/> 61
+
+</sbol:Component> 62
+
+</sbol:component> 63
+
+<sbol:component> 64
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_J61130"> 65
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_J61130"/> 66
+
+<sbol:displayId>BBa_J61130</sbol:displayId> 67
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 68
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/BBa_J61130"/> 69
+
+Section B Examples of Serialization Page 79 of 84
+
+</sbol:Component> 1
+
+</sbol:component> 2
+
+<sbol:component> 3
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_E0040"> 4
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_E0040"/> 5
+
+<sbol:displayId>BBa_E0040</sbol:displayId> 6
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 7
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/BBa_E0040"/> 8
+
+</sbol:Component> 9
+
+</sbol:component> 10
+
+<sbol:component> 11
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/ECK120033736"> 12
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/ECK120033736"/> 13
+
+<sbol:displayId>ECK120033736</sbol:displayId> 14
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 15
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/ECK120033736"/> 16
+
+</sbol:Component> 17
+
+</sbol:component> 18
+
+<sbol:component> 19
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_J61120"> 20
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_J61120"/> 21
+
+<sbol:displayId>BBa_J61120</sbol:displayId> 22
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 23
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/BBa_J61120"/> 24
+
+</sbol:Component> 25
+
+</sbol:component> 26
+
+<sbol:sequenceAnnotation> 27
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno3"> 28
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno3"/> 29
+
+<sbol:displayId>anno3</sbol:displayId> 30
+
+<sbol:location> 31
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno3/range"> 32
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno3/range"/> 33
+
+<sbol:displayId>range</sbol:displayId> 34
+
+<sbol:start>69</sbol:start> 35
+
+<sbol:end>729</sbol:end> 36
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 37
+
+</sbol:Range> 38
+
+</sbol:location> 39
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_C0040"/> 40
+
+</sbol:SequenceAnnotation> 41
+
+</sbol:sequenceAnnotation> 42
+
+<sbol:sequenceAnnotation> 43
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno2"> 44
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno2"/> 45
+
+<sbol:displayId>anno2</sbol:displayId> 46
+
+<sbol:location> 47
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno2/range"> 48
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno2/range"/> 49
+
+<sbol:displayId>range</sbol:displayId> 50
+
+<sbol:start>56</sbol:start> 51
+
+<sbol:end>68</sbol:end> 52
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 53
+
+</sbol:Range> 54
+
+</sbol:location> 55
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_J61120"/> 56
+
+</sbol:SequenceAnnotation> 57
+
+</sbol:sequenceAnnotation> 58
+
+<sbol:sequenceAnnotation> 59
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno4"> 60
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno4"/> 61
+
+<sbol:displayId>anno4</sbol:displayId> 62
+
+<sbol:location> 63
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno4/range"> 64
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno4/range"/> 65
+
+<sbol:displayId>range</sbol:displayId> 66
+
+<sbol:start>730</sbol:start> 67
+
+<sbol:end>742</sbol:end> 68
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 69
+
+Section B Examples of Serialization Page 80 of 84
+
+</sbol:Range> 1
+
+</sbol:location> 2
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_J61130"/> 3
+
+</sbol:SequenceAnnotation> 4
+
+</sbol:sequenceAnnotation> 5
+
+<sbol:sequenceAnnotation> 6
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno1"> 7
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno1"/> 8
+
+<sbol:displayId>anno1</sbol:displayId> 9
+
+<sbol:location> 10
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno1/range"> 11
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno1/range"/> 12
+
+<sbol:displayId>range</sbol:displayId> 13
+
+<sbol:start>1</sbol:start> 14
+
+<sbol:end>55</sbol:end> 15
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 16
+
+</sbol:Range> 17
+
+</sbol:location> 18
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_R0010"/> 19
+
+</sbol:SequenceAnnotation> 20
+
+</sbol:sequenceAnnotation> 21
+
+<sbol:sequenceAnnotation> 22
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno5"> 23
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno5"/> 24
+
+<sbol:displayId>anno5</sbol:displayId> 25
+
+<sbol:location> 26
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno5/range"> 27
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno5/range"/> 28
+
+<sbol:displayId>range</sbol:displayId> 29
+
+<sbol:start>743</sbol:start> 30
+
+<sbol:end>1463</sbol:end> 31
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 32
+
+</sbol:Range> 33
+
+</sbol:location> 34
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/BBa_E0040"/> 35
+
+</sbol:SequenceAnnotation> 36
+
+</sbol:sequenceAnnotation> 37
+
+<sbol:sequenceAnnotation> 38
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno6"> 39
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno6"/> 40
+
+<sbol:displayId>anno6</sbol:displayId> 41
+
+<sbol:location> 42
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKERightCassette_1/anno6/range"> 43
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/anno6/range"/> 44
+
+<sbol:displayId>range</sbol:displayId> 45
+
+<sbol:start>1464</sbol:start> 46
+
+<sbol:end>1554</sbol:end> 47
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 48
+
+</sbol:Range> 49
+
+</sbol:location> 50
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1/ECK120033736"/> 51
+
+</sbol:SequenceAnnotation> 52
+
+</sbol:sequenceAnnotation> 53
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+pIKERightCassette_1 : DNAComponent
+    role = <SBOL:inverter>
+    name="LacI Inverter"
+    description = "LacI Inverter"
+    component BBa_R0010_promotor
+        at Inline(1,55)
+    component BBa_C0040_CDS
+        at Inline(69,729)
+    component BBa_J61130_RBS
+        at Inline(730,742)
+    component BBa_E0040_CDS
+        at Inline(743,1463)
+    component ECK120033736_terminator
+        at Inline(1464,1554)
+    component BBa_J61120_RBS
+        at Inline(56,68)
+
+################################
+#########################################################
+#############SBOL###############
+<sbol:ComponentDefinition rdf:about="http://www.virtualparts.org/part/pIKE_Toggle_1"> 4
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKE_Toggle_1"/> 5
+
+<sbol:displayId>pIKE_Toggle_1</sbol:displayId> 6
+
+<dcterms:title>LacI/TetR Toggle Swicth</dcterms:title> 7
+
+<dcterms:description>LacI/TetR Toggle Swicth</dcterms:description> 8
+
+<sbol:type rdf:resource="http://www.biopax.org/release/biopax-level3.owl#DnaRegion"/> 9
+
+<sbol:role rdf:resource="http://identifiers.org/so/SO:0000280"/> 10
+
+<sbol:component> 11
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKE_Toggle_1/pIKERightCassette_1"> 12
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKE_Toggle_1/pIKERightCassette_1"/> 13
+
+<sbol:displayId>pIKERightCassette_1</sbol:displayId> 14
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 15
+
+<sbol:definition rdf:resource="http://www.virtualparts.org/part/pIKERightCassette_1"/> 16
+
+</sbol:Component> 17
+
+</sbol:component> 18
+
+<sbol:component> 19
+
+<sbol:Component rdf:about="http://www.virtualparts.org/part/pIKE_Toggle_1/pIKELeftCassette_1"> 20
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKE_Toggle_1/pIKELeftCassette_1"/> 21
+
+<sbol:displayId>pIKELeftCassette_1</sbol:displayId> 22
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 23
+
+<sbol:definition rdf:resource="http://www.virtualparts.org/part/pIKELeftCassette_1"/> 24
+
+</sbol:Component> 25
+
+</sbol:component> 26
+
+<sbol:sequenceAnnotation> 27
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKE_Toggle_1/anno1"> 28
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKE_Toggle_1/anno1"/> 29
+
+<sbol:displayId>anno1</sbol:displayId> 30
+
+<sbol:location> 31
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKE_Toggle_1/anno1/range"> 32
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKE_Toggle_1/anno1/range"/> 33
+
+<sbol:displayId>range</sbol:displayId> 34
+
+<sbol:start>1</sbol:start> 35
+
+<sbol:end>1285</sbol:end> 36
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 37
+
+</sbol:Range> 38
+
+</sbol:location> 39
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKE_Toggle_1/pIKELeftCassette_1"/> 40
+
+</sbol:SequenceAnnotation> 41
+
+</sbol:sequenceAnnotation> 42
+
+<sbol:sequenceAnnotation> 43
+
+<sbol:SequenceAnnotation rdf:about="http://www.virtualparts.org/part/pIKE_Toggle_1/anno2"> 44
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKE_Toggle_1/anno2"/> 45
+
+<sbol:displayId>anno2</sbol:displayId> 46
+
+<sbol:location> 47
+
+<sbol:Range rdf:about="http://www.virtualparts.org/part/pIKE_Toggle_1/anno2/range"> 48
+
+<sbol:persistentIdentity rdf:resource="http://www.virtualparts.org/part/pIKE_Toggle_1/anno2/range"/> 49
+
+<sbol:displayId>range</sbol:displayId> 50
+
+<sbol:start>1286</sbol:start> 51
+
+<sbol:end>2834</sbol:end> 52
+
+<sbol:orientation rdf:resource="http://sbols.org/v2#inline"/> 53
+
+</sbol:Range> 54
+
+</sbol:location> 55
+
+<sbol:component rdf:resource="http://www.virtualparts.org/part/pIKE_Toggle_1/pIKERightCassette_1"/> 56
+
+</sbol:SequenceAnnotation> 57
+
+</sbol:sequenceAnnotation> 58
+
+</sbol:ComponentDefinition>
+################################
+###########shortBOL#############
+pIKE_Toggle_1 : DNAComponent
+    role = <SBOL:toggle>
+    name="LacI/TetR Toggle Switch"
+    description = "LacI/TetR Toggle Switch"
+    component pIKELeftCassette_1
+        at Inline(1,1285)
+    component pIKERightCassette_1
+        at Inline(1286,2834)
+
+################################
+#########################################################
+
+##################### Define the individual Module Definition ##############################
+#########################################################
+#############SBOL###############
+<sbol:ModuleDefinition rdf:about="http://sbolstandard.org/example/laci_inverter"> 35
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/laci_inverter"/> 36
+
+<sbol:displayId>laci_inverter</sbol:displayId> 37
+
+<sbol:role rdf:resource="http://parts.igem.org/cgi/partsdb/pgroup.cgi?pgroup=inverter"/> 38
+
+<sbol:functionalComponent> 39
+
+<sbol:FunctionalComponent rdf:about="http://sbolstandard.org/example/laci_inverter/TF"> 40
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/laci_inverter/TF"/> 41
+
+<sbol:displayId>TF</sbol:displayId> 42
+
+<sbol:definition rdf:resource="http://identifiers.org/uniprot/P03023"/> 43
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 44
+
+<sbol:direction rdf:resource="http://sbols.org/v2#inout"/> 45
+
+</sbol:FunctionalComponent> 46
+
+</sbol:functionalComponent> 47
+
+<sbol:functionalComponent> 48
+
+<sbol:FunctionalComponent rdf:about="http://sbolstandard.org/example/laci_inverter/promoter"> 49
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/laci_inverter/promoter"/> 50
+
+<sbol:displayId>promoter</sbol:displayId> 51
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/BBa_R0010"/> 52
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 53
+
+<sbol:direction rdf:resource="http://sbols.org/v2#inout"/> 54
+
+</sbol:FunctionalComponent> 55
+
+</sbol:functionalComponent> 56
+
+<sbol:interaction> 57
+
+<sbol:Interaction rdf:about="http://sbolstandard.org/example/laci_inverter/LacI_pLacI"> 58
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/laci_inverter/LacI_pLacI"/> 59
+
+<sbol:displayId>LacI_pLacI</sbol:displayId> 60
+
+<sbol:type rdf:resource="http://identifiers.org/biomodels.sbo/SBO:0000169"/> 61
+
+<sbol:participation> 62
+
+<sbol:Participation rdf:about="http://sbolstandard.org/example/laci_inverter/LacI_pLacI/BBa_R0010"> 63
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/laci_inverter/LacI_pLacI/BBa_R0010"/> 64
+
+<sbol:displayId>BBa_R0010</sbol:displayId> 65
+
+<sbol:role rdf:resource="http://identifiers.org/biomodels.sbo/SBO:0000598"/> 66
+
+<sbol:participant rdf:resource="http://sbolstandard.org/example/laci_inverter/promoter"/> 67
+
+</sbol:Participation> 68
+
+</sbol:participation> 69
+
+Section B Examples of Serialization Page 75 of 84
+
+<sbol:participation> 1
+
+<sbol:Participation rdf:about="http://sbolstandard.org/example/laci_inverter/LacI_pLacI/P03023"> 2
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/laci_inverter/LacI_pLacI/P03023"/> 3
+
+<sbol:displayId>P03023</sbol:displayId> 4
+
+<sbol:role rdf:resource="http://identifiers.org/biomodels.sbo/SBO:0000020"/> 5
+
+<sbol:participant rdf:resource="http://sbolstandard.org/example/laci_inverter/TF"/> 6
+
+</sbol:Participation> 7
+
+</sbol:participation> 8
+
+</sbol:Interaction> 9
+
+</sbol:interaction> 10
+
+</sbol:ModuleDefinition>
+################################
+###########shortBOL#############
+laci_inverter : InverterModule
+    functionalComponent
+        P03023_protein as TF
+        access = <SBOL:Public>
+        direction = <SBOL:inout>
+    functionalComponent
+        BBa_R0010_promotor as promotor
+        access = <SBOL:Public>
+        direction = <SBOL:inout>
+    TF inhibits promotor  #Interaction defined in import.
+
+-------------------------------------
+or
+-------------------------------------
+laci_inverter : InverterModule
+    functionalComponent : public_io  #populates propeties from the public_io property constructor
+        P03023_protein as TF
+
+    functionalComponent : public_io
+        BBa_R0010_promotor as promotor
+
+    TF inhibits promotor  #Interaction defined in import.
+################################
+#########################################################
+
+#############SBOL###############
+<sbol:ModuleDefinition rdf:about="http://sbolstandard.org/example/tetr_inverter"> 12
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/tetr_inverter"/> 13
+
+<sbol:displayId>tetr_inverter</sbol:displayId> 14
+
+<sbol:role rdf:resource="http://parts.igem.org/cgi/partsdb/pgroup.cgi?pgroup=inverter"/> 15
+
+<sbol:functionalComponent> 16
+
+<sbol:FunctionalComponent rdf:about="http://sbolstandard.org/example/tetr_inverter/promoter"> 17
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/tetr_inverter/promoter"/> 18
+
+<sbol:displayId>promoter</sbol:displayId> 19
+
+<sbol:definition rdf:resource="http://www.partsregistry.org/BBa_R0040"/> 20
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 21
+
+<sbol:direction rdf:resource="http://sbols.org/v2#inout"/> 22
+
+</sbol:FunctionalComponent> 23
+
+</sbol:functionalComponent> 24
+
+<sbol:functionalComponent> 25
+
+<sbol:FunctionalComponent rdf:about="http://sbolstandard.org/example/tetr_inverter/TF"> 26
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/tetr_inverter/TF"/> 27
+
+<sbol:displayId>TF</sbol:displayId> 28
+
+<sbol:definition rdf:resource="http://identifiers.org/uniprot/Q6QR72"/> 29
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 30
+
+<sbol:direction rdf:resource="http://sbols.org/v2#inout"/> 31
+
+</sbol:FunctionalComponent> 32
+
+</sbol:functionalComponent> 33
+
+<sbol:interaction> 34
+
+<sbol:Interaction rdf:about="http://sbolstandard.org/example/tetr_inverter/LacI_pLacI"> 35
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/tetr_inverter/LacI_pLacI"/> 36
+
+<sbol:displayId>LacI_pLacI</sbol:displayId> 37
+
+<sbol:type rdf:resource="http://identifiers.org/biomodels.sbo/SBO:0000169"/> 38
+
+<sbol:participation> 39
+
+<sbol:Participation rdf:about="http://sbolstandard.org/example/tetr_inverter/LacI_pLacI/Q6QR72"> 40
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/tetr_inverter/LacI_pLacI/Q6QR72"/> 41
+
+<sbol:displayId>Q6QR72</sbol:displayId> 42
+
+<sbol:role rdf:resource="http://identifiers.org/biomodels.sbo/SBO:0000020"/> 43
+
+<sbol:participant rdf:resource="http://sbolstandard.org/example/tetr_inverter/TF"/> 44
+
+</sbol:Participation> 45
+
+</sbol:participation> 46
+
+<sbol:participation> 47
+
+<sbol:Participation rdf:about="http://sbolstandard.org/example/tetr_inverter/LacI_pLacI/BBa_R0040"> 48
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/tetr_inverter/LacI_pLacI/BBa_R0040"/> 49
+
+<sbol:displayId>BBa_R0040</sbol:displayId> 50
+
+<sbol:role rdf:resource="http://identifiers.org/biomodels.sbo/SBO:0000598"/> 51
+
+<sbol:participant rdf:resource="http://sbolstandard.org/example/tetr_inverter/promoter"/> 52
+
+</sbol:Participation> 53
+
+</sbol:participation> 54
+
+</sbol:Interaction> 55
+
+</sbol:interaction> 56
+
+</sbol:ModuleDefinition>
+################################
+###########shortBOL#############
+tetr_inverter : InverterModule
+    functionalComponent : public_io
+        Q6QR72_protein as TF
+
+    functionalComponent : public_io
+        BBa_R0040_promotor as promotor
+
+    TF inhibits promotor  #Interaction defined in import.
+################################
+#########################################################
+
+
+############################################################################################
+
+##################### Define the model Definition ##########################################
+
+#############SBOL###############
+<sbol:Model rdf:about="http://sbolstandard.org/example/toogleswicth"> 58
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/toogleswicth"/> 59
+
+<sbol:displayId>toogleswicth</sbol:displayId> 60
+
+<sbol:source rdf:resource="http://virtualparts.org/part/pIKE_Toggle_1"/> 61
+
+<sbol:language rdf:resource="http://identifiers.org/edam/format_2585"/> 62
+
+<sbol:framework rdf:resource="http://identifiers.org/biomodels.sbo/SBO:0000062"/> 63
+
+</sbol:Model>
+################################
+###########shortBOL#############
+toggleswitch = ModelDefinition
+    source = <SBOL:http://virtualparts.org/part/pIKE_Toggle_1>
+    language = <SBOL:http://identifiers.org/edam/format_2585>
+    framework = <SBOL:http://identifiers.org/biomodels.sbo/SBO:0000062>
+################################
+############################################################################################
+
+##################### Define the top level Module Definition ###############################
+#########################################################
+#############SBOL###############
+<sbol:ModuleDefinition rdf:about="http://sbolstandard.org/example/toggle_switch"> 44
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/toggle_switch"/> 45
+
+<sbol:displayId>toggle_switch</sbol:displayId> 46
+
+<sbol:role rdf:resource="http://sbolstandard.org/example/module_role/toggle_switch"/> 47
+
+<sbol:functionalComponent> 48
+
+<sbol:FunctionalComponent rdf:about="http://sbolstandard.org/example/toggle_switch/LacI"> 49
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/toggle_switch/LacI"/> 50
+
+<sbol:displayId>LacI</sbol:displayId> 51
+
+<sbol:definition rdf:resource="http://identifiers.org/uniprot/P03023"/> 52
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 53
+
+<sbol:direction rdf:resource="http://sbols.org/v2#inout"/> 54
+
+</sbol:FunctionalComponent> 55
+
+</sbol:functionalComponent> 56
+
+<sbol:functionalComponent> 57
+
+<sbol:FunctionalComponent rdf:about="http://sbolstandard.org/example/toggle_switch/TetR"> 58
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/toggle_switch/TetR"/> 59
+
+<sbol:displayId>TetR</sbol:displayId> 60
+
+<sbol:definition rdf:resource="http://identifiers.org/uniprot/Q6QR72"/> 61
+
+<sbol:access rdf:resource="http://sbols.org/v2#public"/> 62
+
+<sbol:direction rdf:resource="http://sbols.org/v2#inout"/> 63
+
+</sbol:FunctionalComponent> 64
+
+</sbol:functionalComponent> 65
+
+<sbol:model rdf:resource="http://sbolstandard.org/example/toogleswicth"/> 1
+
+<sbol:module> 2
+
+<sbol:Module rdf:about="http://sbolstandard.org/example/toggle_switch/laci_inverter"> 3
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/toggle_switch/laci_inverter"/> 4
+
+<sbol:displayId>laci_inverter</sbol:displayId> 5
+
+<sbol:definition rdf:resource="http://sbolstandard.org/example/laci_inverter"/> 6
+
+<sbol:mapsTo> 7
+
+<sbol:MapsTo rdf:about="http://sbolstandard.org/example/toggle_switch/laci_inverter/LacI_mapping"> 8
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/toggle_switch/laci_inverter/LacI_mapping"/> 9
+
+<sbol:displayId>LacI_mapping</sbol:displayId> 10
+
+<sbol:refinement rdf:resource="http://sbols.org/v2#useRemote"/> 11
+
+<sbol:remote rdf:resource="http://sbolstandard.org/example/toggle_switch/LacI"/> 12
+
+<sbol:local rdf:resource="http://sbolstandard.org/example/laci_inverter/TF"/> 13
+
+</sbol:MapsTo> 14
+
+</sbol:mapsTo> 15
+
+</sbol:Module> 16
+
+</sbol:module> 17
+
+<sbol:module> 18
+
+<sbol:Module rdf:about="http://sbolstandard.org/example/toggle_switch/tetr_inverter"> 19
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/toggle_switch/tetr_inverter"/> 20
+
+<sbol:displayId>tetr_inverter</sbol:displayId> 21
+
+<sbol:definition rdf:resource="http://sbolstandard.org/example/tetr_inverter"/> 22
+
+<sbol:mapsTo> 23
+
+<sbol:MapsTo rdf:about="http://sbolstandard.org/example/toggle_switch/tetr_inverter/TetR_mapping"> 24
+
+<sbol:persistentIdentity rdf:resource="http://sbolstandard.org/example/toggle_switch/tetr_inverter/TetR_mapping"/> 25
+
+<sbol:displayId>TetR_mapping</sbol:displayId> 26
+
+<sbol:refinement rdf:resource="http://sbols.org/v2#useRemote"/> 27
+
+<sbol:remote rdf:resource="http://sbolstandard.org/example/toggle_switch/TetR"/> 28
+
+<sbol:local rdf:resource="http://sbolstandard.org/example/tetr_inverter/TF"/> 29
+
+</sbol:MapsTo> 30
+
+</sbol:mapsTo> 31
+
+</sbol:Module> 32
+
+</sbol:module> 33
+
+</sbol:ModuleDefinition>
+################################
+###########shortBOL#############
+
+toggle_switch : ToggleModule
+    functionalComponent : public_io
+        P03023_protein as LacI  #Replacing the displayIds of the functionalcomponents.
+    functionalComponent : public_io
+        Q6QR72_protein as TetR
+
+    module
+        laci_inverter
+        LacI replaces TF
+    module
+        tetr_inverter
+        TetR replaces TF
+
+    model
+        toggleswitch
+
+################################
+#########################################################
+############################################################################################
+
