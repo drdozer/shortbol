@@ -158,3 +158,9 @@ ToggleModule => ModuleDefinition
 
 ############################################################
 
+############### Property Constructors ######################
+
+public_io => functionalComponent: FunctionalComponent
+  access = <SBOL:Public>
+  direction = <SBOL:inout>
+
