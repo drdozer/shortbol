@@ -1,6 +1,5 @@
 package uk.co.turingatemyhamster.shortbol
 
-import shapeless.ops.record.Values
 import simulacrum.typeclass
 
 object Ops {
@@ -14,7 +13,8 @@ object Ops {
   def constructorsForIndividuals(cstrs: Constructors, inds: Individuals) =
     for {
       (_, i) <- inds.byId
-      c <- cstrs.byId.get(i.cstr.id)
+      TpeConstructor1(id, _) <- i.cstrApp.cstr::Nil
+      c <- cstrs.byId.get(id)
     } yield (i, c)
 
 }
@@ -27,58 +27,71 @@ case class Bindings(bs: Map[LocalName, ValueExp])
 
 @typeclass
 trait Expander[T] {
-  def expandWith(t: T, ec: ExpansionContext): T
+  def expandWith(t: T, ec: ExpansionContext): Seq[T]
 }
 
 object Expander {
 
   import ops._
 
-  implicit def SeqExpander[T](implicit st: Expander[T]): Expander[Seq[T]] = new Expander[Seq[T]] {
-    override def expandWith(t: Seq[T], ec: ExpansionContext): Seq[T] = t map (st.expandWith(_, ec))
+  implicit val TopLevelExpander: Expander[TopLevel] = new Expander[TopLevel] {
+    override def expandWith(t: TopLevel, ec: ExpansionContext): Seq[TopLevel] = t match {
+      case i : InstanceExp =>
+        i expandWith ec
+      case _ =>
+        Seq(t)
+    }
   }
 
-  implicit val TopLevelExpander: Expander[TopLevel] = new Expander[TopLevel] {
-    override def expandWith(t: TopLevel, ec: ExpansionContext): TopLevel = t match {
-      case i : InstanceExp => i expandWith ec
-      case _ => t
+  implicit val ConstructorAppExpander: Expander[ConstructorApp] = new Expander[ConstructorApp] {
+    override def expandWith(t: ConstructorApp, ec: ExpansionContext): Seq[ConstructorApp] = t.cstr match {
+      case TpeConstructor1(id, args) =>
+        ec.cstrs.byId.get(id) map { c =>
+          for {
+            b <- c.cstrApp.body
+          } yield ConstructorApp(c.cstrApp.cstr, b expandWith ec.withContext(c.args, args))
+        } getOrElse Seq(t)
     }
   }
 
   implicit val InstanceExpExpander: Expander[InstanceExp] = new Expander[InstanceExp] {
-    def expandWith(i: InstanceExp, ec: ExpansionContext): InstanceExp =
-      ec.cstrs.byId.get(i.cstr.id) map { c =>
-        InstanceExp(
-          id = i.id,
-          cstr = c.cstr,
-          body = (c.body ++ i.body) expandWith ec.withContext(c.args, i.cstr.args))
-      } getOrElse i
+    def expandWith(i: InstanceExp, ec: ExpansionContext): Seq[InstanceExp] =
+      for {
+        c <- i.cstrApp expandWith ec
+      } yield InstanceExp(i.id, c)
   }
 
   implicit val BodyStmtExpander: Expander[BodyStmt] = new Expander[BodyStmt] {
-    def expandWith(stmt: BodyStmt, ec: ExpansionContext): BodyStmt = stmt match {
+    def expandWith(stmt: BodyStmt, ec: ExpansionContext): Seq[BodyStmt] = stmt match {
       case Assignment(prop, value) =>
-        Assignment(prop expandWith ec, value expandWith ec)
-      case NestedAssignment(prop, body) =>
-        NestedAssignment(prop expandWith ec, body expandWith ec)
+        for {
+          p <- prop expandWith ec
+          v <- value expandWith ec
+        } yield Assignment(p, v)
+      case c : ConstructorApp =>
+        c expandWith ec
       case NestedInstance(nested) =>
-        NestedInstance(nested expandWith ec)
+        for {
+          i <- nested expandWith ec
+        } yield NestedInstance(i)
     }
   }
 
   implicit val IdentifierExpander: Expander[Identifier] = new Expander[Identifier] {
-    def expandWith(id: Identifier, ec: ExpansionContext): Identifier = id match {
+    def expandWith(id: Identifier, ec: ExpansionContext): Seq[Identifier] = id match {
       case ln: LocalName =>
-        ec.bndgs.bs.get(ln).collect{ case i : Identifier => i } getOrElse id
-      case _ => id
+        Seq(ec.bndgs.bs.get(ln).collect{ case i : Identifier => i } getOrElse id)
+      case _ =>
+        Seq(id)
     }
   }
 
   implicit val ValueExpExpander: Expander[ValueExp] = new Expander[ValueExp] {
-    def expandWith(ve: ValueExp, ec: ExpansionContext): ValueExp = ve match {
+    def expandWith(ve: ValueExp, ec: ExpansionContext): Seq[ValueExp] = ve match {
       case ln: LocalName =>
-        ec.bndgs.bs.get(ln) getOrElse ve
-      case _ => ve
+        Seq(ec.bndgs.bs.getOrElse(ln, ve))
+      case _ =>
+        Seq(ve)
     }
   }
 

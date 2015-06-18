@@ -6,22 +6,17 @@ import java.io.PrintWriter
  * Created by nmrp3 on 15/06/15.
  */
 class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
-  lazy val indentStr = " " * indent
+  lazy val indentStr = "\n" + (" " * indent)
 
   private def append(s: String) = out.append(s)
 
   def append(tl: TopLevel): Unit = tl match {
-    case InstanceExp(id, cstr, body) =>
+    case InstanceExp(id, app) =>
       append(indentStr)
       append(id)
       append(": ")
-      append(cstr)
-      append("\n")
-      val pp = new PrettyPrint(out, indent = indent + indentDepth)
-      for(b <- body)
-        pp.append(b)
-      append("\n")
-    case ConstructorDef(id, args, cstr, body) =>
+      append(app)
+    case ConstructorDef(id, args, app) =>
       append(indentStr)
       append(id)
       if(args.nonEmpty) {
@@ -34,13 +29,31 @@ class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
         append(")")
       }
       append(" => ")
-      append(cstr)
+      append(app)
+    case Import(path) =>
+      append("import ")
+      append(path)
+    case c : Comment =>
+      append(c)
       append("\n")
-      val pp = new PrettyPrint(out, indent = indent + indentDepth)
-      for(b <- body)
-        pp.append(b)
+    case BlankLine =>
       append("\n")
+    case a : Assignment =>
+      append(a)
+  }
 
+  def append(c: Comment): Unit = {
+    append("#")
+    append(c.commentText)
+  }
+
+  def append(app: ConstructorApp): Unit = {
+    append(app.cstr)
+    if(app.body.nonEmpty) {
+      val pp = new PrettyPrint(out, indent = indent + indentDepth)
+      for(b <- app.body)
+        pp.append(b)
+    }
   }
 
   def append(id: Identifier): Unit = id match {
@@ -61,7 +74,14 @@ class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   def append(p: NSPrefix): Unit =
     append(p.pfx)
 
-  def append(c: TpeConstructor): Unit = {
+  def append(c: TpeConstructor): Unit = c match {
+    case c : TpeConstructor1 =>
+      append(c)
+    case TpeConstructorStar =>
+      append(TpeConstructorStar)
+  }
+
+  def append(c: TpeConstructor1): Unit = {
     append(c.id)
     if(c.args.nonEmpty) {
       append("(")
@@ -72,6 +92,10 @@ class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
       }
       append(")")
     }
+  }
+
+  def append(c: TpeConstructorStar.type): Unit = {
+    append("*")
   }
 
   def append(ve: ValueExp): Unit = ve match {
@@ -95,38 +119,31 @@ class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
 
   def append(bs: BodyStmt): Unit = bs match {
     case a : Assignment =>
+      append(indentStr)
       append(a)
-    case na : NestedAssignment =>
-      append(na)
+    case app : ConstructorApp =>
+      append(indentStr)
+      append(app)
     case ni : NestedInstance =>
       append(ni)
+    case c : Comment =>
+      append(indentStr)
+      append(c)
   }
 
   def append(a: Assignment): Unit = {
-    append(indentStr)
     append(a.property)
     append(" = ")
     append(a.value)
   }
 
-  def append(na: NestedAssignment): Unit = {
-    append(indentStr)
-    append(na.property)
-    val pp = new PrettyPrint(out, indent = indent + indentDepth)
-    for(b <- na.body)
-      pp.append(b)
-    append("\n")
-  }
-
   def append(ni: NestedInstance): Unit = {
-    append(indentStr)
     append(ni.nested)
   }
 
   def append(tlss: Seq[TopLevel]): Unit = {
     for(tls <- tlss) {
       append(tls)
-      append("\n")
     }
   }
 

@@ -132,17 +132,14 @@ object ShortbolSrc {
     val cstrs = Ops.constructors(raws)
     val inds = Ops.individuals(raws)
 
-    val cfi = Ops.constructorsForIndividuals(cstrs, inds)
-
     val ex = ExpansionContext(cstrs, Bindings(Map()))
 
     import Expander.ops._
 
-    val expanded = raws expandWith ex
+    val expanded = raws flatMap (_ expandWith ex)
 
     println(cstrs)
     println(inds)
-    println(cfi)
     println(expanded)
 
     val pp = new PrettyPrint(System.out)
