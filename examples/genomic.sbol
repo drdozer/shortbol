@@ -1,7 +1,7 @@
 
 #Common sequence annotations
 DNASequence => Sequence
-   encoding = <IUPAC DNA>
+   encoding = <IUPAC:DNA>
 
 # DNA/RNA/Protein
 
@@ -74,13 +74,13 @@ Translation(cds_rna, protein) => Interaction
     participant = protein
     role = <SBOL:Translation_product>
 
-ProteinProduction(cds, cds_rna, protein) => Interaction*
+ProteinProduction(cds, cds_rna, protein) => *
   Transcription(cds, cds_rna)
   Translation(cds_rna, protein)
 
 activates(tf, p) => Interaction
-  type = <SBOL:...
+  type = <SBOL:Activation>
 
 md : ModuleDefinition
-  lac activates pLac
-  #activates(lac, pLac)
+  activates(lac, pLac)
+  #lac activates pLac
