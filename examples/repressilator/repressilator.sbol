@@ -1,5 +1,5 @@
 DNASequence => Sequence
-   encoding = <IUPAC DNA>
+   encoding = <IUPAC:DNA>
 
 clSeq : DNASequence
    elements = "ACCCA"
@@ -17,7 +17,7 @@ Terminator => DnaComponent
   role = <SBOL:Terminator>
 
 Gene => ComponentDefinition
-   type = [SBOL:DNA]
+   type = <SBOL:DNA>
    role = <SBOL:Gene>
 
 #implement a 'composes' constructor?
@@ -55,28 +55,26 @@ GFP : Gene
      gfp_aav : CDS
    subComponent
      term4 : Terminator
------------------------
+
 #Promotor drives a coding sequence 
 drives(promotor,cds) => Interaction
-   type = <SBOL : Drives>
+   type = <SBOL:Drives>
    participation
      participant = promotor
-     role = ?
+     role = <SBOL:transcription_initiator>
    participation
      participant = cds
-     role = ?  
-----------------------
--------------------
+     role = <SBOL:transcriptional_template>
+
 represses(a,b) => Interaction
-   type = <SBOL: Repressor>
+   type = <SBOL:Repressor>
    participation
        participant = a
-       role = <SBOL: ?>
+       role = <SBOL:repressor>
    participation
        participant = b
-       role = <SBOL: ?>
+       role = <SBOL:repressed>
 
---------------------
 
 repressilator : ModuleDefinition
    name = "Repressilator"
