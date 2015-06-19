@@ -66,6 +66,7 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
   def BackSlash = P("/")
   def Space = P(" ")
   def Nl = P("\r\n" | "\r" | "\n")
+  def SpNl = P(Space.rep ~ Nl)
 
   def RightArr = P("=>")
 
@@ -114,8 +115,13 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
   def ValueList = P(LEllipse ~ ValueExp.rep(0, ComaSep) ~ REllipse)
   def ValueListO = P(ValueList | NoArgs)
 
-  def ConstructorApp = P(TpeConstructor ~ Space.rep ~ IndentedInstanceBody) map
-    (shortbol.ConstructorApp.apply _ tupled)
+  def InfixConstructorApp = P(Identifier ~ Space.rep ~ Identifier ~ Space.rep ~ Identifier) map
+    { case(a, r, b) => shortbol.ConstructorApp(shortbol.TpeConstructor1(r, Seq(a, b)), Seq()) } log "cstrPfx"
+
+  def PrefixConstructorApp = P(TpeConstructor ~ Space.rep ~ IndentedInstanceBody) map
+    (shortbol.ConstructorApp.apply _ tupled) log "cstrPfx"
+
+  def ConstructorApp = P(InfixConstructorApp | PrefixConstructorApp) log "cstrApp"
 
   def TpeConstructorStar = P(Star) map
     (_ => shortbol.TpeConstructorStar)
@@ -123,12 +129,12 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
     (shortbol.TpeConstructor1.apply _ tupled)
   def TpeConstructor = P(TpeConstructor1 | TpeConstructorStar)
 
-  def InstanceExp: Parser[shortbol.InstanceExp] = P(Identifier ~ Space.rep ~ Colon ~! Space.rep ~ ConstructorApp) map
+  def InstanceExp: Parser[shortbol.InstanceExp] = P(Identifier ~ Space.rep ~ Colon ~! Space.rep ~ PrefixConstructorApp) map
     (shortbol.InstanceExp.apply _ tupled) log "inst"
 
-  def BodyStmt: Parser[shortbol.BodyStmt] = P(Assignment | NestedInstance | ConstructorApp | Comment)
+  def BodyStmt: Parser[shortbol.BodyStmt] = P(Assignment | NestedInstance | ConstructorApp | Comment | BlankLine)
 
-  def ConstructorDef = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~! Space.rep ~ ConstructorApp) map
+  def ConstructorDef = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~! Space.rep ~ PrefixConstructorApp) map
     (shortbol.ConstructorDef.apply _ tupled) log "cstr"
 
   def Comment = P(Hash ~! (!Nl ~ AnyChar).rep.!) map
@@ -141,12 +147,12 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
     (_ => shortbol.BlankLine) log "bl"
 
   def TopLevel: Parser[TopLevel] = P(
-    (InstanceExp ~ Nl) |
-      (ConstructorDef ~ Nl) |
-      (Comment ~ Nl) |
-      (Import ~ Nl) |
-      (BlankLine ~ Nl) |
-      (Assignment ~ Nl)) log "tl"
+    (InstanceExp ~ SpNl) |
+      (ConstructorDef ~ SpNl) |
+      (Comment ~ SpNl) |
+      (Import ~ SpNl) |
+      (BlankLine ~ SpNl) |
+      (Assignment ~ SpNl)) log "tl"
 
   def TopLevels = P(TopLevel.rep) log "tls"
 

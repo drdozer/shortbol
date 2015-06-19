@@ -27,7 +27,7 @@ case object TpeConstructorStar extends TpeConstructor
 
 trait TopLevel
 
-case object BlankLine extends TopLevel
+case object BlankLine extends TopLevel with BodyStmt
 
 case class Import(path: String) extends TopLevel
 

@@ -37,9 +37,13 @@ class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
       append(c)
       append("\n")
     case BlankLine =>
-      append("\n")
+      append(BlankLine)
     case a : Assignment =>
       append(a)
+  }
+
+  def append(b: BlankLine.type): Unit = {
+    append("\n")
   }
 
   def append(c: Comment): Unit = {
@@ -129,6 +133,9 @@ class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     case c : Comment =>
       append(indentStr)
       append(c)
+    case BlankLine =>
+      append(indentStr)
+      append(BlankLine)
   }
 
   def append(a: Assignment): Unit = {
