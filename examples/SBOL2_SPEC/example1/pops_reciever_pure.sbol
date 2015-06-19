@@ -63,18 +63,23 @@ fRBS : rbs
 ########################################################################
 
 ##################### Define the Parent Component Definition ##############################
-pops_receiver = DNAComponent
-    role = <SBOL: Receiver>
+pops_receiver : DNAComponent
+    role = <SBOL:Receiver>
     description = "3OC6HSL -&gt; PoPS Receiver"
-    component fRBS
+    component : public
+        fRBS
         at Inline(56,68)
-    component doubleT
+    component : public
+        doubleT
         at Inline(771,900)
-    component pLuxR
+    component : public
+        pLuxR
         at Inline(901,956)
-    component pTetR
+    component : public
+        pTetR
         at Inline(1,55)
-    component luxR
+    component : public
+        luxR
         at Inline(69,770)
 
 ###########################################################################################

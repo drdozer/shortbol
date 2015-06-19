@@ -164,3 +164,7 @@ public_io => functionalComponent: FunctionalComponent
   access = <SBOL:Public>
   direction = <SBOL:inout>
 
+public => component : Component
+  access = <SBOL:Public>
+
+
