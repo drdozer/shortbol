@@ -111,10 +111,18 @@ class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
       append(i)
   }
 
-  def append(s: StringLiteral): Unit = {
-    append("\"")
-    append(s.s)
-    append("\"")
+  def append(str: StringLiteral): Unit = {
+    if(str.isMultiLine) {
+      append("{")
+      append(indentStr)
+      append(str.s)
+      append(indentStr)
+      append("}")
+    } else {
+      append("\"")
+      append(str.s)
+      append("\"")
+    }
   }
 
   def append(i: IntegerLiteral): Unit = {

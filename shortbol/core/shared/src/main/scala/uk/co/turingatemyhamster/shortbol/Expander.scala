@@ -46,19 +46,23 @@ object Expander {
   implicit val ConstructorAppExpander: Expander[ConstructorApp] = new Expander[ConstructorApp] {
     override def expandWith(t: ConstructorApp, ec: ExpansionContext): Seq[ConstructorApp] = t.cstr match {
       case TpeConstructor1(id, args) =>
+        println(s"expanding ${t} with ${ec}")
         ec.cstrs.byId.get(id) map { c =>
-          for {
-            b <- c.cstrApp.body
-          } yield ConstructorApp(c.cstrApp.cstr, b expandWith ec.withContext(c.args, args))
+          Seq(
+            ConstructorApp(
+            c.cstrApp.cstr,
+            c.cstrApp.body flatMap (_ expandWith ec.withContext(c.args, args))))
         } getOrElse Seq(t)
     }
   }
 
   implicit val InstanceExpExpander: Expander[InstanceExp] = new Expander[InstanceExp] {
-    def expandWith(i: InstanceExp, ec: ExpansionContext): Seq[InstanceExp] =
+    def expandWith(i: InstanceExp, ec: ExpansionContext): Seq[InstanceExp] = {
+      println(s"expanding ${i} with ${ec}")
       for {
         c <- i.cstrApp expandWith ec
       } yield InstanceExp(i.id, c)
+    }
   }
 
   implicit val BodyStmtExpander: Expander[BodyStmt] = new Expander[BodyStmt] {

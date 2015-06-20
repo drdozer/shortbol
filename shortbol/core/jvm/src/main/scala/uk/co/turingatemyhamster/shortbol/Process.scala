@@ -28,17 +28,33 @@ object Process {
 
     val all = inputs.flatten
 
+    println("all")
+    println(all.toList)
+
     val cstrs = Ops.constructors(all)
-    val inds = all collect { case i : InstanceExp => i }
+    val inds = all collect { case i : InstanceExp =>
+      println("found individual " + i)
+      i
+    }
     val ex = ExpansionContext(cstrs, Bindings(Map()))
+
+    println("individuals")
+    println(inds.toList)
 
     import Expander.ops._
 
+    println("expansions")
     for {
       i <- inds
+      _ = println("Expanding individual: " + i)
       ie <- i expandWith ex
-    } pp.append(i)
-    println
+    } {
+      println("Indiviudal:")
+      pp.append(i)
+      println("Expansion:")
+      pp.append(ie)
+      println()
+    }
   }
 
 }

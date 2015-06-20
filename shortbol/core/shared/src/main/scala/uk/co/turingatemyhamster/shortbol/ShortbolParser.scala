@@ -63,6 +63,8 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
   def Hash = P("#")
   def LBox = P("[")
   def RBox = P("]")
+  def LBrace = P("{")
+  def RBrace = P("}")
   def BackSlash = P("/")
   def Space = P(" ")
   def Nl = P("\r\n" | "\r" | "\n")
@@ -94,7 +96,17 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
   def QuotedIdentifier = P(Lt ~! (QName | Url) ~ Gt)
   def Identifier = P( QuotedIdentifier | LocalName )
 
-  def StringLiteral = P(DQuote ~! DQuote_¬.rep.! ~ DQuote).map(shortbol.StringLiteral)
+  def ShortStringLiteral = P(DQuote ~! (!DQuote ~ !Nl ~ AnyChar).rep.! ~ DQuote) map
+    (s => shortbol.StringLiteral(s))
+
+  def MultiLineStringLiteralStart = P(LBrace ~ Space.rep ~ Nl)
+  def MultiLineStringLiteralLine = P(!MultiLineStringLiteralEnd ~ ((!Nl ~ AnyChar).rep ~ Nl).!)
+  def MultiLineStringLiteralEnd = P(Space.rep.! ~ RBrace) map
+    (_.length)
+  def MultiLineStringLiteral = P(MultiLineStringLiteralStart ~! MultiLineStringLiteralLine.rep ~ MultiLineStringLiteralEnd) map
+    { case (s, i) => shortbol.StringLiteral(s map (_ substring i) mkString, multiLine = true) }
+
+  def StringLiteral = P(ShortStringLiteral | MultiLineStringLiteral)
   def IntegerLiteral = P(Digit.rep(1).!).map(_.toInt).map(shortbol.IntegerLiteral)
   def ValueExp = P(Identifier | StringLiteral | IntegerLiteral)
 
@@ -147,14 +159,9 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
     (_ => shortbol.BlankLine) log "bl"
 
   def TopLevel: Parser[TopLevel] = P(
-    (InstanceExp ~ SpNl) |
-      (ConstructorDef ~ SpNl) |
-      (Comment ~ SpNl) |
-      (Import ~ SpNl) |
-      (BlankLine ~ SpNl) |
-      (Assignment ~ SpNl)) log "tl"
+    (InstanceExp | ConstructorDef | Comment | Import | BlankLine | Assignment ~ SpNl)) log "tl"
 
-  def TopLevels = P(TopLevel.rep) log "tls"
+  def TopLevels = P(TopLevel.rep(sep = SpNl)) log "tls"
 
   def File = P(Start ~ TopLevels ~ End) log "file"
 }

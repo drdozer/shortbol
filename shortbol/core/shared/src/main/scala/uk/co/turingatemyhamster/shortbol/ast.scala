@@ -8,7 +8,10 @@ case class QName(prefix: NSPrefix, localName: LocalName) extends Identifier
 case class Url(url: String) extends Identifier
 
 trait ValueExp
-case class StringLiteral(s: String) extends ValueExp
+case class StringLiteral(s: String, multiLine: Boolean = false) extends ValueExp {
+  def isMultiLine = multiLine || s.contains("\n") || s.contains("\r")
+}
+
 case class IntegerLiteral(i: Int) extends ValueExp
 
 trait BodyStmt
