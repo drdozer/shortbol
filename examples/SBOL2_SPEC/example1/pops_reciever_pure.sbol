@@ -9,22 +9,27 @@ BBa_R0040 : DNASequence
     elements = "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac"
 
 BBa_C0062 : DNASequence
-    elements = "atgcttatctgatatgactaaaatggtacattgtgaatattatttactcgcgatcatttatcctcattcta
-    tggttaaatctgatatttcaatcctagataattaccctaaaaaatggaggcaatattatgatgacgctaatttaataaaatatgat
-    cctatagtagattattctaactccaatcattcaccaattaattggaatatatttgaaaacaatgctgtaaataaaaaatctccaaa
-    tgtaattaaagaagcgaaaacatcaggtcttatcactgggtttagtttccctattcatacggctaacaatggcttcggaatgctta
-    gttttgcacattcagaaaaagacaactatatagatagtttatttttacatgcgtgtatgaacataccattaattgttccttctcta
-    gttgataattatcgaaaaataaatatagcaaataataaatcaaacaacgatttaaccaaaagagaaaaagaatgtttagcgtgggc
-    atgcgaaggaaaaagctcttgggatatttcaaaaatattaggttgcagtgagcgtactgtcactttccatttaaccaatgcgcaaa
-    tgaaactcaatacaacaaaccgctgccaaagtatttctaaagcaattttaacaggagcaattgattgcccatactttaaaaattaa
-    taacactgatagtgctagtgtagatcac"
+    elements = {
+       atgcttatctgatatgactaaaatggtacattgtgaatattatttactcgcgatcatttatcctcattcta
+       tggttaaatctgatatttcaatcctagataattaccctaaaaaatggaggcaatattatgatgacgctaatttaataaaatatgat
+       cctatagtagattattctaactccaatcattcaccaattaattggaatatatttgaaaacaatgctgtaaataaaaaatctccaaa
+       tgtaattaaagaagcgaaaacatcaggtcttatcactgggtttagtttccctattcatacggctaacaatggcttcggaatgctta
+       gttttgcacattcagaaaaagacaactatatagatagtttatttttacatgcgtgtatgaacataccattaattgttccttctcta
+       gttgataattatcgaaaaataaatatagcaaataataaatcaaacaacgatttaaccaaaagagaaaaagaatgtttagcgtgggc
+       atgcgaaggaaaaagctcttgggatatttcaaaaatattaggttgcagtgagcgtactgtcactttccatttaaccaatgcgcaaa
+       tgaaactcaatacaacaaaccgctgccaaagtatttctaaagcaattttaacaggagcaattgattgcccatactttaaaaattaa
+       taacactgatagtgctagtgtagatcac
+       }
 
 BBa_R0062 : DNASequence
     elements = "acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa"
 
 
 BBa_B0015 : DNASequence
-    elements = "ccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttata"
+    elements = { 
+        ccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtgaacgctctctacta
+        gagtcacactggctcaccttcgggtgggcctttctgcgtttata
+        }
 
 #########################################################################
 
@@ -63,18 +68,18 @@ fRBS : rbs
 ########################################################################
 
 ##################### Define the Parent Component Definition ##############################
-pops_receiver = DNAComponent
-    role = <SBOL: Receiver>
-    description = "3OC6HSL -&gt; PoPS Receiver"
-    component fRBS
-        at Inline(56,68)
-    component doubleT
-        at Inline(771,900)
-    component pLuxR
-        at Inline(901,956)
-    component pTetR
-        at Inline(1,55)
-    component luxR
-        at Inline(69,770)
-
+#pops_receiver : DNAComponent
+#    role = <SBOL:Receiver>
+#    description = "3OC6HSL -&gt; PoPS Receiver"
+#    component fRBS
+#        location : Inline(56,68)
+#    component doubleT
+#        location : Inline(771,900)
+#    component pLuxR
+#        location : Inline(901,956)
+#    component pTetR
+#        location :Inline(1,55)
+#    component luxR
+#        location : Inline(69,770)
+#
 ###########################################################################################
