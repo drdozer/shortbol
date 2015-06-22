@@ -1,9 +1,0 @@
- "to shorten subcomponent addition: A = parent component definition. B = component definition. Instead of saying:
-A: Gene
-subComponent
-   B : Promotor
-can say:
-A : Gene
-   has_component(B)
-or " A has_component(B) "
-and also "B part_of A"
