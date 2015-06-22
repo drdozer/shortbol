@@ -2,8 +2,9 @@
 ############### Generic Components ##################
 
 #Common sequence annotations
-DNASequence => Sequence
+DNASequence(x) => Sequence
    encoding = <SBOL:IUPACDNA>
+   elements = x
 
 # DNA/RNA/Protein
 

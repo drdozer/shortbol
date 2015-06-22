@@ -2,29 +2,32 @@ import genomic_generics
 
 ##################### Define the sequences ##############################
 
-BBa_B0034 : DNASequence
-    elements = "aaagaggagaaa"
+BBa_B0034 : DNASequence("aaagaggagaaa")
 
-BBa_R0040 : DNASequence
-    elements = "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac"
+BBa_R0040 : DNASequence("tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac")
 
-BBa_C0062 : DNASequence
-    elements = "atgcttatctgatatgactaaaatggtacattgtgaatattatttactcgcgatcatttatcctcattcta
-    tggttaaatctgatatttcaatcctagataattaccctaaaaaatggaggcaatattatgatgacgctaatttaataaaatatgat
-    cctatagtagattattctaactccaatcattcaccaattaattggaatatatttgaaaacaatgctgtaaataaaaaatctccaaa
-    tgtaattaaagaagcgaaaacatcaggtcttatcactgggtttagtttccctattcatacggctaacaatggcttcggaatgctta
-    gttttgcacattcagaaaaagacaactatatagatagtttatttttacatgcgtgtatgaacataccattaattgttccttctcta
-    gttgataattatcgaaaaataaatatagcaaataataaatcaaacaacgatttaaccaaaagagaaaaagaatgtttagcgtgggc
-    atgcgaaggaaaaagctcttgggatatttcaaaaatattaggttgcagtgagcgtactgtcactttccatttaaccaatgcgcaaa
-    tgaaactcaatacaacaaaccgctgccaaagtatttctaaagcaattttaacaggagcaattgattgcccatactttaaaaattaa
-    taacactgatagtgctagtgtagatcac"
-
-BBa_R0062 : DNASequence
-    elements = "acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa"
+BBa_C0062 : DNASequence(
+{atgcttatctgatatgactaaaatggtacattgtgaatattatttactcgcgatcatttatcctcattcta
+tggttaaatctgatatttcaatcctagataattaccctaaaaaatggaggcaatattatgatgacgctaatttaataaaatatgat
+cctatagtagattattctaactccaatcattcaccaattaattggaatatatttgaaaacaatgctgtaaataaaaaatctccaaa
+tgtaattaaagaagcgaaaacatcaggtcttatcactgggtttagtttccctattcatacggctaacaatggcttcggaatgctta
+gttttgcacattcagaaaaagacaactatatagatagtttatttttacatgcgtgtatgaacataccattaattgttccttctcta
+gttgataattatcgaaaaataaatatagcaaataataaatcaaacaacgatttaaccaaaagagaaaaagaatgtttagcgtgggc
+atgcgaaggaaaaagctcttgggatatttcaaaaatattaggttgcagtgagcgtactgtcactttccatttaaccaatgcgcaaa
+tgaaactcaatacaacaaaccgctgccaaagtatttctaaagcaattttaacaggagcaattgattgcccatactttaaaaattaa
+taacactgatagtgctagtgtagatcac
+}
+)
 
 
-BBa_B0015 : DNASequence
-    elements = "ccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttata"
+BBa_R0062 : DNASequence("acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa")
+
+
+BBa_B0015 : DNASequence(
+{ccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttg
+tttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttata
+}
+)
 
 #########################################################################
 
