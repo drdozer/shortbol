@@ -13,21 +13,29 @@ case class IntegerLiteral(i: Int) extends ValueExp
 
 trait BodyStmt
 
-case class Assignment(property: Identifier, value: ValueExp) extends BodyStmt
-
-case class NestedAssignment(property: Identifier, body: Seq[BodyStmt]) extends BodyStmt
+case class Assignment(property: Identifier, value: ValueExp) extends BodyStmt with TopLevel
 
 case class NestedInstance(nested: InstanceExp) extends BodyStmt
 
-case class TpeConstructor(id: Identifier, args: Seq[ValueExp])
+case class ConstructorApp(cstr: TpeConstructor,
+                          body: Seq[BodyStmt]) extends BodyStmt
+
+trait TpeConstructor
+
+case class TpeConstructor1(id: Identifier, args: Seq[ValueExp]) extends TpeConstructor
+case object TpeConstructorStar extends TpeConstructor
 
 trait TopLevel
 
+case object BlankLine extends TopLevel with BodyStmt
+
+case class Import(path: String) extends TopLevel
+
+case class Comment(commentText: String) extends TopLevel with BodyStmt
+
 case class InstanceExp(id: Identifier,
-                       cstr: TpeConstructor,
-                       body: Seq[BodyStmt]) extends TopLevel
+                       cstrApp: ConstructorApp) extends TopLevel
 
 case class ConstructorDef(id: Identifier,
                           args: Seq[LocalName],
-                          cstr: TpeConstructor,
-                          body: Seq[BodyStmt]) extends TopLevel
+                          cstrApp: ConstructorApp) extends TopLevel

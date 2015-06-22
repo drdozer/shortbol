@@ -17,14 +17,28 @@ object Process {
     val inputs = args map
       Source.fromFile map
       (_.mkString) map
-      (i => p.TopLevels.parse(i)) foreach
+      (i => p.File.parse(i)) map
       {
         case Success(tls, _) =>
-          pp.append(tls)
+          tls
         case f : Failure.Mutable =>
           System.err.println(f.verboseTrace)
+          Seq()
       }
 
+    val all = inputs.flatten
+
+    val cstrs = Ops.constructors(all)
+    val inds = all collect { case i : InstanceExp => i }
+    val ex = ExpansionContext(cstrs, Bindings(Map()))
+
+    import Expander.ops._
+
+    for {
+      i <- inds
+      ie <- i expandWith ex
+    } pp.append(i)
+    println
   }
 
 }

@@ -2,9 +2,13 @@
 ############### Generic Components ##################
 
 #Common sequence annotations
+
 DNASequence(x) => Sequence
    encoding = <SBOL:IUPACDNA>
    elements = x
+
+DNASequence => Sequence
+   encoding = <IUPAC:DNA>
 
 # DNA/RNA/Protein
 
@@ -121,7 +125,7 @@ Translation(cds_rna, protein) => Interaction
   translation_template(cds_rna)
   translation_product(protein)
 
-ProteinProduction(cds, cds_rna, protein) => Interaction*
+ProteinProduction(cds, cds_rna, protein) => *
   Transcription(cds, cds_rna)
   Translation(cds_rna, protein)
 
@@ -167,5 +171,4 @@ public_io => functionalComponent: FunctionalComponent
 
 public => component : Component
   access = <SBOL:Public>
-
 
