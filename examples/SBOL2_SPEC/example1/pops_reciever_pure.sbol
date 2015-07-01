@@ -16,8 +16,7 @@ gttgataattatcgaaaaataaatatagcaaataataaatcaaacaacgatttaaccaaaagagaaaaagaatgtttagc
 atgcgaaggaaaaagctcttgggatatttcaaaaatattaggttgcagtgagcgtactgtcactttccatttaaccaatgcgcaaa
 tgaaactcaatacaacaaaccgctgccaaagtatttctaaagcaattttaacaggagcaattgattgcccatactttaaaaattaa
 taacactgatagtgctagtgtagatcac
-}
-)
+})
 
 
 BBa_R0062 : DNASequence("acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa")
@@ -26,8 +25,7 @@ BBa_R0062 : DNASequence("acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa
 BBa_B0015 : DNASequence(
 {ccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttg
 tttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttata
-}
-)
+})
 
 #########################################################################
 
