@@ -2,10 +2,14 @@ package uk.co.turingatemyhamster.shortbol
 
 import java.io.PrintWriter
 
+object PrettyPrinter {
+  def apply(out: Appendable): PrettyPrinter = new PrettyPrinter(out)
+}
+
 /**
  * Created by nmrp3 on 15/06/15.
  */
-class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
+class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   lazy val indentStr = "\n" + (" " * indent)
 
   private def append(s: String) = out.append(s)
@@ -54,7 +58,7 @@ class PrettyPrint(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   def append(app: ConstructorApp): Unit = {
     append(app.cstr)
     if(app.body.nonEmpty) {
-      val pp = new PrettyPrint(out, indent = indent + indentDepth)
+      val pp = new PrettyPrinter(out, indent = indent + indentDepth)
       for(b <- app.body)
         pp.append(b)
     }
