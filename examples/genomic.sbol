@@ -13,10 +13,10 @@ DNASequence => Sequence
 # DNA/RNA/Protein
 
 DnaComponent => ComponentDefinition
-  type = <SBOL:DNA>
+   type = <SBOL:DNA>
 
 RnaComponent => ComponentDefinition
-  type = <SBOL:RNA>
+   type = <SBOL:RNA>
 
 ProteinComponent => ComponentDefinition
   type = <SBOL:Protein>
