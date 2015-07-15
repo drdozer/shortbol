@@ -22,6 +22,11 @@ h2 {
     font-size: 180%
 }
 
+h3{
+    font-size: 130%;
+    color: rgb(121,147,189);
+}
+
 .sidebar-nav {
     padding: 9px 0;
 }
@@ -113,7 +118,10 @@ h2 {
 @media (min-width: 768px) {
     /* uncomment if you would like the menu to be fixed */
     #vertical .navbar {
-        width: 170px;
+			position: fixed;
+			width: 170px;
+			z-index: 2;
+            word-wrap: break-word;
 
     }
 
@@ -123,12 +131,14 @@ h2 {
  #vertical .navbar-default {
     background-color: rgb(183, 200, 190);
     border-color: #E7E7E7;
+    /*position:fixed;*/
 }
 
  .navbar-default {
-    background-color: rgb(246, 255, 213);
+    background-color: rgb(224,228,235);
     border-color: #E7E7E7;
 }
+
 @media (min-width: 992px) {
     #vertical .navbar {
         width: 212px;
@@ -183,3 +193,20 @@ embed{
     height: 200px;
     /*height: 100%;*/
 }
+img.diagram{
+    background-color: rgb(219, 227, 222);
+    padding: 5px;
+    width : 100%;
+    border: solid 1px black;
+    border-radius: 10px;
+
+}
+p.diagram{
+    width : 100%;
+}
+
+pre{
+    margin-bottom: 15px;
+}
+
+

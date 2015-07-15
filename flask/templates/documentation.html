@@ -22,7 +22,16 @@
                         </div>
                         <div class="navbar-collapse collapse sidebar-navbar-collapse">
                             <ul class="nav navbar-nav">
-                                <li><a href="#">Templates</a></li>
+                                <li><a href="#templatessection">Templates</a></li>
+                                <ul>
+                                    <li><a href="#sequenceconstructorstemplates">Sequence</a></li>
+                                    <li><a href="#componentdefinitiontemplates">ComponentDefinition</a></li>
+                                    <li><a href="#sequenceannotationtemplates">SequenceAnnotation</a></li>
+                                    <li><a href="#commonparticipationconstructors">Participation</a></li>
+                                    <li><a href="#interactiontemplates">Interaction</a></li>
+                                    <li><a href="#moduledefinitiontemplates">ModuleDefinition</a></li>
+                                    <li><a href="#propertytemplates">Property Templates</a></li>
+                                </ul>
                                 <li><a href="#">Operators</a></li>
                                 <li><a href="#">Keywords</a></li>
                             </ul>
@@ -33,28 +42,84 @@
             </div>
             <div class="col-sm-9">
                 {% if templates %}
-                <h2>Standard Templates</h2>
-                <pre>{{ templates.DNASequence }}</pre>
-                <pre>{{ templates.DNAComponent }}</pre>
-                <pre>{{ templates.RNAComponent }}</pre>
-                <pre>{{ templates.ProteinComponent }}</pre>
-                <pre>{{ templates.Promotor }}</pre>
-                <pre>{{ templates.RBS }}</pre>
-                <pre>{{ templates.CDS }}</pre>
+                    <h2 id="templatessection">Standard Templates</h2>
+                    <h3 id="sequenceconstructorstemplates">Common Sequence Constructors</h3>
+                    <pre>{{ templates.DNASequence }}</pre>
+                    <div class="example_collapse">
+                    <h3 id="componentdefinitiontemplates">Common ComponentsDefinition Constructors</h3>
+                    <pre>{{ templates.DNAComponent }}</pre>
+                    <pre>{{ templates.RNAComponent }}</pre>
+                    <pre>{{ templates.ProteinComponent }}</pre>
+                    <pre>{{ templates.Promotor }}</pre>
+                    <pre>{{ templates.RBS }}</pre>
+                    <pre>{{ templates.CDS }}</pre>
                     <pre>{{ templates.Terminator }}</pre>
-                <pre>{{ templates.CDS_RNA }}</pre>
+                    <pre>{{ templates.CDS_RNA }}</pre>
+                    </div>
+                    <hr/>
+                    <h3 id="sequenceannotationtemplates">Common SequenceAnnotation Constructors</h3>
+                    <pre>{{ templates.InlineRange }}</pre>
+                    <pre>{{ templates.ReverseCompRange }}</pre>
+                    <pre>{{ templates.Inline }}</pre>
+                    <pre>{{ templates.ReverseComp }}</pre>
+                    <hr/>
+                    <h3 id="commonparticipationconstructors"> Common Participation Constructors</h3>
+                    <pre>{{ templates.Driver }}</pre>
+                    <pre>{{ templates.Driven }}</pre>
+                    <pre>{{ templates.Repressor }}</pre>
+                    <pre>{{ templates.Repressed }}</pre>
+                    <pre>{{ templates.Activated }}</pre>
+                    <pre>{{ templates.Activator }}</pre>
+                    <pre>{{ templates.TranscriptionTemplate }}</pre>
+                    <pre>{{ templates.TranscriptionProduct }}</pre>
+                    <pre>{{ templates.TranslationTemplate }}</pre>
+                    <pre>{{ templates.TranslationProduct }}</pre>
+                    <pre>{{ templates.Inhibitor }}</pre>
+                    <pre>{{ templates.Inhibited }}</pre>
+                    <hr/>
+                    <h3 id="interactiontemplates" >Common Interaction Constructors</h3>
+                    <pre>{{ templates.Transcription }}</pre>
+                    <pre>{{ templates.Translation }}</pre>
+                    <pre>{{ templates.ProteinProduction }}</pre>
+                    <pre>{{ templates.activates }}</pre>
+                    <pre>{{ templates.drives }}</pre>
+                    <pre>{{ templates.represses }}</pre>
+                    <pre>{{ templates.inhibits }}</pre>
+                    <hr/>
+                    <h3 id="moduledefinitiontemplates">Common ModuleDefinition Constructors</h3>
+                    <pre>{{ templates.InverterModule }}</pre>
+                    <pre>{{ templates.ToggleModule }}</pre>
+                    <hr/>
+                    <h3 id="propertytemplates">Property Templates</h3>
+                    <pre>{{ templates.public }}</pre>
+                    <pre>{{ templates.public_i }}</pre>
+                    <pre>{{ templates.public_o }}</pre>
+                    <pre>{{ templates.public_io }}</pre>
+                    <pre>{{ templates.private }}</pre>
+                    <pre>{{ templates.private_i }}</pre>
+                    <pre>{{ templates.private_o }}</pre>
+                    <pre>{{ templates.private_io }}</pre>
+
+
 
 
                 {% endif %}
-                <p>
-                    <a href="{{ url_for('static',filename='images/templating/templating_1.svg') }}"><img src="{{ url_for('static',filename='images/templating/templating_1.svg') }}" height="530"/></a>
+                <p class="diagram">
+                    <a href="{{ url_for('static',filename='images/templating/templating_1.svg') }}"><img class="diagram"
+                                                                                                         src="{{ url_for('static',filename='images/templating/templating_1.svg') }}"/></a>
                 </p>
-                <p>
-                    <a href="{{ url_for('static', filename='images/templating/templating_2.svg') }}"><img src="{{ url_for('static', filename='images/templating/templating_2.svg') }}" height="550"/></a>
+
+                <p class="diagram">
+                    <a href="{{ url_for('static', filename='images/templating/templating_2.svg') }}"><img
+                            class="diagram"
+                            src="{{ url_for('static', filename='images/templating/templating_2.svg') }}"/></a>
 
                 </p>
-                <p>
-                    <a href="{{ url_for('static', filename='images/templating/templating_3.svg') }}"><img src="{{ url_for('static', filename='images/templating/templating_3.svg') }}" height="550"/></a>
+
+                <p class="diagram">
+                    <a href="{{ url_for('static', filename='images/templating/templating_3.svg') }}"><img
+                            class="diagram"
+                            src="{{ url_for('static', filename='images/templating/templating_3.svg') }}"/></a>
 
                 </p>
             </div>
