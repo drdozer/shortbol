@@ -43,27 +43,45 @@
             <div class="col-sm-9">
                 {% if templates %}
                     <h2 id="templatessection">Standard Templates</h2>
+                    <div class="example_header">
                     <h3 id="sequenceconstructorstemplates">Common Sequence Constructors</h3>
+                    <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                    <div class="example_collapse" hidden>
                     <pre>{{ templates.DNASequence }}</pre>
-                    <div class="example_collapse">
-                    <h3 id="componentdefinitiontemplates">Common ComponentsDefinition Constructors</h3>
-                    <pre>{{ templates.DNAComponent }}</pre>
-                    <pre>{{ templates.RNAComponent }}</pre>
-                    <pre>{{ templates.ProteinComponent }}</pre>
-                    <pre>{{ templates.Promotor }}</pre>
-                    <pre>{{ templates.RBS }}</pre>
-                    <pre>{{ templates.CDS }}</pre>
-                    <pre>{{ templates.Terminator }}</pre>
-                    <pre>{{ templates.CDS_RNA }}</pre>
+                    </div>
                     </div>
                     <hr/>
+
+                    <div class="example_header">
+                    <h3 id="componentdefinitiontemplates">Common ComponentsDefinition Constructors</h3>
+                    <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                    <div class="example_collapse" hidden>
+                        <pre>{{ templates.DNAComponent }}</pre>
+                        <pre>{{ templates.RNAComponent }}</pre>
+                        <pre>{{ templates.ProteinComponent }}</pre>
+                        <pre>{{ templates.Promotor }}</pre>
+                        <pre>{{ templates.RBS }}</pre>
+                        <pre>{{ templates.CDS }}</pre>
+                        <pre>{{ templates.Terminator }}</pre>
+                        <pre>{{ templates.CDS_RNA }}</pre>
+                    </div>
+                    </div>
+                    <hr/>
+                    <div class="example_header">
                     <h3 id="sequenceannotationtemplates">Common SequenceAnnotation Constructors</h3>
+                    <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                    <div class="example_collapse" hidden>
                     <pre>{{ templates.InlineRange }}</pre>
                     <pre>{{ templates.ReverseCompRange }}</pre>
                     <pre>{{ templates.Inline }}</pre>
                     <pre>{{ templates.ReverseComp }}</pre>
+                    </div>
+                    </div>
                     <hr/>
+                    <div class="example_header">
                     <h3 id="commonparticipationconstructors"> Common Participation Constructors</h3>
+                    <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                    <div class="example_collapse" hidden>
                     <pre>{{ templates.Driver }}</pre>
                     <pre>{{ templates.Driven }}</pre>
                     <pre>{{ templates.Repressor }}</pre>
@@ -76,8 +94,13 @@
                     <pre>{{ templates.TranslationProduct }}</pre>
                     <pre>{{ templates.Inhibitor }}</pre>
                     <pre>{{ templates.Inhibited }}</pre>
+                    </div>
+                    </div>
                     <hr/>
-                    <h3 id="interactiontemplates" >Common Interaction Constructors</h3>
+                    <div class="example_header">
+                    <h3 id="interactiontemplates">Common Interaction Constructors</h3>
+                    <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                    <div class="example_collapse" hidden>
                     <pre>{{ templates.Transcription }}</pre>
                     <pre>{{ templates.Translation }}</pre>
                     <pre>{{ templates.ProteinProduction }}</pre>
@@ -85,12 +108,22 @@
                     <pre>{{ templates.drives }}</pre>
                     <pre>{{ templates.represses }}</pre>
                     <pre>{{ templates.inhibits }}</pre>
+                    </div>
+                    </div>
                     <hr/>
+                    <div class="example_header">
                     <h3 id="moduledefinitiontemplates">Common ModuleDefinition Constructors</h3>
+                    <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                    <div class="example_collapse" hidden>
                     <pre>{{ templates.InverterModule }}</pre>
                     <pre>{{ templates.ToggleModule }}</pre>
+                    </div>
+                    </div>
                     <hr/>
+                    <div class="example_header">
                     <h3 id="propertytemplates">Property Templates</h3>
+                    <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                    <div class="example_collapse" hidden>
                     <pre>{{ templates.public }}</pre>
                     <pre>{{ templates.public_i }}</pre>
                     <pre>{{ templates.public_o }}</pre>
@@ -99,6 +132,8 @@
                     <pre>{{ templates.private_i }}</pre>
                     <pre>{{ templates.private_o }}</pre>
                     <pre>{{ templates.private_io }}</pre>
+                    </div>
+                    </div>
 
 
 

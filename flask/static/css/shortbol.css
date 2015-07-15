@@ -25,6 +25,7 @@ h2 {
 h3{
     font-size: 130%;
     color: rgb(121,147,189);
+    display: inline;
 }
 
 .sidebar-nav {
@@ -194,7 +195,7 @@ embed{
     /*height: 100%;*/
 }
 img.diagram{
-    background-color: rgb(219, 227, 222);
+    background-color: rgb(241, 241, 241);
     padding: 5px;
     width : 100%;
     border: solid 1px black;
@@ -209,4 +210,20 @@ pre{
     margin-bottom: 15px;
 }
 
+ button.btn-primary{
+    position:absolute;
+     right:0;
+     top: 0;
+     background-color: rgb(73,83,116)
 
+}
+ .example_header{
+     position:relative;
+     width: 100%;
+     margin-top:25px;
+     margin-bottom:25px;
+ }
+ .example_collapse{
+     margin-bottom:20px;
+     margin-top: 20px;
+ }
