@@ -178,7 +178,7 @@ class Interactions(Templates):
    Repressed(b)"""
 
         self.keys['inhibits'] = """inhibits(tf,promotor) => Interaction
-   type = <SBOL:http://identifiers.org/biomodels.sbo/SBO:0000169> #inhibits
+   type = <SBOL:Inhibits> #http://identifiers.org/biomodels.sbo/SBO:0000169
    Inhibitor(tf)
    Inhibited(promotor)"""
 
@@ -252,5 +252,28 @@ class MapsTos(Templates):
 
     keys = OrderedDict()
 
-    
+    def __init__(self):
+        pass
+
+        self.keys["replaces"] = """replaces(l,r) => MapsTo
+   refinement = <SBOL:UseLocal>
+   local = l
+   remote = r"""
+
+        self.keys["uses"] = """uses(l,r) => MapsTo
+   refinement = <SBOL:UseRemote>
+   local = l
+   remote = r"""
+
+        self.keys["is_equal_to"] = """is_equal_to(l,r) => MapsTo
+   refinement = <SBOL:VerifyIdentical>
+   local = l
+   remote = r"""
+
+        self.keys["merge"] = """merge(l,r) => MapsTo
+   refinement = <SBOL:Merge>
+   local = l
+   remote = r"""
+
+
 

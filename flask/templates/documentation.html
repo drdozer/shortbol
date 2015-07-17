@@ -21,11 +21,13 @@
                             <span class="visible-xs navbar-brand">Documentation</span>
                         </div>
                         <div class="navbar-collapse collapse sidebar-navbar-collapse">
+                            <div id="navbar1">
                             <ul class="nav navbar-nav">
                                 <li><a href="#templatessection">Templates</a></li>
                                 <ul>
                                     <li><a href="#sequenceconstructorstemplates">Sequence</a></li>
                                     <li><a href="#componentdefinitiontemplates">ComponentDefinition</a></li>
+                                    <li><a href="#mapstotemplates">MapsTo</a></li>
                                     <li><a href="#sequenceannotationtemplates">SequenceAnnotation</a></li>
                                     <li><a href="#commonparticipationconstructors">Participation</a></li>
                                     <li><a href="#interactiontemplates">Interaction</a></li>
@@ -35,6 +37,7 @@
                                 <li><a href="#">Operators</a></li>
                                 <li><a href="#">Keywords</a></li>
                             </ul>
+                            </div>
                         </div>
                         <!--/.nav-collapse -->
                     </div>
@@ -63,6 +66,17 @@
                             {% for key in templates.componentDefinitions.getExamples()  %}
                                 <h4>{{ key }}</h4>
                                 <pre>{{ templates.componentDefinitions.getExamples()[key] }}</pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="example_header">
+                        <h3 id="mapstotemplates">Common MapsTo Constructors</h3>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
+                            {% for key in templates.mapstos.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre>{{ templates.mapstos.getExamples()[key] }}</pre>
                             {% endfor %}
                         </div>
                     </div>

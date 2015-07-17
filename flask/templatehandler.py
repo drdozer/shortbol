@@ -14,4 +14,4 @@ class TemplateHandler():
         self.participations = Participations()
         self.sequenceAnnotations = SequenceAnnotations()
         self.componentDefinitions = ComponentDefinitions()
-
+        self.mapstos = MapsTos()
