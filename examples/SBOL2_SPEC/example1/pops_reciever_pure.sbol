@@ -2,11 +2,9 @@ import genomic_generics
 
 ##################### Define the sequences ##############################
 
-BBa_B0034 : DNASequence
-    elements = "aaagaggagaaa"
+BBa_B0034 : DNASequence("aaagaggagaaa")
 
-BBa_R0040 : DNASequence
-    elements = "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac"
+BBa_R0040 : DNASequence("tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac")
 
 BBa_C0062 : DNASequence
     elements = {
@@ -21,9 +19,8 @@ BBa_C0062 : DNASequence
        taacactgatagtgctagtgtagatcac
        }
 
-BBa_R0062 : DNASequence
-    elements = "acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa"
 
+BBa_R0062 : DNASequence("acctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaa")
 
 BBa_B0015 : DNASequence
     elements = { 
@@ -82,4 +79,5 @@ fRBS : rbs
 #    component luxR
 #        location : Inline(69,770)
 #
+###########################################################################################
 ###########################################################################################

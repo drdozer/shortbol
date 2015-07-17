@@ -4,78 +4,83 @@ import genomic_generics
 
 #########################################################
 
-BBa_J61101_seq : DNASequence
-    elements = "aaagacaggacc"
+BBa_J61101_seq : DNASequence("aaagacaggacc")
 
 #########################################################
 
-BBa_J61120_seq : DNASequence
-    elements = "aaagacaggacc"
+BBa_J61120_seq : DNASequence("aaagacaggacc")
 #########################################################
 
-BBa_E0040_seq : DNASequence
-    elements = "atgcgtaaaggagaagaacttttcactggagttgtcccaattcttgttgaattagatggtgatgttaatgg
-    gcacaaattttctgtcagtggagagggtgaaggtgatgcaacatacggaaaacttacccttaaatttatttgcactactggaaaac
-    tacctgttccatggccaacacttgtcactactttcggttatggtgttcaatgctttgcgagatacccagatcatatgaaacagcat
-    gactttttcaagagtgccatgcccgaaggttatgtacaggaaagaactatatttttcaaagatgacgggaactacaagacacgtgc
-    tgaagtcaagtttgaaggtgatacccttgttaatagaatcgagttaaaaggtattgattttaaagaagatggaaacattcttggac
-    acaaattggaatacaactataactcacacaatgtatacatcatggcagacaaacaaaagaatggaatcaaagttaacttcaaaatt
-    agacacaacattgaagatggaagcgttcaactagcagaccattatcaacaaaatactccaattggcgatggccctgtccttttacc
-    agacaaccattacctgtccacacaatctgccctttcgaaagatcccaacgaaaagagagaccacatggtccttcttgagtttgtaa
-    cagctgctgggattacacatggcatggatgaactatacaaataataa"
+BBa_E0040_seq : DNASequence(
+{
+atgcgtaaaggagaagaacttttcactggagttgtcccaattcttgttgaattagatggtgatgttaatgg
+gcacaaattttctgtcagtggagagggtgaaggtgatgcaacatacggaaaacttacccttaaatttatttgcactactggaaaac
+tacctgttccatggccaacacttgtcactactttcggttatggtgttcaatgctttgcgagatacccagatcatatgaaacagcat
+gactttttcaagagtgccatgcccgaaggttatgtacaggaaagaactatatttttcaaagatgacgggaactacaagacacgtgc
+tgaagtcaagtttgaaggtgatacccttgttaatagaatcgagttaaaaggtattgattttaaagaagatggaaacattcttggac
+acaaattggaatacaactataactcacacaatgtatacatcatggcagacaaacaaaagaatggaatcaaagttaacttcaaaatt
+agacacaacattgaagatggaagcgttcaactagcagaccattatcaacaaaatactccaattggcgatggccctgtccttttacc
+agacaaccattacctgtccacacaatctgccctttcgaaagatcccaacgaaaagagagaccacatggtccttcttgagtttgtaa
+cagctgctgggattacacatggcatggatgaactatacaaataataa
+})
 
-#########################################################
-
-ECK120033736_seq : DNASequence
-    elements = "ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa"
-
-#########################################################
-BBa_R0010_seq : DNASequence
-    elements = "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac"
 
 #########################################################
 
-BBa_R0040_seq : DNASequence
-    elements = "tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac"
+ECK120033736_seq : DNASequence("ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa")
+
+#########################################################
+BBa_R0010_seq : DNASequence("tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac")
 
 #########################################################
 
-BBa_J61130_seq : DNASequence
-    elements = "aaagaaacgaca"
+BBa_R0040_seq : DNASequence("tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac")
 
 #########################################################
 
-BBa_C0040_seq : DNASequence
-    elements = "atgtccagattagataaaagtaaagtgattaacagcgcattagagctgcttaatgaggtcggaatcgaagg
-    tttaacaacccgtaaactcgcccagaagctaggtgtagagcagcctacattgtattggcatgtaaaaaataagcgggctttgctcg
-    acgccttagccattgagatgttagataggcaccatactcacttttgccctttagaaggggaaagctggcaagattttttacgtaat
-    aacgctaaaagttttagatgtgctttactaagtcatcgcgatggagcaaaagtacatttaggtacacggcctacagaaaaacagta
-    tgaaactctcgaaaatcaattagcctttttatgccaacaaggtttttcactagagaatgcattatatgcactcagcgctgtggggc
-    attttactttaggttgcgtattggaagatcaagagcatcaagtcgctaaagaagaaagggaaacacctactactgatagtatgccg
-    ccattattacgacaagctatcgaattatttgatcaccaaggtgcagagccagccttcttattcggccttgaattgatcatatgcgg
-    attagaaaaacaacttaaatgtgaaagtgggtccgctgcaaacgacgaaaactacgctttagtagcttaataa"
+BBa_J61130_seq : DNASequence("aaagaaacgaca")
 
 #########################################################
 
-BBa_C0012_seq : DNASequence
-    elements = "atggtgaatgtgaaaccagtaacgttatacgatgtcgcagagtatgccggtgtctcttatcagaccgtttccc
-    gcgtggtgaaccaggccagccacgtttctgcgaaaacgcgggaaaaagtggaagcggcgatggcggagctgaattacattcccaaccg
-    cgtggcacaacaactggcgggcaaacagtcgttgctgattggcgttgccacctccagtctggccctgcacgcgccgtcgcaaattgtc
-    gcggcgattaaatctcgcgccgatcaactgggtgccagcgtggtggtgtcgatggtagaacgaagcggcgtcgaagcctgtaaagcgg
-    cggtgcacaatcttctcgcgcaacgcgtcagtgggctgatcattaactatccgctggatgaccaggatgccattgctgtggaagctgc
-    ctgcactaatgttccggcgttatttcttgatgtctctgaccagacacccatcaacagtattattttctcccatgaagacggtacgcga
-    ctgggcgtggagcatctggtcgcattgggtcaccagcaaatcgcgctgttagcgggcccattaagttctgtctcggcgcgtctgcgtc
-    tggctggctggcataaatatctcactcgcaatcaaattcagccgatagcggaacgggaaggcgactggagtgccatgtccggttttca
-    acaaaccatgcaaatgctgaatgagggcatcgttcccactgcgatgctggttgccaacgatcagatggcgctgggcgcaatgcgcgcc
-    attaccgagtccgggctgcgcgttggtgcggatatctcggtagtgggatacgacgataccgaagacagctcatgttatatcccgccgt
-    taaccaccatcaaacaggattttcgcctgctggggcaaaccagcgtggaccgcttgctgcaactctctcagggccaggcggtgaaggg
-    caatcagctgttgcccgtctcactggtgaaaagaaaaaccaccctggcgcccaatacgcaaaccgcctctccccgcgcgttggccgat
-    tcattaatgcagctggcacgacaggtttcccgactggaaagcgggcaggctgcaaacgacgaaaactacgctttagtagcttaataa"
+BBa_C0040_seq : DNASequence(
+{
+atgtccagattagataaaagtaaagtgattaacagcgcattagagctgcttaatgaggtcggaatcgaagg
+tttaacaacccgtaaactcgcccagaagctaggtgtagagcagcctacattgtattggcatgtaaaaaataagcgggctttgctcg
+acgccttagccattgagatgttagataggcaccatactcacttttgccctttagaaggggaaagctggcaagattttttacgtaat
+aacgctaaaagttttagatgtgctttactaagtcatcgcgatggagcaaaagtacatttaggtacacggcctacagaaaaacagta
+tgaaactctcgaaaatcaattagcctttttatgccaacaaggtttttcactagagaatgcattatatgcactcagcgctgtggggc
+attttactttaggttgcgtattggaagatcaagagcatcaagtcgctaaagaagaaagggaaacacctactactgatagtatgccg
+ccattattacgacaagctatcgaattatttgatcaccaaggtgcagagccagccttcttattcggccttgaattgatcatatgcgg
+attagaaaaacaacttaaatgtgaaagtgggtccgctgcaaacgacgaaaactacgctttagtagcttaataa
+})
+
 
 #########################################################
 
-ECK120029600_seq : DNASequence
-    elements = "ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa"
+BBa_C0012_seq : DNASequence(
+{
+atggtgaatgtgaaaccagtaacgttatacgatgtcgcagagtatgccggtgtctcttatcagaccgtttccc
+gcgtggtgaaccaggccagccacgtttctgcgaaaacgcgggaaaaagtggaagcggcgatggcggagctgaattacattcccaaccg
+cgtggcacaacaactggcgggcaaacagtcgttgctgattggcgttgccacctccagtctggccctgcacgcgccgtcgcaaattgtc
+gcggcgattaaatctcgcgccgatcaactgggtgccagcgtggtggtgtcgatggtagaacgaagcggcgtcgaagcctgtaaagcgg
+cggtgcacaatcttctcgcgcaacgcgtcagtgggctgatcattaactatccgctggatgaccaggatgccattgctgtggaagctgc
+ctgcactaatgttccggcgttatttcttgatgtctctgaccagacacccatcaacagtattattttctcccatgaagacggtacgcga
+ctgggcgtggagcatctggtcgcattgggtcaccagcaaatcgcgctgttagcgggcccattaagttctgtctcggcgcgtctgcgtc
+tggctggctggcataaatatctcactcgcaatcaaattcagccgatagcggaacgggaaggcgactggagtgccatgtccggttttca
+acaaaccatgcaaatgctgaatgagggcatcgttcccactgcgatgctggttgccaacgatcagatggcgctgggcgcaatgcgcgcc
+attaccgagtccgggctgcgcgttggtgcggatatctcggtagtgggatacgacgataccgaagacagctcatgttatatcccgccgt
+taaccaccatcaaacaggattttcgcctgctggggcaaaccagcgtggaccgcttgctgcaactctctcagggccaggcggtgaaggg
+caatcagctgttgcccgtctcactggtgaaaagaaaaaccaccctggcgcccaatacgcaaaccgcctctccccgcgcgttggccgat
+tcattaatgcagctggcacgacaggtttcccgactggaaagcgggcaggctgcaaacgacgaaaactacgctttagtagcttaataa
+})
+
+
+#########################################################
+
+ECK120029600_seq : DNASequence(
+{
+ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa
+})
 
 #########################################################
 
@@ -92,7 +97,7 @@ BBa_J61130_RBS : rbs
 
 BBa_C0012_CDS : cds
     description = "lacI coding sequence"
-    name="lacI"
+    name = "lacI"
     sequence = BBa_C0012_seq
 
 #########################################################
@@ -178,14 +183,18 @@ pIKELeftCassette_1 : DNAComponent
     role = <SBOL:inverter>
     name="TetR Inverter"
     description = "TetR Inverter"
-    component ECK120029600_terminator
-        at Inline(1198,1288)
-    component BBa_R0040_promotor
-        at Inline(1,55)
-    component BBa_C0012_CDS
-        at Inline(69,1197)
-    component BBa_J61101_RBS
-        at Inline(56,68)
+    component : public
+        ECK120029600_terminator
+            at Inline(1198,1288)
+    component : public
+        BBa_R0040_promotor
+            at Inline(1,55)
+    component : public
+        BBa_C0012_CDS
+            at Inline(69,1197)
+    component : public
+        BBa_J61101_RBS
+            at Inline(56,68)
 
 
 #########################################################
@@ -194,18 +203,24 @@ pIKERightCassette_1 : DNAComponent
     role = <SBOL:inverter>
     name="LacI Inverter"
     description = "LacI Inverter"
-    component BBa_R0010_promotor
-        at Inline(1,55)
-    component BBa_C0040_CDS
-        at Inline(69,729)
-    component BBa_J61130_RBS
-        at Inline(730,742)
-    component BBa_E0040_CDS
-        at Inline(743,1463)
-    component ECK120033736_terminator
-        at Inline(1464,1554)
-    component BBa_J61120_RBS
-        at Inline(56,68)
+    component : public
+        BBa_R0010_promotor
+            at Inline(1,55)
+    component : public
+        BBa_C0040_CDS
+            at Inline(69,729)
+    component : public
+        BBa_J61130_RBS
+            at Inline(730,742)
+    component : public
+        BBa_E0040_CDS
+            at Inline(743,1463)
+    component : public
+        ECK120033736_terminator
+            at Inline(1464,1554)
+    component : public
+        BBa_J61120_RBS
+            at Inline(56,68)
 
 
 #########################################################
@@ -214,10 +229,12 @@ pIKE_Toggle_1 : DNAComponent
     role = <SBOL:toggle>
     name="LacI/TetR Toggle Switch"
     description = "LacI/TetR Toggle Switch"
-    component pIKELeftCassette_1
-        at Inline(1,1285)
-    component pIKERightCassette_1
-        at Inline(1286,2834)
+    component : public
+        pIKELeftCassette_1
+            at Inline(1,1285)
+    component : public
+        pIKERightCassette_1
+            at Inline(1286,2834)
 
 
 #########################################################
@@ -225,20 +242,6 @@ pIKE_Toggle_1 : DNAComponent
 ##################### Define the individual Module Definition ##############################
 #########################################################
 
-laci_inverter : InverterModule
-    functionalComponent
-        P03023_protein as TF
-        access = <SBOL:Public>
-        direction = <SBOL:inout>
-    functionalComponent
-        BBa_R0010_promotor as promotor
-        access = <SBOL:Public>
-        direction = <SBOL:inout>
-    TF inhibits promotor  #Interaction defined in import.
-
--------------------------------------
-or
--------------------------------------
 laci_inverter : InverterModule
     functionalComponent : public_io  #populates propeties from the public_io property constructor
         P03023_protein as TF
@@ -266,7 +269,7 @@ tetr_inverter : InverterModule
 
 ##################### Define the model Definition ##########################################
 
-toggleswitch = ModelDefinition
+toggleswitch : ModelDefinition
     source = <SBOL:http://virtualparts.org/part/pIKE_Toggle_1>
     language = <SBOL:http://identifiers.org/edam/format_2585>
     framework = <SBOL:http://identifiers.org/biomodels.sbo/SBO:0000062>
@@ -284,14 +287,15 @@ toggle_switch : ToggleModule
 
     module
         laci_inverter
-        LacI replaces TF
+            LacI replaces_remote TF
     module
         tetr_inverter
-        TetR replaces TF
+            TetR replaces_remote TF
 
     model
         toggleswitch
 
 #########################################################
 ############################################################################################
+
 

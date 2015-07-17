@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="description" content=
+            "ShortBOL designing synthetic biology in shorthand">
+    <meta name="author" content="">
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
+
+    {#    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">#}
+    <link href="{{ url_for('static', filename='css/shortbol.css') }}" rel="stylesheet">
+
+
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+
+
+    <!-- Bootstrap Core JavaScript -->
+    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+
+    <title>ShortBOL designing synthetic biology in shorthand</title>
+
+
+</head>
+<body>
+<p>
+    <img class="logo" src="{{ url_for('static', filename='images/logo2.png') }}" with="80" height="80" alt="logo"/>
+</p>
+<hr/>
+<div class="container">
+    <br/>
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <span class="visible-xs navbar-brand">Navigation</span>
+
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{ url_for('documentation') }}">Documentation</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.container-fluid -->
+    </nav>
+    {% block content %}
+    {% endblock %}
+
+</div>
+<div id="footer">
+    <a target="_blank" href="http://ico2s.org"><img id="icos" src="{{ url_for('static',filename='images/icos.png') }}"/></a>
+    <a target="_blank" href="http://ncl.ac.uk"><img id="ncl"
+                                                    src="{{ url_for('static',filename='images/newcastle-university.png') }}"/></a>
+</div>
+</body>
+
+</html>

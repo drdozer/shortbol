@@ -7,26 +7,26 @@ object ShortbolSrc {
 
   def main(args: Array[String]): Unit = {
 
-    val p = new ShortbolParser()
+    val p = ShortbolParser.parser
 
-    println(p.LocalName.parse("x"))
-    println(p.LocalName.parse("foo"))
-    println(p.LocalName.parse("_foo"))
-    println(p.LocalName.parse("4"))
-    println(p.LocalName.parse("x4"))
+    println(ShortbolParser.LocalName.parse("x"))
+    println(ShortbolParser.LocalName.parse("foo"))
+    println(ShortbolParser.LocalName.parse("_foo"))
+    println(ShortbolParser.LocalName.parse("4"))
+    println(ShortbolParser.LocalName.parse("x4"))
 
-    println(p.QName.parse("foo:bar"))
+    println(ShortbolParser.QName.parse("foo:bar"))
 
-    println(p.Url.parse("http://example.org"))
+    println(ShortbolParser.Url.parse("http://example.org"))
 
-    println(p.Identifier.parse("foo"))
-    println(p.Identifier.parse("<foo:bar>"))
-    println(p.Identifier.parse("<http://bla>"))
+    println(ShortbolParser.Identifier.parse("foo"))
+    println(ShortbolParser.Identifier.parse("<foo:bar>"))
+    println(ShortbolParser.Identifier.parse("<http://bla>"))
 
-    println(p.Assignment.parse("foo = bar"))
-    println(p.Assignment.parse("<foo:Bar> = <http://example.com/something>"))
-    println(p.Assignment.parse("""name = "matthew""""))
-    println(p.Assignment.parse("""age = 39"""))
+    println(ShortbolParser.Assignment.parse("foo = bar"))
+    println(ShortbolParser.Assignment.parse("<foo:Bar> = <http://example.com/something>"))
+    println(ShortbolParser.Assignment.parse("""name = "matthew""""))
+    println(ShortbolParser.Assignment.parse("""age = 39"""))
 
     println(p.InstanceExp.parse(
       """foo : Bar
@@ -142,7 +142,7 @@ object ShortbolSrc {
     println(inds)
     println(expanded)
 
-    val pp = new PrettyPrint(System.out)
+    val pp = new PrettyPrinter(System.out)
     for(x <- raws)
       pp.append(x)
 

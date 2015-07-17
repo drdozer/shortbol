@@ -12,7 +12,7 @@ object Process {
   def main(args: Array[String]): Unit = {
 
     val p = new ShortbolParser()
-    val pp = new PrettyPrint(System.out)
+    val pp = new PrettyPrinter(System.out)
 
     val inputs = args map
       Source.fromFile map
