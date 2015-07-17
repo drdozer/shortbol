@@ -28,6 +28,14 @@ h3{
     display: inline;
 }
 
+h4{
+    font-size: 105%;
+    color: rgb(73,83,116);
+    display: inline;
+}
+
+
+
 .sidebar-nav {
     padding: 9px 0;
 }

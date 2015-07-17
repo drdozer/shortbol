@@ -9,11 +9,11 @@ $(document).ready(function() {
 
             if (text=="-"){
                 $(this).text('+').button("refresh");
-                $(this).next().hide(250);
+                $(this).next().slideUp(250);
             }
             if (text=="+"){
                 $(this).text('-').button("refresh");
-                $(this).next().show(250);
+                $(this).next().slideDown(250);
             }
 
         });
