@@ -20,10 +20,9 @@
                             </button>
                             <span class="visible-xs navbar-brand">Documentation</span>
                         </div>
-                        <div class="navbar-collapse collapse sidebar-navbar-collapse">
-                            <div id="navbar1">
+                        <div class="navbar-collapse collapse sidebar-navbar-collapse scrollspy" >
                             <ul class="nav navbar-nav">
-                                <li><a href="#templatessection">Templates</a></li>
+                                <li><a href="#templatessection">Templates</a>
                                 <ul>
                                     <li><a href="#sequenceconstructorstemplates">Sequence</a></li>
                                     <li><a href="#componentdefinitiontemplates">ComponentDefinition</a></li>
@@ -34,10 +33,10 @@
                                     <li><a href="#moduledefinitiontemplates">ModuleDefinition</a></li>
                                     <li><a href="#propertytemplates">Property Templates</a></li>
                                 </ul>
+                                </li>
                                 <li><a href="#">Operators</a></li>
                                 <li><a href="#">Keywords</a></li>
                             </ul>
-                            </div>
                         </div>
                         <!--/.nav-collapse -->
                     </div>
@@ -45,10 +44,12 @@
             </div>
             <div class="col-sm-9">
                 {% if templates %}
-
-                    <h2 id="templatessection">Standard Templates</h2>
-                    <div class="example_header">
-                        <h3 id="sequenceconstructorstemplates">Common Sequence Constructors</h3>
+                    <section id="templatessection">
+                    <h2>Standard Templates</h2>
+                    </section>
+                    <section id="sequenceconstructorstemplates">
+                        <div class="example_header">
+                        <h3 >Common Sequence Constructors</h3>
                         <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
                         <div class="example_collapse" hidden>
                             {% for key in templates.sequences.getExamples()  %}
@@ -58,6 +59,8 @@
                         </div>
                     </div>
                     <hr/>
+                    </section>
+
 
                     <div class="example_header">
                         <h3 id="componentdefinitiontemplates">Common ComponentsDefinition Constructors</h3>

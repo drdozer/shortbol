@@ -13,6 +13,7 @@ body {
     position: relative;
 }
 
+
 h1 {
     color: rgb(102, 102, 102);
     font-size: 230%
@@ -131,14 +132,42 @@ h4{
 			width: 170px;
 			z-index: 2;
             word-wrap: break-word;
-
     }
+        .nav ul {
+  display: none;
+}
+
+.nav .active ul {
+  display: block;
+}
+
+.nav ul a {
+  font-weight: normal;
+  font-size: .85em;
+}
+
+.nav ul span {
+  margin: 0 5px 0 2px;
+}
+
+.nav ul .active a,
+.nav ul .active:hover a,
+.nav ul .active:focus a {
+  font-weight: bold;
+  padding-left: 0px;
+}
+
+.nav ul .active span,
+.nav ul .active:hover span,
+.nav ul .active:focus span {
+  display: none;
+}
 
 
 
 }
  #vertical .navbar-default {
-    background-color: rgb(183, 200, 190);
+    background-color: rgb(183,200,190);
     border-color: #E7E7E7;
     /*position:fixed;*/
 }
@@ -153,7 +182,34 @@ h4{
         width: 212px;
 
     }
+    .nav ul {
+  display: none;
+}
 
+.nav .active ul {
+  display: block;
+}
+
+.nav ul a {
+  font-weight: normal;
+  font-size: .85em;
+}
+
+.nav ul span {
+  margin: 0 5px 0 2px;
+}
+
+.nav ul .active a,
+.nav ul .active:hover a,
+.nav ul .active:focus a {
+  font-weight: bold;
+  padding-left: 5px;
+}
+
+.nav ul .active span,
+.nav ul .active:hover span,
+.nav ul .active:focus span {
+  display: none;
 }
 
 @media (min-width: 1200px) {
@@ -161,6 +217,46 @@ h4{
         width: 262px;
 
     }
+
+    .nav ul {
+        display: none;
+    }
+
+    .nav .active ul {
+        display: block;
+    }
+
+    .nav ul a {
+        font-weight: normal;
+        font-size: .85em;
+    }
+    .nav ul{
+        background-color:rgb(183,200,190);
+
+    }
+    .nav ul li{
+        background-color:rgb(183,200,190);
+        color:red;
+    }
+    .nav ul span {
+        margin: 0 5px 0 2px;
+        background-color:rgb(183,200,190);
+    }
+
+    .nav ul .active a,
+    .nav ul .active:hover a,
+    .nav ul .active:focus a {
+        font-weight: bold;
+        padding-left: 5px;
+
+    }
+
+    .nav ul .active span,
+    .nav ul .active:hover span,
+    .nav ul .active:focus span {
+        display: none;
+    }
+}
 
 }
  #vertical .navbar-default .navbar-toggle {
@@ -235,4 +331,11 @@ pre{
      margin-bottom:20px;
      margin-top: 20px;
  }
+
+ .nav .active {
+     font-weight: bold;
+     background:rgb(183,200,190);
+ }
+
+
 
