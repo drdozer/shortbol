@@ -228,7 +228,7 @@ h4{
 
     .nav ul a {
         font-weight: normal;
-        font-size: .85em;
+        font-size: 0.94em;
     }
     .nav ul{
         background-color:rgb(183,200,190);
@@ -279,6 +279,10 @@ h4{
 #vertical .navbar-default .sidebar-navbar-collapse {
     background-color: rgb(219, 227, 222);
 
+}
+#vertical .navbar-default .sidebar-navbar-collapse li {
+
+    color: rgb(102,102,102);
 }
 #vertical .navbar-default .sidebar-navbar-collapse li a {
 

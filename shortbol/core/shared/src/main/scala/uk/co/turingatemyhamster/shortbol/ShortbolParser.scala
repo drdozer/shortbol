@@ -25,9 +25,9 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
     override def toString = s"&($p)"
   }
 
-  def IndentSpaces = P( " ".rep(indent) )
-  def Indent = P( "\n".rep(1) ~ IndentSpaces )
-  def IndentBlock[T](p: ShortbolParser => Parser[T]) = P( LookaheadValue("\n".rep(1) ~ IndentSpaces.!) ~ Index ).flatMap{
+  def IndentSpaces = P( " ".rep(indent) )  /* spaces at the number of indents or more */
+  def Indent = P( "\n".rep(1) ~ IndentSpaces ) /* indent can be a new line repeated one or more times and if that succeeds then indented spaces */
+  def IndentBlock[T](p: ShortbolParser => Parser[T]) = P( LookaheadValue("\n".rep(1) ~ IndentSpaces.!) ~ Index ).flatMap{ /*Index consumes no input and provides current index of parse in the input string*/
     case (nextIndent, offsetIndex) =>
       if (nextIndent.length <= indent) {
         fastparse.Fail
@@ -91,7 +91,7 @@ class ShortbolParser(indent: Int = 0, offset: Int = 0) {
 
   def Url = P( (UrlUnreserved | UrlReserved).rep.! ).map(shortbol.Url)
 
-  def QuotedIdentifier = P(Lt ~! (QName | Url) ~ Gt)
+  def QuotedIdentifier = P( Lt ~! (QName | Url) ~ Gt )
   def Identifier = P( QuotedIdentifier | LocalName )
 
   def StringLiteral = P(DQuote ~! DQuote_¬.rep.! ~ DQuote).map(shortbol.StringLiteral)

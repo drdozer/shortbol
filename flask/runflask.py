@@ -7,23 +7,6 @@ def home():
 
 @app.route('/documentation')
 def documentation():
-    # s = Sequences()
-    # cd = ComponentDefinitions()
-    # sa = SequenceAnnotations()
-    # pa = Participations()
-    # inter = Interactions()
-    # md = ModuleDefinitions()
-    # pc = PropertyConstructors()
-    #
-    # templates = {}
-    # templates["Sequences"] = s
-    # templates["ComponentDefinitions"] = cd
-    # templates["SequenceAnnotations"] = sa
-    # templates["Participations"] = pa
-    # templates["Interactions"] = inter
-    # templates["ModuleDefinitions"] = md
-    # templates["PropertyConstructors"] = pc
-
     th = TemplateHandler()
 
     return render_template('documentation.html',templates=th)
