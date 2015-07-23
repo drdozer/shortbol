@@ -331,6 +331,9 @@ pre{
      margin-top:25px;
      margin-bottom:25px;
  }
+ .example_header p{
+     margin-top: 20px;
+ }
  .example_collapse{
      margin-bottom:20px;
      margin-top: 20px;
@@ -341,5 +344,20 @@ pre{
      background:rgb(183,200,190);
  }
 
+ .examplecode{
+     max-height: 700px;
+     overflow: auto;
+     margin-bottom: 10px;
+ }
+
+ #editorace {
+    position: relative;
+    top: 0px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 500px;
+    width: 100%;
+}
 
 

@@ -32,7 +32,15 @@
                                     <li><a href="#interactiontemplates">Interaction</a></li>
                                     <li><a href="#moduledefinitiontemplates">ModuleDefinition</a></li>
                                     <li><a href="#propertytemplates">Property Templates</a></li>
+                                    <li><a href="#models">Model Templates</a></li>
+
                                 </ul>
+                                </li>
+                                <li><a href="#codeexamples">Examples</a>
+                                    <ul>
+                                        <li><a href="toggleswitchexample">Toggle Switch</a></li>
+                                    </ul>
+
                                 </li>
                                 <li><a href="#">Operators</a></li>
                                 <li><a href="#">Keywords</a></li>
@@ -44,6 +52,7 @@
             </div>
             <div class="col-sm-9">
                 {% if templates %}
+
                     <section id="templatessection">
                     <h2>Standard Templates</h2>
                     </section>
@@ -54,7 +63,7 @@
                         <div class="example_collapse" hidden>
                             {% for key in templates.sequences.getExamples()  %}
                                 <h4>{{ key }}</h4>
-                                <pre>{{ templates.sequences.getExamples()[key] }}</pre>
+                                <pre><code class="language-sbolshorthand">{{ templates.sequences.getExamples()[key] }}</code></pre>
                             {% endfor %}
                         </div>
                     </div>
@@ -68,7 +77,7 @@
                         <div class="example_collapse" hidden>
                             {% for key in templates.componentDefinitions.getExamples()  %}
                                 <h4>{{ key }}</h4>
-                                <pre>{{ templates.componentDefinitions.getExamples()[key] }}</pre>
+                                <pre><code class="language-sbolshorthand">{{ templates.componentDefinitions.getExamples()[key] }}</code></pre>
                             {% endfor %}
                         </div>
                     </div>
@@ -79,7 +88,7 @@
                         <div class="example_collapse" hidden>
                             {% for key in templates.mapstos.getExamples()  %}
                                 <h4>{{ key }}</h4>
-                                <pre>{{ templates.mapstos.getExamples()[key] }}</pre>
+                                <pre><code class="language-sbolshorthand">{{ templates.mapstos.getExamples()[key] }}</code></pre>
                             {% endfor %}
                         </div>
                     </div>
@@ -91,7 +100,7 @@
 
                             {% for key in templates.sequenceAnnotations.getExamples()  %}
                                 <h4>{{ key }}</h4>
-                                <pre>{{ templates.sequenceAnnotations.getExamples()[key] }}</pre>
+                                <pre><code class="language-sbolshorthand">{{ templates.sequenceAnnotations.getExamples()[key] }}</code></pre>
                             {% endfor %}
                         </div>
                     </div>
@@ -102,7 +111,7 @@
                         <div class="example_collapse" hidden>
                             {% for key in templates.participations.getExamples()  %}
                                 <h4>{{ key }}</h4>
-                                <pre>{{ templates.participations.getExamples()[key] }}</pre>
+                                <pre><code class="language-sbolshorthand">{{ templates.participations.getExamples()[key] }}</code></pre>
                             {% endfor %}
                         </div>
                     </div>
@@ -113,7 +122,7 @@
                         <div class="example_collapse" hidden>
                             {% for key in templates.interactions.getExamples()  %}
                                 <h4>{{ key }}</h4>
-                                <pre>{{ templates.interactions.getExamples()[key] }}</pre>
+                                <pre><code class="language-sbolshorthand">{{ templates.interactions.getExamples()[key] }}</code></pre>
                             {% endfor %}
                         </div>
                     </div>
@@ -125,23 +134,50 @@
 
                             {% for key in templates.moduleDefinitions.getExamples()  %}
                                 <h4>{{ key }}</h4>
-                                <pre>{{ templates.moduleDefinitions.getExamples()[key] }}</pre>
+                                <pre><code class="language-sbolshorthand">{{ templates.moduleDefinitions.getExamples()[key] }}</code></pre>
                             {% endfor %}
                         </div>
                     </div>
                     <hr/>
                     <div class="example_header">
                         <h3 id="propertytemplates">Property Templates</h3>
+                        <p>
+                            When assigning a component within a component definition without an access template, it defaults to having a public access and so does not have to explicitly expand from the public templates below.
+
+                        </p>
+                        <p>
+                            When assigning a functionalcomponent without an access template, it defaults to having a public access with the direction inout.
+                        </p>
                         <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
                         <div class="example_collapse" hidden>
 
                             {% for key in templates.propertyConstructors.getExamples()  %}
                                 <h4>{{ key }}</h4>
-                                <pre>{{ templates.propertyConstructors.getExamples()[key] }}</pre>
+                                <pre><code class="language-sbolshorthand">{{ templates.propertyConstructors.getExamples()[key] }}</code></pre>
                             {% endfor %}
                         </div>
                     </div>
-
+                    <hr/>
+                    <div class="example_header">
+                        <h3 id="models">Model Templates</h3>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
+                            {% for key in templates.models.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre><code class="language-sbolshorthand">{{ templates.models.getExamples()[key] }}</code></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+<hr/>
+                <h2 id="codeexamples">Examples</h2>
+                    <br/>
+                    <h3 id="toggleswitchexample">Toggle Switch</h3>
+                    <br/>
+                    <div class="examplecode">
+                    <pre><code class="language-sbolshorthand">
+                        {{ examplecode }}
+                    </code></pre>
+                    </div>
 
                 {% endif %}
                 <p class="diagram">

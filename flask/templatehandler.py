@@ -15,3 +15,4 @@ class TemplateHandler():
         self.sequenceAnnotations = SequenceAnnotations()
         self.componentDefinitions = ComponentDefinitions()
         self.mapstos = MapsTos()
+        self.models = Models()

@@ -1,0 +1,238 @@
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="editorace">
+import genomic_generics
+
+##################### Define the sequences ##############################
+
+BBa_J61101_seq : DNASequence(&#34;aaagacaggacc&#34;)
+
+BBa_J61120_seq : DNASequence(&#34;aaagacaggacc&#34;)
+
+BBa_E0040_seq : DNASequence({
+atgcgtaaaggagaagaacttttcactggagttgtcccaattcttgttgaattagatggtgatgttaatgg
+gcacaaattttctgtcagtggagagggtgaaggtgatgcaacatacggaaaacttacccttaaatttatttgcactactggaaaac
+tacctgttccatggccaacacttgtcactactttcggttatggtgttcaatgctttgcgagatacccagatcatatgaaacagcat
+gactttttcaagagtgccatgcccgaaggttatgtacaggaaagaactatatttttcaaagatgacgggaactacaagacacgtgc
+tgaagtcaagtttgaaggtgatacccttgttaatagaatcgagttaaaaggtattgattttaaagaagatggaaacattcttggac
+acaaattggaatacaactataactcacacaatgtatacatcatggcagacaaacaaaagaatggaatcaaagttaacttcaaaatt
+agacacaacattgaagatggaagcgttcaactagcagaccattatcaacaaaatactccaattggcgatggccctgtccttttacc
+agacaaccattacctgtccacacaatctgccctttcgaaagatcccaacgaaaagagagaccacatggtccttcttgagtttgtaa
+cagctgctgggattacacatggcatggatgaactatacaaataataa
+})
+
+ECK120033736_seq : DNASequence(&#34;ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa&#34;)
+
+BBa_R0010_seq : DNASequence(&#34;tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac&#34;)
+
+BBa_R0040_seq : DNASequence(&#34;tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac&#34;)
+
+BBa_J61130_seq : DNASequence(&#34;aaagaaacgaca&#34;)
+
+BBa_C0040_seq : DNASequence(
+{
+atgtccagattagataaaagtaaagtgattaacagcgcattagagctgcttaatgaggtcggaatcgaagg
+tttaacaacccgtaaactcgcccagaagctaggtgtagagcagcctacattgtattggcatgtaaaaaataagcgggctttgctcg
+acgccttagccattgagatgttagataggcaccatactcacttttgccctttagaaggggaaagctggcaagattttttacgtaat
+aacgctaaaagttttagatgtgctttactaagtcatcgcgatggagcaaaagtacatttaggtacacggcctacagaaaaacagta
+tgaaactctcgaaaatcaattagcctttttatgccaacaaggtttttcactagagaatgcattatatgcactcagcgctgtggggc
+attttactttaggttgcgtattggaagatcaagagcatcaagtcgctaaagaagaaagggaaacacctactactgatagtatgccg
+ccattattacgacaagctatcgaattatttgatcaccaaggtgcagagccagccttcttattcggccttgaattgatcatatgcgg
+attagaaaaacaacttaaatgtgaaagtgggtccgctgcaaacgacgaaaactacgctttagtagcttaataa
+})
+
+BBa_C0012_seq : DNASequence(
+{
+atggtgaatgtgaaaccagtaacgttatacgatgtcgcagagtatgccggtgtctcttatcagaccgtttccc
+gcgtggtgaaccaggccagccacgtttctgcgaaaacgcgggaaaaagtggaagcggcgatggcggagctgaattacattcccaaccg
+cgtggcacaacaactggcgggcaaacagtcgttgctgattggcgttgccacctccagtctggccctgcacgcgccgtcgcaaattgtc
+gcggcgattaaatctcgcgccgatcaactgggtgccagcgtggtggtgtcgatggtagaacgaagcggcgtcgaagcctgtaaagcgg
+cggtgcacaatcttctcgcgcaacgcgtcagtgggctgatcattaactatccgctggatgaccaggatgccattgctgtggaagctgc
+ctgcactaatgttccggcgttatttcttgatgtctctgaccagacacccatcaacagtattattttctcccatgaagacggtacgcga
+ctgggcgtggagcatctggtcgcattgggtcaccagcaaatcgcgctgttagcgggcccattaagttctgtctcggcgcgtctgcgtc
+tggctggctggcataaatatctcactcgcaatcaaattcagccgatagcggaacgggaaggcgactggagtgccatgtccggttttca
+acaaaccatgcaaatgctgaatgagggcatcgttcccactgcgatgctggttgccaacgatcagatggcgctgggcgcaatgcgcgcc
+attaccgagtccgggctgcgcgttggtgcggatatctcggtagtgggatacgacgataccgaagacagctcatgttatatcccgccgt
+taaccaccatcaaacaggattttcgcctgctggggcaaaccagcgtggaccgcttgctgcaactctctcagggccaggcggtgaaggg
+caatcagctgttgcccgtctcactggtgaaaagaaaaaccaccctggcgcccaatacgcaaaccgcctctccccgcgcgttggccgat
+tcattaatgcagctggcacgacaggtttcccgactggaaagcgggcaggctgcaaacgacgaaaactacgctttagtagcttaataa
+})
+
+ECK120029600_seq : DNASequence(
+{
+ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa
+})
+
+#########################################################################
+
+############ Define the inidividual Component Definitions ###############
+
+BBa_J61130_RBS : RBS
+    description = &#34;RBS2&#34;
+    name = &#34;BBa_J61101 RBS&#34;
+    sequence = BBa_J61130_seq
+
+BBa_C0012_CDS : CDS
+    description = &#34;lacI coding sequence&#34;
+    name = &#34;lacI&#34;
+    sequence = BBa_C0012_seq
+
+ECK120033736_terminator : Terminator
+    description = &#34;Terminator2&#34; #Not the film..
+    name = &#34;ECK120033736&#34;
+    sequence = ECK120033736_seq
+
+BBa_R0040_promotor : Promoter
+    description = &#34;pTet promoter&#34;
+    name = &#34;pTetR&#34;
+    sequence = BBa_R0040_seq
+
+Q6QR72_protein : Protein
+    description = &#34;TetR protein&#34;
+    name = &#34;TetR&#34;
+
+P03023_protein : Protein
+    name = &#34;LacI&#34;
+    description = &#34;LacI protein&#34;
+
+BBa_J61120_RBS : RBS
+    description = &#34;RBS2&#34;
+    name = &#34;BBa_J61101 RBS&#34;
+    sequence = BBa_J61120_seq
+
+BBa_E0040_CDS : CDS
+    description = &#34;gfp coding sequence&#34;
+    name = &#34;gfp&#34;
+    sequence = BBa_E0040_seq
+
+ECK120029600_terminator : Terminator
+    description = &#34;Terminator1&#34;
+    name = &#34;ECK120029600&#34;
+    sequence = ECK120029600_seq
+
+BBa_J61101_RBS : RBS
+    description = &#34;RBS1&#34;
+    name = &#34;BBa_J61101 RBS&#34;
+    sequence = BBa_J61101_seq
+
+BBa_R0010_promotor : Promoter
+    description = &#34;pLacI promoter&#34;
+    name = &#34;pLacI&#34;
+    sequence = BBa_R0010_seq
+
+P42212_protein : Protein
+    description = &#34;GFP protein&#34;
+    name = &#34;GFP&#34;
+
+BBa_C0040_CDS : CDS
+    description = &#34;tetR coding sequence&#34;
+    name = &#34;tetR&#34;
+    sequence = BBa_C0040_sequence
+
+############################################################################
+
+################## Define Parent Component Definitions #####################
+
+pIKELeftCassette_1 : DNAComponent
+    role = &lt;SBOL:Inverter&gt;
+    name=&#34;TetR Inverter&#34;
+    description = &#34;TetR Inverter&#34;
+    component   #By not extending from a access template, the ECK120029600_terminator component defaults to having a public access.
+        ECK120029600_terminator
+            at InlinePosition(1198..1288)
+    component : public  #You can also explicity extend from the public access template which give the value &#34;public&#34; to the access property.
+        BBa_R0040_promotor
+            at InlinePosition(1..55)
+    component : public
+        BBa_C0012_CDS
+            at InlinePosition(69..1197)
+    component : public
+        BBa_J61101_RBS
+            at InlinePosition(56..68)
+
+pIKERightCassette_1 : DNAComponent
+    role = &lt;SBOL:Inverter&gt;
+    name=&#34;LacI Inverter&#34;
+    description = &#34;LacI Inverter&#34;
+    component : public
+        BBa_R0010_promotor
+            at InlinePosition(1..55)
+    component : public
+        BBa_C0040_CDS
+            at InlinePosition(69..729)
+    component : public
+        BBa_J61130_RBS
+            at InlinePosition(730..742)
+    component : public
+        BBa_E0040_CDS
+            at InlinePosition(743..1463)
+    component : public
+        ECK120033736_terminator
+            at InlinePosition(1464..1554)
+    component : public
+        BBa_J61120_RBS
+            at InlinePosition(56..68)
+
+pIKE_Toggle_1 : DNAComponent
+    role = &lt;SBOL:Toggle&gt;
+    name=&#34;LacI/TetR Toggle Switch&#34;
+    description = &#34;LacI/TetR Toggle Switch&#34;
+    component : public
+        pIKELeftCassette_1
+            at InlinePosition(1..1285)
+    component : public
+        pIKERightCassette_1
+            at InlinePosition(1286..2834)
+
+############## Define the individual Module Definition #####################
+
+laci_inverter : InverterModule
+    functionalComponent : public_io  #populates properties from the public_io property constructor
+        P03023_protein as TF
+
+    functionalComponent #By not extending from a access/direction template, the access defaults to &#34;public&#34; and the direction defaults to &#34;inout&#34;
+        BBa_R0010_promotor as promoter
+
+    TF inhibits promoter  #Interaction defined in import.
+
+tetr_inverter : InverterModule
+    functionalComponent : public_io
+        Q6QR72_protein as TF
+
+    functionalComponent : public_io
+        BBa_R0040_promotor as promoter
+
+    TF inhibits promoter  #Interaction defined in import.
+
+###########################################################################
+
+##################### Define the model Definition #########################
+
+toggleswitch : ContinuousSBMLModel
+    source = &lt;http://virtualparts.org/part/pIKE_Toggle_1&gt;
+
+##########################################################################
+
+############# Define the top level Module Definition ######################
+
+toggle_switch : ToggleModule
+    functionalComponent : public_io
+        P03023_protein as LacI  #Replacing the displayIds of the functionalcomponents.
+    functionalComponent : public_io
+        Q6QR72_protein as TetR
+
+    module
+        laci_inverter
+            LacI implements TF  # implements is an inline MapsTo template
+    module
+        tetr_inverter
+            TetR implements TF
+
+    model
+        toggleswitch
+
+###########################################################################
+</div>
+{% endblock %}

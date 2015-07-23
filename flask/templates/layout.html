@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
     <meta name="description" content=
-            "ShortBOL designing synthetic biology in shorthand">
+            "SBOL Shorthand : designing synthetic biology in shorthand">
     <meta name="author" content="">
 
     <!-- Bootstrap Core CSS -->
@@ -14,6 +14,8 @@
 
     {#    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">#}
     <link href="{{ url_for('static', filename='css/shortbol.css') }}" rel="stylesheet">
+
+    <link href="{{ url_for('static', filename='css/prism.css') }}" rel="stylesheet">
 
 
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.js') }}"></script>
@@ -24,9 +26,20 @@
 
     <script type="text/javascript" src="{{ url_for('static', filename='js/shorthand.js') }}"></script>
 
-    <title>ShortBOL designing synthetic biology in shorthand</title>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/prism.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='ace-builds/src/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+
+    <title>SBOL Shorthand: designing synthetic biology in shorthand</title>
 
 
+    <script>
+        $(document).ready(function() {
+            var editor = ace.edit("editorace");
+                editor.setTheme("ace/theme/shorthand");
+                editor.getSession().setMode("ace/mode/sbolshorthand");
+        });
+    </script>
 </head>
 <body data-spy="scroll" data-target=".scrollspy">
 <p>
@@ -56,6 +69,8 @@
                 <ul class="nav navbar-nav">
                     <li><a href="{{ url_for('home') }}">Home</a></li>
                     <li><a href="{{ url_for('documentation') }}">Documentation</a></li>
+                    <li><a href="{{ url_for('editor') }}">Editor</a></li>
+
                 </ul>
             </div>
         </div>
