@@ -16,7 +16,9 @@ $(document).ready(function() {
                 $(this).next().slideDown(250);
             }
 
+
         });
 
+        var Tooltip = require("ace/tooltip").Tooltip;
 
 });

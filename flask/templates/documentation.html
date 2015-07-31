@@ -1,6 +1,20 @@
 {% extends "layout.html" %}
 {% block content %}
-
+<script>
+$(document).ready(function() {
+{#    elements = document.querySelectorAll(".doceditor");#}
+{#    for (var i = 0; i < elements.length; i++) {#}
+{#         var doceditor = ace.edit(elements[i]);#}
+{#        doceditor.setTheme("ace/theme/shorthand");#}
+{#        doceditor.getSession().setMode("ace/mode/sbolshorthand");#}
+{#        doceditor.setReadOnly(true);#}
+{#        doceditor.on('mousemove', function(e) {#}
+{#            var position = e.getDocumentPosition();#}
+{#            var token = doceditor.session.getTokenAt(position.row, position.column);#}
+{#        });#}
+{#    }#}
+});
+</script>
     <div id="vertical">
         <div class="row">
             <div class="col-xs-12"><h1>Documentation</h1></div>
@@ -69,7 +83,6 @@
                     </div>
                     <hr/>
                     </section>
-
 
                     <div class="example_header">
                         <h3 id="componentdefinitiontemplates">Common ComponentsDefinition Constructors</h3>

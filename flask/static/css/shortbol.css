@@ -356,8 +356,19 @@ pre{
     right: 0;
     bottom: 0;
     left: 0;
-    height: 500px;
+    height: 700px;
     width: 100%;
 }
+
+.doceditor {
+    position: relative;
+    /*top: 0px;*/
+    /*right: 0;*/
+    /*bottom: 0;*/
+    /*left: 0;*/
+    height: 70px;
+    width: 100%;
+}
+
 
 

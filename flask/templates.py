@@ -77,12 +77,12 @@ class SequenceAnnotations(Templates):
         self.keys['ReverseCompRange'] = """ReverseCompRange => Range
    orientation = <SBOL:ReverseComplement>"""
 
-        self.keys['InlinePosition'] = """InlinePosition(s,e) => SequenceAnnotation
+        self.keys['InlinePosition(s,e)'] = """InlinePosition(s,e) => SequenceAnnotation
    location : InlineRange
       start = s
       end = e"""
 
-        self.keys['ReverseCompPosition'] = """ReverseCompPosition(s,e) => SequenceAnnotation
+        self.keys['ReverseCompPosition(s,e)'] = """ReverseCompPosition(s,e) => SequenceAnnotation
    location: ReverseCompRange
       start = s
       end = e"""
@@ -91,54 +91,53 @@ class Participations(Templates):
 
     keys = OrderedDict()
 
-
     def __init__(self):
 
-        self.keys['Driver'] = """Driver(x) => Participation
+        self.keys['Driver(x)'] = """Driver(x) => Participation
    participant = x
    role = <SBOL:Driver>"""
 
-        self.keys['Driven'] = """Driven(x) => Participation
+        self.keys['Driven(x)'] = """Driven(x) => Participation
    participant = x
    role = <SBOL:Driven>"""
 
-        self.keys['Repressor'] = """Repressor(x) => Participation
+        self.keys['Repressor(x)'] = """Repressor(x) => Participation
    participant = x
    role = <SBOL:Repressor>"""
 
-        self.keys['Repressed']  = """Repressed(x) => Participation
+        self.keys['Repressed(x)']  = """Repressed(x) => Participation
    participant = x
    role = <SBOL:Repressed>"""
 
-        self.keys['Activated'] = """Activated(x) => Participation
+        self.keys['Activated(x)'] = """Activated(x) => Participation
    participant = x
    role = <SBOL:Activated>"""
 
-        self.keys['Activator']  = """Activator(x) => Participation
+        self.keys['Activator(x)']  = """Activator(x) => Participation
    participant = x
    role = <SBOL:Activator>"""
 
-        self.keys['TranscriptionTemplate'] = """TranscriptionTemplate(x) => Participation
+        self.keys['TranscriptionTemplate(x)'] = """TranscriptionTemplate(x) => Participation
    participant = x
    role =<SBOL:Transcriptional_template>"""
 
-        self.keys['TranscriptionProduct'] = """TranscriptionProduct(x) => Participation
+        self.keys['TranscriptionProduct(x)'] = """TranscriptionProduct(x) => Participation
    participant = x
    role = <SBOL:Transcriptional_product>"""
 
-        self.keys['TranslationTemplate'] = """TranslationTemplate(x) => Participation
+        self.keys['TranslationTemplate(x)'] = """TranslationTemplate(x) => Participation
    participant = x
    role = <SBOL:Translation_template>"""
 
-        self.keys['TranslationProduct'] = """TranslationProduct(x) => Participation
+        self.keys['TranslationProduct(x)'] = """TranslationProduct(x) => Participation
    participant = x
    role = <SBOL:Translation_product>"""
 
-        self.keys['Inhibitor'] = """Inhibitor(x) => Participation
+        self.keys['Inhibitor(x)'] = """Inhibitor(x) => Participation
    participant = x
    role = <SBOL:Inhibitor> #http://identifiers.org/biomodels.sbo/SBO:0000020>"""
 
-        self.keys['Inhibited'] = """Inhibited(x) => Participation
+        self.keys['Inhibited(x)'] = """Inhibited(x) => Participation
    participant = x
    role = <SBOL:Inhibited> #http://identifiers.org/biomodels.sbo/SBO:0000598>"""
 
@@ -148,36 +147,36 @@ class Interactions(Templates):
 
     def __init__(self):
 
-        self.keys['Transcription'] = """Transcription(cds, cds_rna) => Interaction
+        self.keys['Transcription(cds, cds_rna)'] = """Transcription(cds, cds_rna) => Interaction
    type = <SBOL:Transcription>
    TranscriptionTemplate(cds)
    TranscriptionProduct(cds_rna)"""
 
-        self.keys['Translation'] = """Translation(cds_rna, protein) => Interaction
+        self.keys['Translation(cds_rna, protein)'] = """Translation(cds_rna, protein) => Interaction
    type = <SBOL:Translation>
    TranslationTemplate(cds_rna)
    TranslationProduct(protein)"""
 
-        self.keys['ProteinProduction'] = """ProteinProduction(cds, cds_rna, protein) => Interaction*
+        self.keys['ProteinProduction(cds, cds_rna, protein)'] = """ProteinProduction(cds, cds_rna, protein) => Interaction*
    Transcription(cds, cds_rna)
    Translation(cds_rna, protein)"""
 
-        self.keys['activates'] = """activates(tf, promoter) => Interaction
+        self.keys['activates(tf, promoter)'] = """activates(tf, promoter) => Interaction
    type = <SBOL:Activates>
    Activator(tf)
    Activated(promoter)"""
 
-        self.keys['drives'] = """drives(promoter,cds) => Interaction
+        self.keys['drives(promoter,cds)'] = """drives(promoter,cds) => Interaction
    type = <SBOL:Drives>
    Driver(promoter)
    Driven(cds)"""
 
-        self.keys['represses'] = """represses(a,b) => Interaction
+        self.keys['represses(a,b)'] = """represses(a,b) => Interaction
    type = <SBOL:Represses>
    Repressor(a)
    Repressed(b)"""
 
-        self.keys['inhibits'] = """inhibits(tf,promoter) => Interaction
+        self.keys['inhibits(tf,promoter)'] = """inhibits(tf,promoter) => Interaction
    type = <SBOL:Inhibits> #http://identifiers.org/biomodels.sbo/SBO:0000169
    Inhibitor(tf)
    Inhibited(promoter)"""
@@ -237,14 +236,14 @@ class Sequences(Templates):
 
     def __init__(self):
 
-        self.keys['DNASequence'] = """DNASequence(x) => Sequence
+        self.keys['DNASequence(x)'] = """DNASequence(x) => Sequence
    encoding = <SBOL:IUPACDNA>
    elements = x"""
-        self.keys['ProteinSequence'] = """ProteinSequence(x) => Sequence
+        self.keys['ProteinSequence(x)'] = """ProteinSequence(x) => Sequence
    encoding = <SBOL:IUPACProtein>
    elements = x"""
 
-        self.keys['SmallMoleculeSequence'] = """SmallMoleculeSequence(x) => Sequence
+        self.keys['SmallMoleculeSequence(x)'] = """SmallMoleculeSequence(x) => Sequence
    encoding = <SBOL:SMILES>
    elements = x"""
 
@@ -254,22 +253,22 @@ class MapsTos(Templates):
 
     def __init__(self):
 
-        self.keys["implements"] = """replaces(l,r) => MapsTo
+        self.keys["implements(l,r)"] = """implements(l,r) => MapsTo
    refinement = <SBOL:UseLocal>
    local = l
    remote = r"""
 
-        self.keys["uses"] = """uses(l,r) => MapsTo
+        self.keys["uses(l,r)"] = """uses(l,r) => MapsTo
    refinement = <SBOL:UseRemote>
    local = l
    remote = r"""
 
-        self.keys["is_equal_to"] = """is_equal_to(l,r) => MapsTo
+        self.keys["is_equal_to(l,r)"] = """is_equal_to(l,r) => MapsTo
    refinement = <SBOL:VerifyIdentical>
    local = l
    remote = r"""
 
-        self.keys["merge"] = """merge(l,r) => MapsTo
+        self.keys["merge(l,r)"] = """merge(l,r) => MapsTo
    refinement = <SBOL:Merge>
    local = l
    remote = r"""
