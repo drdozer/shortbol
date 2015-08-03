@@ -5,7 +5,7 @@
         $(document).ready(function () {
             var langtools = ace.require("ace/ext/language_tools");
             var editor = ace.edit("editorace");
-            editor.setTheme("ace/theme/shorthand");
+            editor.setTheme("ace/theme/solarized_light");
             editor.getSession().setMode("ace/mode/sbolshorthand2");
 {#            editor.on('mousemove', function(e) {#}
 {#                var position = e.getDocumentPosition();#}
@@ -24,12 +24,6 @@
             var templatejson = readJSON('../static/json/templateexamples.json');
             templatejson = templatejson.replace(/(?:\r\n|\r|\n)/g, '');
             var defaultTemplateList = JSON && JSON.parse(templatejson) || $.parseJSON(templatejson);
-
-{#            var defaultTemplateList = [{"Template": "CDS"},#}
-{#                {"Template": "DNASequence()"},#}
-{#                {"Template": "ProteinComponent"},#}
-{#                {"Template": "RNAComponent"},#}
-{#                {"Template": "DNAComponent"}];#}
 
 
             var keywordslist = [{"keyword": "as"},
@@ -86,7 +80,7 @@
                         return
                     }
                     else {
-                        if (ContainsToken(tokens,"support.function.PrefixConstructor")){  //tokens[tokens.length - 1].type ==
+                        if (ContainsToken(tokens,"support.function.PrefixConstructor")&& currenttoken.type != "string"){  //tokens[tokens.length - 1].type ==
                             var templatelist = defaultTemplateList.concat(dynamicTemplateList)// TODO get
                             callback(null, templatelist.map(function (template) {
                                 return {
@@ -172,6 +166,7 @@
             window.setInterval(function(){
                   PopulateTokens(editor)
                 }, 7000);
+            editor.setDisplayIndentGuides()
         });
 
     </script>
