@@ -5,16 +5,16 @@ import simulacrum.typeclass
 object Ops {
 
   def constructors(tops: Seq[TopLevel]): Constructors =
-    Constructors(tops.collect { case cd : ConstructorDef  => cd.id -> cd } toMap)
+    Constructors(tops.collect { case cd : ConstructorDef  => cd.id -> cd } toMap)  // Creates map of constuctors
 
   def individuals(tops: Seq[TopLevel]): Individuals =
-    Individuals(tops.collect { case i : InstanceExp => i.id -> i } toMap)
+    Individuals(tops.collect { case i : InstanceExp => i.id -> i } toMap)  // Creates map of instance expressions
 
   def constructorsForIndividuals(cstrs: Constructors, inds: Individuals) =
     for {
-      (_, i) <- inds.byId
-      TpeConstructor1(id, _) <- i.cstrApp.cstr::Nil
-      c <- cstrs.byId.get(id)
+      (_, i) <- inds.byId  //Here i is an Instance expression.
+      TpeConstructor1(id, _) <- i.cstrApp.cstr::Nil //Getting type constructor from instance expression
+      c <- cstrs.byId.get(id)  //
     } yield (i, c)
 
 }
@@ -34,6 +34,10 @@ object Expander {
 
   import ops._
 
+  /** *
+    * Returns Sequence of top levels
+    * Implicit - So I assume that scala figures out which expandWith to call.
+    */
   implicit val TopLevelExpander: Expander[TopLevel] = new Expander[TopLevel] {
     override def expandWith(t: TopLevel, ec: ExpansionContext): Seq[TopLevel] = t match {
       case i : InstanceExp =>
