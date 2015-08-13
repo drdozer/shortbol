@@ -1,6 +1,20 @@
 {% extends "layout.html" %}
 {% block content %}
-
+<script>
+$(document).ready(function() {
+{#    elements = document.querySelectorAll(".doceditor");#}
+{#    for (var i = 0; i < elements.length; i++) {#}
+{#         var doceditor = ace.edit(elements[i]);#}
+{#        doceditor.setTheme("ace/theme/shorthand");#}
+{#        doceditor.getSession().setMode("ace/mode/sbolshorthand");#}
+{#        doceditor.setReadOnly(true);#}
+{#        doceditor.on('mousemove', function(e) {#}
+{#            var position = e.getDocumentPosition();#}
+{#            var token = doceditor.session.getTokenAt(position.row, position.column);#}
+{#        });#}
+{#    }#}
+});
+</script>
     <div id="vertical">
         <div class="row">
             <div class="col-xs-12"><h1>Documentation</h1></div>
@@ -20,8 +34,28 @@
                             </button>
                             <span class="visible-xs navbar-brand">Documentation</span>
                         </div>
-                        <div class="navbar-collapse collapse sidebar-navbar-collapse">
+                        <div class="navbar-collapse collapse sidebar-navbar-collapse scrollspy" >
                             <ul class="nav navbar-nav">
+                                <li><a href="#templatessection">Templates</a>
+                                <ul>
+                                    <li><a href="#sequenceconstructorstemplates">Sequence</a></li>
+                                    <li><a href="#componentdefinitiontemplates">ComponentDefinition</a></li>
+                                    <li><a href="#mapstotemplates">MapsTo</a></li>
+                                    <li><a href="#sequenceannotationtemplates">SequenceAnnotation</a></li>
+                                    <li><a href="#commonparticipationconstructors">Participation</a></li>
+                                    <li><a href="#interactiontemplates">Interaction</a></li>
+                                    <li><a href="#moduledefinitiontemplates">ModuleDefinition</a></li>
+                                    <li><a href="#propertytemplates">Property Templates</a></li>
+                                    <li><a href="#models">Model Templates</a></li>
+
+                                </ul>
+                                </li>
+                                <li><a href="#codeexamples">Examples</a>
+                                    <ul>
+                                        <li><a href="toggleswitchexample">Toggle Switch</a></li>
+                                    </ul>
+
+                                </li>
                                 <li><a href="#">Operators</a></li>
                                 <li><a href="#">Keywords</a></li>
                             </ul>
@@ -31,92 +65,152 @@
                 </div>
             </div>
             <div class="col-sm-9">
+                {% if templates %}
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed dui ante, dictum vitae eros ut,
-                    consectetur placerat mi. Nam malesuada ante et malesuada scelerisque. Donec id lorem eu mi laoreet
-                    dictum. Vivamus luctus vel diam sed mollis. Integer vitae justo egestas, viverra nunc id, malesuada
-                    turpis. Pellentesque mattis est id interdum rutrum. Praesent luctus mi eget sapien ultrices
-                    pellentesque. Aliquam est urna, accumsan vel tempor sit amet, malesuada ut sapien.</p>
+                    <section id="templatessection">
+                    <h2>Standard Templates</h2>
+                    </section>
+                    <section id="sequenceconstructorstemplates">
+                        <div class="example_header">
+                        <h3 >Common Sequence Constructors</h3>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
+                            {% for key in templates.sequences.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre><code class="language-sbolshorthand">{{ templates.sequences.getExamples()[key] }}</code></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr/>
+                    </section>
 
-                <p>Maecenas ac consequat orci. Aliquam dignissim, erat accumsan tempus venenatis, est lacus adipiscing
-                    sapien, non sagittis ligula est nec neque. Fusce malesuada velit vitae velit dapibus tincidunt.
-                    Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Sed
-                    dui massa, semper non vulputate ut, ornare et ante. Cum sociis natoque penatibus et magnis dis
-                    parturient montes, nascetur ridiculus mus. Vivamus mauris arcu, posuere at porttitor et, consequat
-                    in orci. Pellentesque et sem semper, adipiscing libero sit amet, suscipit purus. Nulla tincidunt,
-                    ante sed eleifend viverra, arcu dui commodo diam, sit amet commodo purus ante et nibh. Fusce
-                    interdum tortor eu lectus suscipit posuere ac ac enim. Curabitur vel nisl sed metus tristique
-                    malesuada a nec tellus. Fusce nisl lectus, pharetra a lacus adipiscing, accumsan viverra dui. Sed
-                    bibendum arcu a accumsan malesuada.</p>
+                    <div class="example_header">
+                        <h3 id="componentdefinitiontemplates">Common ComponentsDefinition Constructors</h3>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
+                            {% for key in templates.componentDefinitions.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre><code class="language-sbolshorthand">{{ templates.componentDefinitions.getExamples()[key] }}</code></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="example_header">
+                        <h3 id="mapstotemplates">Common MapsTo Constructors</h3>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
+                            {% for key in templates.mapstos.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre><code class="language-sbolshorthand">{{ templates.mapstos.getExamples()[key] }}</code></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="example_header">
+                        <h3 id="sequenceannotationtemplates">Common SequenceAnnotation Constructors</h3>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
 
-                <p>Proin faucibus sed mauris vel pretium. Morbi ultrices sem quam, nec elementum nisl placerat vel. In
-                    ut sapien ut orci malesuada dapibus ac in sem. Quisque consectetur nisl nec pulvinar consequat. Ut
-                    mi dui, pellentesque quis aliquam et, posuere id dolor. In pharetra risus ut felis sodales
-                    condimentum. Cras eleifend elit sit amet nisi sagittis, vitae sollicitudin sapien viverra. Fusce ac
-                    mattis diam, ornare molestie nibh. Ut non auctor justo, vel consequat justo. Etiam volutpat orci nec
-                    ligula suscipit, non sollicitudin ipsum ullamcorper.</p>
+                            {% for key in templates.sequenceAnnotations.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre><code class="language-sbolshorthand">{{ templates.sequenceAnnotations.getExamples()[key] }}</code></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="example_header">
+                        <h3 id="commonparticipationconstructors"> Common Participation Constructors</h3>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
+                            {% for key in templates.participations.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre><code class="language-sbolshorthand">{{ templates.participations.getExamples()[key] }}</code></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="example_header">
+                        <h3 id="interactiontemplates">Common Interaction Constructors</h3>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
+                            {% for key in templates.interactions.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre><code class="language-sbolshorthand">{{ templates.interactions.getExamples()[key] }}</code></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="example_header">
+                        <h3 id="moduledefinitiontemplates">Common ModuleDefinition Constructors</h3>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
 
-                <p>Donec tempor elit in ultrices faucibus. Praesent ut tincidunt arcu. Praesent ac venenatis nunc. Duis
-                    non tempor sem, in bibendum neque. Integer nec ante sed nisi commodo pulvinar. Nam vulputate lectus
-                    id eleifend facilisis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Ut arcu leo,
-                    rhoncus ac felis et, suscipit tincidunt urna. Sed auctor justo mauris, ut eleifend mauris volutpat
-                    a. Suspendisse non egestas ipsum. Phasellus est libero, semper a dui congue, accumsan ultrices nibh.
-                    Sed convallis purus at neque scelerisque, nec vulputate sem interdum. Vivamus tempor faucibus ante,
-                    sit amet eleifend quam feugiat non. Ut id velit in diam volutpat vehicula ac vitae ante. Suspendisse
-                    aliquet accumsan ipsum.</p>
+                            {% for key in templates.moduleDefinitions.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre><code class="language-sbolshorthand">{{ templates.moduleDefinitions.getExamples()[key] }}</code></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="example_header">
+                        <h3 id="propertytemplates">Property Templates</h3>
+                        <p>
+                            When assigning a component within a component definition without an access template, it defaults to having a public access and so does not have to explicitly expand from the public templates below.
 
-                <p>Phasellus laoreet rhoncus fermentum. Aenean scelerisque urna in lorem pellentesque, in consequat
-                    velit placerat. Praesent id suscipit magna, quis dignissim elit. Vestibulum at sem pharetra, tempus
-                    enim a, adipiscing lacus. Aliquam erat volutpat. Nullam lorem risus, ultricies a purus a, pretium
-                    condimentum est. Vestibulum pulvinar euismod est nec pharetra. Praesent vitae viverra ipsum. Nullam
-                    auctor nibh nec fermentum tincidunt. Mauris ullamcorper risus felis, nec fringilla justo lacinia
-                    vel. Nam sollicitudin venenatis lectus hendrerit luctus. Vestibulum in lectus sit amet risus
-                    placerat fermentum eu vitae nisl. Cras massa nulla, accumsan at diam in, varius auctor massa.
-                    Vivamus bibendum, nulla id viverra convallis, sem sapien eleifend erat, quis consequat neque ipsum
-                    vel est.</p>
+                        </p>
+                        <p>
+                            When assigning a functionalcomponent without an access template, it defaults to having a public access with the direction inout.
+                        </p>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed dui ante, dictum vitae eros ut,
-                    consectetur placerat mi. Nam malesuada ante et malesuada scelerisque. Donec id lorem eu mi laoreet
-                    dictum. Vivamus luctus vel diam sed mollis. Integer vitae justo egestas, viverra nunc id, malesuada
-                    turpis. Pellentesque mattis est id interdum rutrum. Praesent luctus mi eget sapien ultrices
-                    pellentesque. Aliquam est urna, accumsan vel tempor sit amet, malesuada ut sapien.</p>
+                            {% for key in templates.propertyConstructors.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre><code class="language-sbolshorthand">{{ templates.propertyConstructors.getExamples()[key] }}</code></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="example_header">
+                        <h3 id="models">Model Templates</h3>
+                        <button class="btn btn-primary toggle_button" type="button" data-toggle="collapse">+</button>
+                        <div class="example_collapse" hidden>
+                            {% for key in templates.models.getExamples()  %}
+                                <h4>{{ key }}</h4>
+                                <pre><code class="language-sbolshorthand">{{ templates.models.getExamples()[key] }}</code></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+<hr/>
+                <h2 id="codeexamples">Examples</h2>
+                    <br/>
+                    <h3 id="toggleswitchexample">Toggle Switch</h3>
+                    <br/>
+                    <div class="examplecode">
+                    <pre><code class="language-sbolshorthand">
+                        {{ examplecode }}
+                    </code></pre>
+                    </div>
 
-                <p>Maecenas ac consequat orci. Aliquam dignissim, erat accumsan tempus venenatis, est lacus adipiscing
-                    sapien, non sagittis ligula est nec neque. Fusce malesuada velit vitae velit dapibus tincidunt.
-                    Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Sed
-                    dui massa, semper non vulputate ut, ornare et ante. Cum sociis natoque penatibus et magnis dis
-                    parturient montes, nascetur ridiculus mus. Vivamus mauris arcu, posuere at porttitor et, consequat
-                    in orci. Pellentesque et sem semper, adipiscing libero sit amet, suscipit purus. Nulla tincidunt,
-                    ante sed eleifend viverra, arcu dui commodo diam, sit amet commodo purus ante et nibh. Fusce
-                    interdum tortor eu lectus suscipit posuere ac ac enim. Curabitur vel nisl sed metus tristique
-                    malesuada a nec tellus. Fusce nisl lectus, pharetra a lacus adipiscing, accumsan viverra dui. Sed
-                    bibendum arcu a accumsan malesuada.</p>
+                {% endif %}
+                <p class="diagram">
+                    <a href="{{ url_for('static',filename='images/templating/templating_1.svg') }}"><img class="diagram"
+                                                                                                         src="{{ url_for('static',filename='images/templating/templating_1.svg') }}"/></a>
+                </p>
 
-                <p>Proin faucibus sed mauris vel pretium. Morbi ultrices sem quam, nec elementum nisl placerat vel. In
-                    ut sapien ut orci malesuada dapibus ac in sem. Quisque consectetur nisl nec pulvinar consequat. Ut
-                    mi dui, pellentesque quis aliquam et, posuere id dolor. In pharetra risus ut felis sodales
-                    condimentum. Cras eleifend elit sit amet nisi sagittis, vitae sollicitudin sapien viverra. Fusce ac
-                    mattis diam, ornare molestie nibh. Ut non auctor justo, vel consequat justo. Etiam volutpat orci nec
-                    ligula suscipit, non sollicitudin ipsum ullamcorper.</p>
+                <p class="diagram">
+                    <a href="{{ url_for('static', filename='images/templating/templating_2.svg') }}"><img
+                            class="diagram"
+                            src="{{ url_for('static', filename='images/templating/templating_2.svg') }}"/></a>
 
-                <p>Donec tempor elit in ultrices faucibus. Praesent ut tincidunt arcu. Praesent ac venenatis nunc. Duis
-                    non tempor sem, in bibendum neque. Integer nec ante sed nisi commodo pulvinar. Nam vulputate lectus
-                    id eleifend facilisis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Ut arcu leo,
-                    rhoncus ac felis et, suscipit tincidunt urna. Sed auctor justo mauris, ut eleifend mauris volutpat
-                    a. Suspendisse non egestas ipsum. Phasellus est libero, semper a dui congue, accumsan ultrices nibh.
-                    Sed convallis purus at neque scelerisque, nec vulputate sem interdum. Vivamus tempor faucibus ante,
-                    sit amet eleifend quam feugiat non. Ut id velit in diam volutpat vehicula ac vitae ante. Suspendisse
-                    aliquet accumsan ipsum.</p>
+                </p>
 
-                <p>Phasellus laoreet rhoncus fermentum. Aenean scelerisque urna in lorem pellentesque, in consequat
-                    velit placerat. Praesent id suscipit magna, quis dignissim elit. Vestibulum at sem pharetra, tempus
-                    enim a, adipiscing lacus. Aliquam erat volutpat. Nullam lorem risus, ultricies a purus a, pretium
-                    condimentum est. Vestibulum pulvinar euismod est nec pharetra. Praesent vitae viverra ipsum. Nullam
-                    auctor nibh nec fermentum tincidunt. Mauris ullamcorper risus felis, nec fringilla justo lacinia
-                    vel. Nam sollicitudin venenatis lectus hendrerit luctus. Vestibulum in lectus sit amet risus
-                    placerat fermentum eu vitae nisl. Cras massa nulla, accumsan at diam in, varius auctor massa.
-                    Vivamus bibendum, nulla id viverra convallis, sem sapien eleifend erat, quis consequat neque ipsum
-                    vel est.</p>
+                <p class="diagram">
+                    <a href="{{ url_for('static', filename='images/templating/templating_3.svg') }}"><img
+                            class="diagram"
+                            src="{{ url_for('static', filename='images/templating/templating_3.svg') }}"/></a>
+
+                </p>
             </div>
         </div>
     </div>

@@ -6,6 +6,7 @@ case class LocalName(name: String) extends Identifier
 case class NSPrefix(pfx: String)
 case class QName(prefix: NSPrefix, localName: LocalName) extends Identifier
 case class Url(url: String) extends Identifier
+//case class QuotedIdentifier(quote: String) extends Identifier
 
 trait ValueExp
 case class StringLiteral(s: String, multiLine: Boolean = false) extends ValueExp {

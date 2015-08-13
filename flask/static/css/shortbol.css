@@ -13,6 +13,7 @@ body {
     position: relative;
 }
 
+
 h1 {
     color: rgb(102, 102, 102);
     font-size: 230%
@@ -21,6 +22,20 @@ h1 {
 h2 {
     font-size: 180%
 }
+
+h3{
+    font-size: 130%;
+    color: rgb(121,147,189);
+    display: inline;
+}
+
+h4{
+    font-size: 105%;
+    color: rgb(73,83,116);
+    display: inline;
+}
+
+
 
 .sidebar-nav {
     padding: 9px 0;
@@ -78,8 +93,8 @@ h2 {
 }
 
 #footer img {
-    width: 150px;
-    height: auto;
+    /*width: 150px;*/
+    /*height: auto;*/
 }
 
 /* make sidebar nav vertical */
@@ -113,28 +128,88 @@ h2 {
 @media (min-width: 768px) {
     /* uncomment if you would like the menu to be fixed */
     #vertical .navbar {
-        width: 170px;
-
+			position: fixed;
+			width: 170px;
+			z-index: 2;
+            word-wrap: break-word;
     }
+        .nav ul {
+  display: none;
+}
+
+.nav .active ul {
+  display: block;
+}
+
+.nav ul a {
+  font-weight: normal;
+  font-size: .85em;
+}
+
+.nav ul span {
+  margin: 0 5px 0 2px;
+}
+
+.nav ul .active a,
+.nav ul .active:hover a,
+.nav ul .active:focus a {
+  font-weight: bold;
+  padding-left: 0px;
+}
+
+.nav ul .active span,
+.nav ul .active:hover span,
+.nav ul .active:focus span {
+  display: none;
+}
 
 
 
 }
  #vertical .navbar-default {
-    background-color: rgb(183, 200, 190);
+    background-color: rgb(183,200,190);
     border-color: #E7E7E7;
+    /*position:fixed;*/
 }
 
  .navbar-default {
-    background-color: rgb(246, 255, 213);
+    background-color: rgb(224,228,235);
     border-color: #E7E7E7;
 }
+
 @media (min-width: 992px) {
     #vertical .navbar {
         width: 212px;
 
     }
+    .nav ul {
+  display: none;
+}
 
+.nav .active ul {
+  display: block;
+}
+
+.nav ul a {
+  font-weight: normal;
+  font-size: .85em;
+}
+
+.nav ul span {
+  margin: 0 5px 0 2px;
+}
+
+.nav ul .active a,
+.nav ul .active:hover a,
+.nav ul .active:focus a {
+  font-weight: bold;
+  padding-left: 5px;
+}
+
+.nav ul .active span,
+.nav ul .active:hover span,
+.nav ul .active:focus span {
+  display: none;
 }
 
 @media (min-width: 1200px) {
@@ -142,6 +217,46 @@ h2 {
         width: 262px;
 
     }
+
+    .nav ul {
+        display: none;
+    }
+
+    .nav .active ul {
+        display: block;
+    }
+
+    .nav ul a {
+        font-weight: normal;
+        font-size: 0.94em;
+    }
+    .nav ul{
+        background-color:rgb(183,200,190);
+
+    }
+    .nav ul li{
+        background-color:rgb(183,200,190);
+        color:red;
+    }
+    .nav ul span {
+        margin: 0 5px 0 2px;
+        background-color:rgb(183,200,190);
+    }
+
+    .nav ul .active a,
+    .nav ul .active:hover a,
+    .nav ul .active:focus a {
+        font-weight: bold;
+        padding-left: 5px;
+
+    }
+
+    .nav ul .active span,
+    .nav ul .active:hover span,
+    .nav ul .active:focus span {
+        display: none;
+    }
+}
 
 }
  #vertical .navbar-default .navbar-toggle {
@@ -165,6 +280,10 @@ h2 {
     background-color: rgb(219, 227, 222);
 
 }
+#vertical .navbar-default .sidebar-navbar-collapse li {
+
+    color: rgb(102,102,102);
+}
 #vertical .navbar-default .sidebar-navbar-collapse li a {
 
     color: rgb(102,102,102);
@@ -174,3 +293,82 @@ h2 {
 
     color: black;
 }
+
+.templating_images img{
+    width: 90%;
+}
+embed{
+    width: 100%;
+    height: 200px;
+    /*height: 100%;*/
+}
+img.diagram{
+    background-color: rgb(241, 241, 241);
+    padding: 5px;
+    width : 100%;
+    border: solid 1px black;
+    border-radius: 10px;
+
+}
+p.diagram{
+    width : 100%;
+}
+
+pre{
+    margin-bottom: 15px;
+}
+
+ button.btn-primary{
+    position:absolute;
+     right:0;
+     top: 0;
+     background-color: rgb(73,83,116)
+
+}
+ .example_header{
+     position:relative;
+     width: 100%;
+     margin-top:25px;
+     margin-bottom:25px;
+ }
+ .example_header p{
+     margin-top: 20px;
+ }
+ .example_collapse{
+     margin-bottom:20px;
+     margin-top: 20px;
+ }
+
+ .nav .active {
+     font-weight: bold;
+     background:rgb(183,200,190);
+ }
+
+ .examplecode{
+     max-height: 700px;
+     overflow: auto;
+     margin-bottom: 10px;
+ }
+
+ #editorace {
+    position: relative;
+    top: 0px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 700px;
+    width: 100%;
+}
+
+.doceditor {
+    position: relative;
+    /*top: 0px;*/
+    /*right: 0;*/
+    /*bottom: 0;*/
+    /*left: 0;*/
+    height: 70px;
+    width: 100%;
+}
+
+
+
