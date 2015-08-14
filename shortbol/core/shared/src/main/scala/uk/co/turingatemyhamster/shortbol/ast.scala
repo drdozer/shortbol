@@ -9,9 +9,11 @@ case class Url(url: String) extends Identifier
 //case class QuotedIdentifier(quote: String) extends Identifier
 
 trait ValueExp
-case class StringLiteral(s: String, multiLine: Boolean = false) extends ValueExp {
-  def isMultiLine = multiLine || s.contains("\n") || s.contains("\r")
+case class StringLiteral(s: String, escaped: Boolean = false) extends ValueExp {
+  def isEscaped = escaped || s.contains("\"")
 }
+
+case class MultiLineLiteral(ss: Seq[String], indent: Int) extends ValueExp
 
 case class IntegerLiteral(i: Int) extends ValueExp
 

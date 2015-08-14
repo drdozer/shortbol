@@ -21,8 +21,8 @@ object Process {
       {
         case Success(tls, _) =>
           tls
-        case f : Failure.Mutable =>
-          System.err.println(f.verboseTrace)
+        case f : Failure =>
+          System.err.println(f.traced)
           Seq()
       }
 

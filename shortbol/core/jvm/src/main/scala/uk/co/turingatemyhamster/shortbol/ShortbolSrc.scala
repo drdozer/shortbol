@@ -1,5 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 
+import fastparse.core.Result.Success
+
 /**
  * Created by nmrp3 on 12/06/15.
  */
@@ -128,7 +130,7 @@ object ShortbolSrc {
     println(raw)
     println(expansion)
 
-    val fastparse.Result.Success(raws, _) = raw
+    val Success(raws, _) = raw
     val cstrs = Ops.constructors(raws)
     val inds = Ops.individuals(raws)
 
