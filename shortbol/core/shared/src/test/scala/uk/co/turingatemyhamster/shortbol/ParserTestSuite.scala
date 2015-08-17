@@ -10,7 +10,6 @@ import utest._
  * Created by chris on 17/07/15.
  */
 object ParserTestSuite extends TestSuite{
-  val parser = new ShortbolParser()
 
   def escape(raw: String): String = {
     import scala.reflect.runtime.universe._
@@ -51,161 +50,172 @@ object ParserTestSuite extends TestSuite{
   val tests = TestSuite {
     'LocalName - {
       'accepts - {
-        * - shouldParse("anAlphaIdentifier", ShortbolParser.LocalName, LocalName("anAlphaIdentifier"))
-        * - shouldParse("a1234", ShortbolParser.LocalName, LocalName("a1234"))
-        * - shouldParse("_ajfh13", ShortbolParser.LocalName, LocalName("_ajfh13"))
-        * - shouldParse("a1234.abc-c", ShortbolParser.LocalName, LocalName("a1234.abc-c"))
+        * - shouldParse("anAlphaIdentifier", ShortbolParsers.LocalName, LocalName("anAlphaIdentifier"))
+        * - shouldParse("a1234", ShortbolParsers.LocalName, LocalName("a1234"))
+        * - shouldParse("_ajfh13", ShortbolParsers.LocalName, LocalName("_ajfh13"))
+        * - shouldParse("a1234.abc-c", ShortbolParsers.LocalName, LocalName("a1234.abc-c"))
       }
 
       'rejects - {
-        * - shouldNotParse("1abc", ShortbolParser.LocalName)
-        * - shouldNotParse(".abc1", ShortbolParser.LocalName)
-        * - shouldNotParse("-abc1", ShortbolParser.LocalName)
+        * - shouldNotParse("1abc", ShortbolParsers.LocalName)
+        * - shouldNotParse(".abc1", ShortbolParsers.LocalName)
+        * - shouldNotParse("-abc1", ShortbolParsers.LocalName)
       }
     }
 
     'NSPrefix - {
       'accepts - {
-        * - shouldParse("anAlphaIdentifier", ShortbolParser.NSPrefix, NSPrefix("anAlphaIdentifier"))
-        * - shouldParse("a1234", ShortbolParser.NSPrefix, NSPrefix("a1234"))
-        * - shouldParse("_ajfh13", ShortbolParser.NSPrefix, NSPrefix("_ajfh13"))
-        * - shouldParse("a1234.abc-c", ShortbolParser.NSPrefix, NSPrefix("a1234.abc-c"))
+        * - shouldParse("anAlphaIdentifier", ShortbolParsers.NSPrefix, NSPrefix("anAlphaIdentifier"))
+        * - shouldParse("a1234", ShortbolParsers.NSPrefix, NSPrefix("a1234"))
+        * - shouldParse("_ajfh13", ShortbolParsers.NSPrefix, NSPrefix("_ajfh13"))
+        * - shouldParse("a1234.abc-c", ShortbolParsers.NSPrefix, NSPrefix("a1234.abc-c"))
       }
 
       'rejects - {
-        * - shouldNotParse("1abc", ShortbolParser.NSPrefix)
-        * - shouldNotParse(".abc1", ShortbolParser.NSPrefix)
-        * - shouldNotParse("-abc1", ShortbolParser.NSPrefix)
+        * - shouldNotParse("1abc", ShortbolParsers.NSPrefix)
+        * - shouldNotParse(".abc1", ShortbolParsers.NSPrefix)
+        * - shouldNotParse("-abc1", ShortbolParsers.NSPrefix)
       }
     }
 
     'QName - {
       'accepts - {
-        * - shouldParse("a123:b234", ShortbolParser.QName, QName(NSPrefix("a123"), LocalName("b234")))
-        * - shouldParse("_a123.2:b234-5", ShortbolParser.QName, QName(NSPrefix("_a123.2"), LocalName("b234-5")))
+        * - shouldParse("a123:b234", ShortbolParsers.QName, QName(NSPrefix("a123"), LocalName("b234")))
+        * - shouldParse("_a123.2:b234-5", ShortbolParsers.QName, QName(NSPrefix("_a123.2"), LocalName("b234-5")))
       }
 
       'rejects - {
-        * - shouldNotParse("._a123.2:1b234-5", ShortbolParser.QName)
-        * - shouldNotParse("abc : cba ", ShortbolParser.QName)
-        * - shouldNotParse("abc :cba ", ShortbolParser.QName)
-        * - shouldNotParse("abc: cba ", ShortbolParser.QName)
+        * - shouldNotParse("._a123.2:1b234-5", ShortbolParsers.QName)
+        * - shouldNotParse("abc : cba ", ShortbolParsers.QName)
+        * - shouldNotParse("abc :cba ", ShortbolParsers.QName)
+        * - shouldNotParse("abc: cba ", ShortbolParsers.QName)
       }
     }
 
     'Url - {
       'accepts - {
-        * - shouldParse("a123_.-~", ShortbolParser.Url, Url("a123_.-~"))
-        * - shouldParse("http://www.scala-lang.org/documentation/getting-started.html", ShortbolParser.Url, Url("http://www.scala-lang.org/documentation/getting-started.html"))
+        * - shouldParse(
+          "a123_.-~",
+          ShortbolParsers.Url,
+          Url("a123_.-~"))
+        * - shouldParse(
+          "http://www.scala-lang.org/documentation/getting-started.html",
+          ShortbolParsers.Url,
+          Url("http://www.scala-lang.org/documentation/getting-started.html"))
       }
 
       'rejects - {
-        * - shouldNotParse("<www.google.co.uk>", ShortbolParser.Url)
+        * - shouldNotParse("<www.google.co.uk>", ShortbolParsers.Url)
       }
     }
 
     'StringLiteral - {
       'using_StringLiteral - {
         'accepts - {
-          shouldParse("\"I am a string with some special chars ~#¢∞^&*()£@!.\"", ShortbolParser.StringLiteral, StringLiteral("I am a string with some special chars ~#¢∞^&*()£@!."))
+          shouldParse(
+            "\"I am a string with some special chars ~#¢∞^&*()£@!.\"",
+            ShortbolParsers.StringLiteral,
+            StringLiteral("I am a string with some special chars ~#¢∞^&*()£@!."))
         }
 
         'rejects - {
-          * - shouldNotParse("\"I am a \"string\" with some special chars ~#¢∞^&*()£@!.\"", ShortbolParser.StringLiteral)
-          * - shouldNotParse("I am not a string", ShortbolParser.StringLiteral)
-          * - shouldNotParse("\"I am half a string", ShortbolParser.StringLiteral)
-          * - shouldNotParse("\"I am not\nastring\"", ShortbolParser.StringLiteral)
+          * - shouldNotParse("\"I am a \"string\" with some special chars ~#¢∞^&*()£@!.\"", ShortbolParsers.StringLiteral)
+          * - shouldNotParse("I am not a string", ShortbolParsers.StringLiteral)
+          * - shouldNotParse("\"I am half a string", ShortbolParsers.StringLiteral)
+          * - shouldNotParse("\"I am not\nastring\"", ShortbolParsers.StringLiteral)
         }
       }
 
       'using_ValueExp - {
-        shouldParse("\"I am a string with some special chars ~#¢∞^&*()£@!.\"", ShortbolParser.ValueExp, StringLiteral("I am a string with some special chars ~#¢∞^&*()£@!."))
+        shouldParse(
+          "\"I am a string with some special chars ~#¢∞^&*()£@!.\"",
+          ShortbolParsers.ValueExp, StringLiteral("I am a string with some special chars ~#¢∞^&*()£@!."))
       }
     }
 
     'CurlyLiteral - {
       'rejects - {
-        * - shouldNotParse("{I am a multiline \nstring}", ShortbolParser.StringLiteral)
-        * - shouldNotParse("{\nI am a string\n}", ShortbolParser.StringLiteral)
-        * - shouldNotParse("{\nI am\na string\n}", ShortbolParser.StringLiteral)
+        * - shouldNotParse("{I am a multiline \nstring}", ShortbolParsers.StringLiteral)
+        * - shouldNotParse("{\nI am a string\n}", ShortbolParsers.StringLiteral)
+        * - shouldNotParse("{\nI am\na string\n}", ShortbolParsers.StringLiteral)
       }
 
       'accepts - {
-        * - shouldParse("{I am also a string}", ShortbolParser.StringLiteral, StringLiteral("I am also a string", escaped = true))
-        * - shouldParse("{ I am also a string }", ShortbolParser.StringLiteral, StringLiteral(" I am also a string ", escaped = true))
+        * - shouldParse("{I am also a string}", ShortbolParsers.StringLiteral, StringLiteral("I am also a string", escaped = true))
+        * - shouldParse("{ I am also a string }", ShortbolParsers.StringLiteral, StringLiteral(" I am also a string ", escaped = true))
       }
     }
 
     'MultiLineLiteral - {
       'using_MultiLineLiteral - {
         'rejects - {
-          * - shouldNotParse("{I am a multiline \nstring}", ShortbolParser.MultiLineLiteral)
-          * - shouldNotParse("{I am a \nmultiline \n\rstring}", ShortbolParser.MultiLineLiteral)
+          * - shouldNotParse("{I am a multiline \nstring}", ShortbolParsers.MultiLineLiteral)
+          * - shouldNotParse("{I am a \nmultiline \n\rstring}", ShortbolParsers.MultiLineLiteral)
         }
 
         'accepts - {
-          * - shouldParse("{\nI am a string\n}", ShortbolParser.MultiLineLiteral, MultiLineLiteral("I am a string\n"::Nil, 0))
-          * - shouldParse("{\n  I am a string\n  }", ShortbolParser.MultiLineLiteral, MultiLineLiteral("I am a string\n"::Nil, 2))
-          * - shouldParse("{\n  I am a string\n }", ShortbolParser.MultiLineLiteral, MultiLineLiteral(" I am a string\n"::Nil, 1))
-          * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParser.MultiLineLiteral, MultiLineLiteral("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1))
+          * - shouldParse("{\nI am a string\n}", ShortbolParsers.MultiLineLiteral, MultiLineLiteral("I am a string\n"::Nil, 0))
+          * - shouldParse("{\n  I am a string\n  }", ShortbolParsers.MultiLineLiteral, MultiLineLiteral("I am a string\n"::Nil, 2))
+          * - shouldParse("{\n  I am a string\n }", ShortbolParsers.MultiLineLiteral, MultiLineLiteral(" I am a string\n"::Nil, 1))
+          * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParsers.MultiLineLiteral, MultiLineLiteral("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1))
         }
       }
 
       'using_valueExp - {
-        * - shouldParse("{\nI am a string\n}", ShortbolParser.ValueExp, MultiLineLiteral("I am a string\n"::Nil, 0))
-        * - shouldParse("{\n  I am a string\n  }", ShortbolParser.ValueExp, MultiLineLiteral("I am a string\n"::Nil, 2))
-        * - shouldParse("{\n  I am a string\n }", ShortbolParser.ValueExp, MultiLineLiteral(" I am a string\n"::Nil, 1))
-        * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParser.ValueExp, MultiLineLiteral("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1))
+        * - shouldParse("{\nI am a string\n}", ShortbolParsers.ValueExp, MultiLineLiteral("I am a string\n"::Nil, 0))
+        * - shouldParse("{\n  I am a string\n  }", ShortbolParsers.ValueExp, MultiLineLiteral("I am a string\n"::Nil, 2))
+        * - shouldParse("{\n  I am a string\n }", ShortbolParsers.ValueExp, MultiLineLiteral(" I am a string\n"::Nil, 1))
+        * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParsers.ValueExp, MultiLineLiteral("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1))
       }
     }
 
     'IntegerLiteral - {
       'accepts - {
-        * - shouldParse("0", ShortbolParser.IntegerLiteral, IntegerLiteral(0))
-        * - shouldParse("123456789", ShortbolParser.IntegerLiteral, IntegerLiteral(123456789))
-        * - shouldParse("+1", ShortbolParser.IntegerLiteral, IntegerLiteral(+1))
-        * - shouldParse("-1", ShortbolParser.IntegerLiteral, IntegerLiteral(-1))
+        * - shouldParse("0", ShortbolParsers.IntegerLiteral, IntegerLiteral(0))
+        * - shouldParse("123456789", ShortbolParsers.IntegerLiteral, IntegerLiteral(123456789))
+        * - shouldParse("+1", ShortbolParsers.IntegerLiteral, IntegerLiteral(+1))
+        * - shouldParse("-1", ShortbolParsers.IntegerLiteral, IntegerLiteral(-1))
       }
 
       'rejects - {
-        * - shouldNotParse("0.4", ShortbolParser.IntegerLiteral)
-        * - shouldNotParse(".1", ShortbolParser.IntegerLiteral)
-        * - shouldNotParse("a", ShortbolParser.IntegerLiteral)
+        * - shouldNotParse("0.4", ShortbolParsers.IntegerLiteral)
+        * - shouldNotParse(".1", ShortbolParsers.IntegerLiteral)
+        * - shouldNotParse("a", ShortbolParsers.IntegerLiteral)
       }
 
     }
 
     'Assignment - {
       'accepts - {
-        * - shouldParse("x = y", ShortbolParser.Assignment, Assignment(LocalName("x"), LocalName("y")))
-        * - shouldParse("sequence = \"aactaggactaatg\"", ShortbolParser.Assignment, Assignment(LocalName("sequence"), StringLiteral("aactaggactaatg")))
-        * - shouldParse("sequence    =        \"aactaggactaatg\"", ShortbolParser.Assignment, Assignment(LocalName("sequence"), StringLiteral("aactaggactaatg")))
-        * - shouldParse("encoding = <SBOL:DNA>", ShortbolParser.Assignment, Assignment(LocalName("encoding"), QName(NSPrefix("SBOL"), LocalName("DNA"))))
-        * - shouldParse("type = <http://www.biopax.org/release/biopax-level3.owl#DnaRegion>", ShortbolParser.Assignment, Assignment(LocalName("type"), Url("http://www.biopax.org/release/biopax-level3.owl#DnaRegion")))
-        * - shouldParse("<SBOL:DNA> = <http://www.biopax.org/release/biopax-level3.owl#DnaRegion>", ShortbolParser.Assignment, Assignment(QName(NSPrefix("SBOL"), LocalName("DNA")), Url("http://www.biopax.org/release/biopax-level3.owl#DnaRegion")))
-        * - shouldParse("start =   22", ShortbolParser.Assignment, Assignment(LocalName("start"), IntegerLiteral(22)))
-        * - shouldParse("component = DNAComponent", ShortbolParser.Assignment, Assignment(LocalName("component"), LocalName("DNAComponent")))
-        * - shouldParse("sequence = {\naacc\naacc\n}", ShortbolParser.Assignment, Assignment(LocalName("sequence"), MultiLineLiteral("aacc\n"::"aacc\n"::Nil, 0)))
+        * - shouldParse("x = y", ShortbolParsers.Assignment, Assignment(LocalName("x"), LocalName("y")))
+        * - shouldParse("sequence = \"aactaggactaatg\"", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), StringLiteral("aactaggactaatg")))
+        * - shouldParse("sequence    =        \"aactaggactaatg\"", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), StringLiteral("aactaggactaatg")))
+        * - shouldParse("encoding = <SBOL:DNA>", ShortbolParsers.Assignment, Assignment(LocalName("encoding"), QName(NSPrefix("SBOL"), LocalName("DNA"))))
+        * - shouldParse("type = <http://www.biopax.org/release/biopax-level3.owl#DnaRegion>", ShortbolParsers.Assignment, Assignment(LocalName("type"), Url("http://www.biopax.org/release/biopax-level3.owl#DnaRegion")))
+        * - shouldParse("<SBOL:DNA> = <http://www.biopax.org/release/biopax-level3.owl#DnaRegion>", ShortbolParsers.Assignment, Assignment(QName(NSPrefix("SBOL"), LocalName("DNA")), Url("http://www.biopax.org/release/biopax-level3.owl#DnaRegion")))
+        * - shouldParse("start =   22", ShortbolParsers.Assignment, Assignment(LocalName("start"), IntegerLiteral(22)))
+        * - shouldParse("component = DNAComponent", ShortbolParsers.Assignment, Assignment(LocalName("component"), LocalName("DNAComponent")))
+        * - shouldParse("sequence = {\naacc\naacc\n}", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), MultiLineLiteral("aacc\n"::"aacc\n"::Nil, 0)))
       }
 
       'rejects - {
-        * - shouldNotParse("\"string\" = something", ShortbolParser.Assignment)
-        * - shouldNotParse("22 = something", ShortbolParser.Assignment)
-        * - shouldNotParse("sequence =", ShortbolParser.Assignment)
-        * - shouldNotParse("sequence", ShortbolParser.Assignment)
+        * - shouldNotParse("\"string\" = something", ShortbolParsers.Assignment)
+        * - shouldNotParse("22 = something", ShortbolParsers.Assignment)
+        * - shouldNotParse("sequence =", ShortbolParsers.Assignment)
+        * - shouldNotParse("sequence", ShortbolParsers.Assignment)
       }
     }
 
     'Comment - {
       'accepts - {
-        * - shouldParse("#this is a comment, with some random chars €!@£$$%^&*(){}\"\"/'<>~", ShortbolParser.Comment, Comment("this is a comment, with some random chars €!@£$$%^&*(){}\"\"/'<>~"))
-        * - shouldParse("#", ShortbolParser.Comment, Comment(""))
+        * - shouldParse("#this is a comment, with some random chars €!@£$$%^&*(){}\"\"/'<>~", ShortbolParsers.Comment, Comment("this is a comment, with some random chars €!@£$$%^&*(){}\"\"/'<>~"))
+        * - shouldParse("#", ShortbolParsers.Comment, Comment(""))
       }
 
       'rejects - {
-        * - shouldNotParse("this is a comment", ShortbolParser.Comment)
-        * - shouldNotParse("#\n\r\r\ncomments can not span over multiple lines", ShortbolParser.Comment)
-        * - shouldNotParse("#I should not be \n comment", ShortbolParser.Comment)
+        * - shouldNotParse("this is a comment", ShortbolParsers.Comment)
+        * - shouldNotParse("#\n\r\r\ncomments can not span over multiple lines", ShortbolParsers.Comment)
+        * - shouldNotParse("#I should not be \n comment", ShortbolParsers.Comment)
       }
     }
 
@@ -222,18 +232,18 @@ object ParserTestSuite extends TestSuite{
     }
 
     'Indent - {
-      * - shouldParse(" ", parser.Indent, 1)
+      * - shouldParse(" ", ShortbolParser.Indent, 1)
     }
 
     'IndentedInstanceBody - {
       * - shouldParse(
-        "\n ", parser.IndentedInstanceBody,
+        "\n ", ShortbolParser.IndentedInstanceBody,
         Seq(shortbol.BlankLine)
       )
     }
 
     'PrefixConstructorApp - {
-      * - shouldParse("DNAComponent", parser.PrefixConstructorApp,
+      * - shouldParse("DNAComponent", ShortbolParser.PrefixConstructorApp,
         ConstructorApp(
           TpeConstructor1(
             LocalName("DNAComponent"), Nil
@@ -242,7 +252,7 @@ object ParserTestSuite extends TestSuite{
       )
 
       * - shouldParse(
-        "DNAComponent\n ", parser.PrefixConstructorApp,
+        "DNAComponent\n ", ShortbolParser.PrefixConstructorApp,
         ConstructorApp(
           TpeConstructor1(
             LocalName("DNAComponent"), Nil
@@ -256,7 +266,7 @@ object ParserTestSuite extends TestSuite{
 
       'accepts - {
 
-        * - shouldParse("cds : DNAComponent", parser.NestedInstance,
+        * - shouldParse("cds : DNAComponent", ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("cds"), ConstructorApp(
@@ -268,7 +278,7 @@ object ParserTestSuite extends TestSuite{
           )
         )
 
-        * - shouldParse("cds:DNAComponent", parser.NestedInstance,
+        * - shouldParse("cds:DNAComponent", ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("cds"), ConstructorApp(
@@ -282,7 +292,7 @@ object ParserTestSuite extends TestSuite{
 
         * - shouldParse(
           """cds : DNAComponent
-            | """.stripMargin, parser.NestedInstance,
+            | """.stripMargin, ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("cds"), ConstructorApp(
@@ -295,7 +305,7 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "cds : DNAComponent\n \n ", parser.NestedInstance,
+          "cds : DNAComponent\n \n ", ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("cds"), ConstructorApp(
@@ -308,7 +318,7 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "cds : DNAComponent\n   \n   \n   role = <SBOL:CDS>\n   \n   foo = bar\n   \n   ", parser.NestedInstance,
+          "cds : DNAComponent\n   \n   \n   role = <SBOL:CDS>\n   \n   foo = bar\n   \n   ", ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("cds"), ConstructorApp(
@@ -336,7 +346,7 @@ object ParserTestSuite extends TestSuite{
 
         * - shouldParse(
           "cds : DNAComponent\n   role = <SBOL:CDS>\n   \n   foo = bar\n   component : public",
-          parser.NestedInstance,
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("cds"), ConstructorApp(
@@ -374,9 +384,8 @@ object ParserTestSuite extends TestSuite{
             |      foo = bar
           """.
             stripMargin.
-            trim,parser
-            .
-              NestedInstance, NestedInstance(
+            trim,
+          ShortbolParser.NestedInstance, NestedInstance(
             InstanceExp(
               LocalName("cds"), ConstructorApp(
                 TpeConstructor1(
@@ -415,7 +424,7 @@ object ParserTestSuite extends TestSuite{
         )
         * - shouldParse(
           """cds : DNAComponent
-            |  role = <SBOL:CDS>""".stripMargin,parser.NestedInstance,
+            |  role = <SBOL:CDS>""".stripMargin,ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("cds"), ConstructorApp(
@@ -434,7 +443,8 @@ object ParserTestSuite extends TestSuite{
         * - shouldParse(
           """cds : DNAComponent
             |  type = DNA
-            |  role = <SBOL:CDS>""".stripMargin,parser.NestedInstance,
+            |  role = <SBOL:CDS>""".stripMargin,
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("cds"), ConstructorApp(
@@ -453,7 +463,8 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "dna_sequence : DNASequence(x)",parser.NestedInstance,
+          "dna_sequence : DNASequence(x)",
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("dna_sequence"), ConstructorApp(
@@ -466,7 +477,8 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "dna_sequence : DNASequence(\"AAAAGTAAAACA\")",parser.NestedInstance,
+          "dna_sequence : DNASequence(\"AAAAGTAAAACA\")",
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("dna_sequence"), ConstructorApp(
@@ -479,7 +491,8 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "dna_sequence : DNASequence(\"AAAAGTAAAACA\")",parser.NestedInstance,
+          "dna_sequence : DNASequence(\"AAAAGTAAAACA\")",
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("dna_sequence"), ConstructorApp(
@@ -492,7 +505,8 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "i : Inline(20,50)",parser.NestedInstance,
+          "i : Inline(20,50)",
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("i"), ConstructorApp(
@@ -505,7 +519,8 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "pass_qname : Test(<SBOL:DNA>)",parser.NestedInstance,
+          "pass_qname : Test(<SBOL:DNA>)",
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("pass_qname"), ConstructorApp(
@@ -518,7 +533,8 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "pass_url : Test(<www.google.co.uk>)",parser.NestedInstance,
+          "pass_url : Test(<www.google.co.uk>)",
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("pass_url"), ConstructorApp(
@@ -531,7 +547,8 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "url : <www.google.co.uk>",parser.NestedInstance,
+          "url : <www.google.co.uk>",
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("url"), ConstructorApp(
@@ -543,7 +560,8 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "<SBOL:google> : <www.google.co.uk>",parser.NestedInstance,
+          "<SBOL:google> : <www.google.co.uk>",
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               QName(NSPrefix("SBOL"),LocalName("google")), ConstructorApp(
@@ -555,7 +573,8 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "DNA : DNAComponent()",parser.NestedInstance,
+          "DNA : DNAComponent()",
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("DNA"), ConstructorApp(
@@ -573,7 +592,7 @@ object ParserTestSuite extends TestSuite{
             |   component : public
             |        foo = bar
           """.stripMargin.trim,
-          parser.NestedInstance,
+          ShortbolParser.NestedInstance,
           NestedInstance(
             InstanceExp(
               LocalName("cds"),
@@ -607,14 +626,16 @@ object ParserTestSuite extends TestSuite{
         * - shouldNotParse(
           """cds : DNAComponent
             |  role = <SBOL:CDS>
-            |  component => DNA""".stripMargin,parser.NestedInstance)
+            |  component => DNA""".stripMargin,
+          ShortbolParser.NestedInstance)
 
         //At a different nest.
         * - shouldNotParse(
           """cds : DNAComponent
             |   role = <SBOL:CDS>
             |      foo = bar
-          """.stripMargin.trim,parser.NestedInstance
+          """.stripMargin.trim,
+          ShortbolParser.NestedInstance
         )
       }
     }
@@ -622,7 +643,7 @@ object ParserTestSuite extends TestSuite{
     'InfixConstructorApp - {
 
       * - shouldParse(
-        "a drives b", ShortbolParser.InfixConstructorApp,
+        "a drives b", ShortbolParsers.InfixConstructorApp,
         ConstructorApp(
           TpeConstructor1(
             LocalName("drives"),Seq(LocalName("a"),LocalName("b"))
@@ -631,16 +652,16 @@ object ParserTestSuite extends TestSuite{
       )
 
       * - shouldNotParse(
-        "adrivesb", ShortbolParser.InfixConstructorApp)
+        "adrivesb", ShortbolParsers.InfixConstructorApp)
 
       * - shouldNotParse(
-        "1 is_not 2", ShortbolParser.InfixConstructorApp)
+        "1 is_not 2", ShortbolParsers.InfixConstructorApp)
 
       * - shouldNotParse(
-        "\"a\" drives \"b\"",ShortbolParser.InfixConstructorApp)
+        "\"a\" drives \"b\"",ShortbolParsers.InfixConstructorApp)
 
       * - shouldParse(
-        "<SBOL:google> maps_to <www.google.co.uk>",ShortbolParser.InfixConstructorApp,
+        "<SBOL:google> maps_to <www.google.co.uk>",ShortbolParsers.InfixConstructorApp,
         ConstructorApp(
           TpeConstructor1(
             LocalName("maps_to"),Seq(QName(NSPrefix("SBOL"),LocalName("google")),Url("www.google.co.uk"))
@@ -654,7 +675,7 @@ object ParserTestSuite extends TestSuite{
     'ConstructorDef - {
 
       * - shouldParse(
-        "DNAComponent => ComponentDefinition", parser.ConstructorDef,
+        "DNAComponent => ComponentDefinition", ShortbolParser.ConstructorDef,
         ConstructorDef(LocalName("DNAComponent"), Nil,
           ConstructorApp(
             TpeConstructor1(
@@ -666,7 +687,7 @@ object ParserTestSuite extends TestSuite{
         )
       )
       * - shouldParse(
-        "DNAComponent=>ComponentDefinition", parser.ConstructorDef,
+        "DNAComponent=>ComponentDefinition", ShortbolParser.ConstructorDef,
         ConstructorDef(LocalName("DNAComponent"), Nil,
           ConstructorApp(
             TpeConstructor1(
@@ -679,7 +700,7 @@ object ParserTestSuite extends TestSuite{
       )
 
       * - shouldParse(
-        "DNASequence(x) => Sequence", parser.ConstructorDef,
+        "DNASequence(x) => Sequence", ShortbolParser.ConstructorDef,
         ConstructorDef(LocalName("DNASequence"), Seq(LocalName("x")),
           ConstructorApp(
             TpeConstructor1(
@@ -692,7 +713,7 @@ object ParserTestSuite extends TestSuite{
       )
 
       * - shouldParse(
-        "DNASequence  (x)  =>  Sequence", parser.ConstructorDef,
+        "DNASequence  (x)  =>  Sequence", ShortbolParser.ConstructorDef,
         ConstructorDef(LocalName("DNASequence"), Seq(LocalName("x")),
           ConstructorApp(
             TpeConstructor1(
@@ -704,7 +725,7 @@ object ParserTestSuite extends TestSuite{
         )
       )
 
-      * - shouldParse("a => b(x)", parser.ConstructorDef,
+      * - shouldParse("a => b(x)", ShortbolParser.ConstructorDef,
         ConstructorDef(LocalName("a"), Nil,
           ConstructorApp(
             TpeConstructor1(
@@ -718,7 +739,7 @@ object ParserTestSuite extends TestSuite{
       * - shouldParse(
         """DNAComponent => ComponentDefinition
           |   type = DNA
-        """.stripMargin.trim, parser.ConstructorDef,
+        """.stripMargin.trim, ShortbolParser.ConstructorDef,
         ConstructorDef(LocalName("DNAComponent"), Nil,
           ConstructorApp(
             TpeConstructor1(
@@ -734,7 +755,7 @@ object ParserTestSuite extends TestSuite{
         """DNAComponent => ComponentDefinition
           |   type = DNA
           |   sequence : DNASequence
-        """.stripMargin.trim, parser.ConstructorDef,
+        """.stripMargin.trim, ShortbolParser.ConstructorDef,
         ConstructorDef(LocalName("DNAComponent"), Nil,
           ConstructorApp(
             TpeConstructor1(
@@ -752,38 +773,38 @@ object ParserTestSuite extends TestSuite{
     'TopLevel - {
 
       * - shouldParse(
-        "foo : bar", parser.TopLevel,
+        "foo : bar", ShortbolParser.TopLevel,
         InstanceExp(LocalName("foo"),
           ConstructorApp(TpeConstructor1(LocalName("bar"), Nil), Nil))
       )
 
       * - shouldParse(
-        "foo => bar", parser.TopLevel,
+        "foo => bar", ShortbolParser.TopLevel,
         ConstructorDef(LocalName("foo"),
           Nil,
           ConstructorApp(TpeConstructor1(LocalName("bar"), Nil), Nil))
       )
 
       * - shouldParse(
-        "import blablabla", parser.TopLevel,
+        "import blablabla", ShortbolParser.TopLevel,
         Import("blablabla")
       )
 
       * - shouldParse(
-        "#comment", parser.TopLevel,
+        "#comment", ShortbolParser.TopLevel,
         Comment("comment"))
 
       * - shouldParse(
-        "", parser.TopLevel,
+        "", ShortbolParser.TopLevel,
         BlankLine
       )
 
       * - shouldParse(
-        "x = y", ShortbolParser.Assignment,
+        "x = y", ShortbolParsers.Assignment,
         Assignment(LocalName("x"), LocalName("y")))
 
       * - shouldParse(
-        "x = y", parser.TopLevel,
+        "x = y", ShortbolParser.TopLevel,
         Assignment(LocalName("x"), LocalName("y")))
     }
 
@@ -803,7 +824,7 @@ object ParserTestSuite extends TestSuite{
           |
           |dna = c
           |
-          |bbc = c""".stripMargin, parser.TopLevels
+          |bbc = c""".stripMargin, ShortbolParser.TopLevels
       )
 
       * - shouldParse(
@@ -814,7 +835,7 @@ object ParserTestSuite extends TestSuite{
           |
           |BBa_J611210_seq : DNASequence("agcaaagc")
           |    a = b
-          |    a = b""".stripMargin,parser.TopLevels
+          |    a = b""".stripMargin,ShortbolParser.TopLevels
       )
 
       * - shouldParse(
@@ -824,7 +845,7 @@ object ParserTestSuite extends TestSuite{
           |
           |b = a
           |b = a
-          |""".stripMargin,parser.TopLevels
+          |""".stripMargin,ShortbolParser.TopLevels
 
       )
 
@@ -834,7 +855,7 @@ object ParserTestSuite extends TestSuite{
           |  a = b
           |  a = b
           |
-          |BBa_J611210_seq : seq""".stripMargin,parser.TopLevels
+          |BBa_J611210_seq : seq""".stripMargin,ShortbolParser.TopLevels
 
       )
 

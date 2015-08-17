@@ -2,6 +2,7 @@ package uk.co.turingatemyhamster.shortbol
 
 import fastparse.all._
 import fastparse.core.Mutable
+import fastparse.core.Result.Success
 import fastparse.parsers.Terminals.{Start, End}
 import utest._
 import Expander.ops._
@@ -19,12 +20,9 @@ object ExpansionTestSuite extends TestSuite {
     Literal(Constant(raw)).toString
   }
 
-
-  val parser = new ShortbolParser()
-
-  def parse[T](shortbol: String, p: Parser[T]): Seq[TopLevel] =
-    (Start ~ p ~ End).parse(shortbol) match {
-      case s : Mutable.Success[Seq[TopLevel]] =>
+  def parse[T](shortbol: String): Seq[TopLevel] =
+    ShortbolParser.File.parse(shortbol) match {
+      case s : Success[Seq[TopLevel]] =>
         s.value
     }
 
@@ -36,63 +34,56 @@ object ExpansionTestSuite extends TestSuite {
     inds.byId.values.toSeq flatMap (_ expandWith ex)
   }
 
-  def checkExpansion[T](in: String,out: String,p: Parser[T]): Unit = {
-    var text = in + "\n"
-//    println(escape(text))
-//    println(escape(out))
-    val parsedin = parse(text,p)
-    val parsedout = parse(out,p)
+  def checkExpansion[T](in: Seq[TopLevel], expected: Seq[TopLevel]): Unit = {
 
-    val expandedin = expanded(parsedin)
-    println("------------------------------------------------------------------------------------------------")
-    println("----------------------------------------------------------------------")
-    println(parsedin)
-    println("----------------------------------------------------------------------")
-    println(parsedout)
-    println("----------------------------------------------------------------------")
-    println(expandedin)
-    println("----------------------------------------------------------------------")
-    println("------------------------------------------------------------------------------------------------")
+    val expandedin = expanded(in)
 
-    assert(expandedin == parsedout)
-
+    assert(expandedin == expected)
   }
 
   val tests = TestSuite{
 
     "Expansion" - {
 
-      val input =
-        """DNASequence(x) => Sequence
-        |   elements = x
-        |   encoding = <SBOL:DNA>
-        |
-        |
-        |cds_sequence : DNASequence("AAATG")""".stripMargin
+      'blankline - checkExpansion(parse("\n"), Seq())
+      'comment - checkExpansion(parse("# a comment"), Seq())
+      'template - checkExpansion(parse("Foo => Bar"), Seq())
+      'assignment - checkExpansion(parse("a = b"), Seq())
 
-      val output =  """cds_sequence : Sequence
-          |   elements = "AAATG"
-          |   encoding = <SBOL:DNA>
-          |""".stripMargin
-
-      val raw =
-        """T(a) => F
-          |  name = a
-          |
-          |ta : T("bob")
-          |""".stripMargin
-
-      checkExpansion(raw,output,parser.TopLevels)
-
+      'individuals - {
+        'anIndividual - checkExpansion(parse("mySeq : Seq"), Seq())
+      }
+//      val input =
+//        parse("""DNASequence(x) => Sequence
+//        |   elements = x
+//        |   encoding = <SBOL:DNA>
+//        |
+//        |
+//        |cds_sequence : DNASequence("AAATG")""".stripMargin)
+//
+//      val output =  parse("""cds_sequence : Sequence
+//          |   elements = "AAATG"
+//          |   encoding = <SBOL:DNA>
+//          |""".stripMargin)
+//
+//      val raw =
+//        parse("""T(a) => F
+//          |  name = a
+//          |
+//          |ta : T("bob")
+//          |""".stripMargin)
+//
+//      checkExpansion(raw,output)
+//
 //      checkExpansion(
-//        """
+//        parse("""
 //          |seq => Sequence
 //          |  a = b
 //          |  a = b
 //          |
-//          |BBa_J611210_seq : seq""".stripMargin,"blank",parser.TopLevels
+//          |BBa_J611210_seq : seq""".stripMargin), Seq()
 //      )
-
+//
     }
 
 

@@ -11,13 +11,12 @@ object Process {
 
   def main(args: Array[String]): Unit = {
 
-    val p = new ShortbolParser()
     val pp = new PrettyPrinter(System.out)
 
     val inputs = args map
       Source.fromFile map
       (_.mkString) map
-      (i => p.File.parse(i)) map
+      (i => ShortbolParser.File.parse(i)) map
       {
         case Success(tls, _) =>
           tls

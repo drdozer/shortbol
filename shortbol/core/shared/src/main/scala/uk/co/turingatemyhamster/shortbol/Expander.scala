@@ -30,6 +30,7 @@ trait Expander[T] {
   def expandWith(t: T, ec: ExpansionContext): Seq[T]
 }
 
+
 object Expander {
 
   import ops._

@@ -4,7 +4,7 @@ package shortbol
 import fastparse.all._
 import CharPredicates._
 
-object ShortbolParser {
+object ShortbolParsers {
 
   implicit class ParserDecorator[T](val _p: Parser[T]) {
     def noCut = NoCut(_p)
@@ -107,21 +107,15 @@ object ShortbolParser {
   lazy val Comment = P(Hash ~! (!Nl ~ AnyChar).rep.!) map
     shortbol.Comment.apply
 
-  lazy val Import = P("import" ~ Space.rep(1) ~ (!Space ~ !Nl ~ AnyChar).rep(1).!) map
-    shortbol.Import.apply
-
   lazy val BlankLine = P(Space.rep) map
     (_ => shortbol.BlankLine)
-
-  lazy val parser = new ShortbolParser
 }
 
 /**
  * Created by nmrp3 on 14/06/15.
  */
-class ShortbolParser(indent: Int = 0) {
-  import ShortbolParser._
-
+sealed class ShortbolParser(indent: Int) {
+  import ShortbolParsers._
 
   lazy val IndentSpaces = P( (" " * indent) ) log s"indent spaces $indent" /* spaces at exactly the number of indents */
   lazy val Indent = P( IndentSpaces ~ " ".rep(1).! ) map (_.length) log s"indent starting from $indent" /* indent can be a new line repeated one or more times and if that succeeds then the current indent with at least one more space */
@@ -151,13 +145,20 @@ class ShortbolParser(indent: Int = 0) {
   lazy val InstanceExp: Parser[shortbol.InstanceExp] = P(Identifier ~ Space.rep ~ Colon ~! Space.rep ~ PrefixConstructorApp) map
     (shortbol.InstanceExp.apply _ tupled)
 
-  lazy val BodyStmt: Parser[shortbol.BodyStmt] = P(Assignment | NestedInstance | ConstructorApp | Comment | ShortbolParser.BlankLine) log "body statement"
+  lazy val BodyStmt: Parser[shortbol.BodyStmt] = P(Assignment | NestedInstance | ConstructorApp | Comment | ShortbolParsers.BlankLine) log "body statement"
+}
+
+object ShortbolParser extends ShortbolParser(0) {
+  import ShortbolParsers._
 
   lazy val ConstructorDef = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~! Space.rep ~ PrefixConstructorApp) map
     (shortbol.ConstructorDef.apply _ tupled)
 
+  lazy val Import = P("import" ~ Space.rep(1) ~ (!Space ~ !Nl ~ AnyChar).rep(1).!) map
+    shortbol.Import.apply
+
   lazy val TopLevel: Parser[TopLevel] = P(
-    (InstanceExp | ConstructorDef | Comment | Import | Assignment | ShortbolParser.BlankLine))
+    (InstanceExp | ConstructorDef | Comment | Import | Assignment | ShortbolParsers.BlankLine))
 
   lazy val TopLevels = P(TopLevel.rep(sep = SpNl))
 
