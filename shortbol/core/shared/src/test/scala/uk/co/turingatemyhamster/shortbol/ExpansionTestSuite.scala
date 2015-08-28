@@ -5,7 +5,10 @@ import fastparse.core.Mutable
 import fastparse.core.Result.Success
 import fastparse.parsers.Terminals.{Start, End}
 import utest._
+import scalaz._
+import Scalaz._
 import Expander.ops._
+import DSL._
 
 
 /**
@@ -21,73 +24,140 @@ object ExpansionTestSuite extends TestSuite {
   }
 
   def parse[T](shortbol: String): Seq[TopLevel] =
-    ShortbolParser.File.parse(shortbol) match {
-      case s : Success[Seq[TopLevel]] =>
-        s.value
+    ShortbolParser.SBFile.parse(shortbol) match {
+      case s : Success[SBFile] =>
+        s.value.tops
     }
 
-  def expanded(tops: Seq[TopLevel]): Seq[TopLevel] = {
-    val cstrs = Ops.constructors(tops)
-    val inds = Ops.individuals(tops)
-    val ex = ExpansionContext(cstrs, Bindings(Map()))
+  def expanded(libs: Seq[TopLevel], tops: Seq[TopLevel]): Seq[TopLevel] =
+    SBFile(libs ++ tops).expansion.eval(ExpansionContext.empty).map(_.tops).flatten
 
-    inds.byId.values.toSeq flatMap (_ expandWith ex)
-  }
+  def expState(libs: Seq[TopLevel], tops: Seq[TopLevel]): ExpansionContext =
+    SBFile(libs ++ tops).expansion.exec(ExpansionContext.empty)
 
   def checkExpansion[T](in: Seq[TopLevel], expected: Seq[TopLevel]): Unit = {
+    val expansion = expanded(Seq(), in)
+    assert(expansion == expected)
+  }
 
-    val expandedin = expanded(in)
+  def checkState[T](in: Seq[TopLevel], expected: ExpansionContext): Unit = {
+    val st = expState(Seq(), in)
+    assert(st == expected)
+  }
 
-    assert(expandedin == expected)
+  def checkExpansion[T](lib: Seq[TopLevel], in: Seq[TopLevel], expected: Seq[TopLevel]): Unit = {
+    val exp = expanded(lib, in)
+    assert(exp == expected)
   }
 
   val tests = TestSuite{
 
-    "Expansion" - {
+    "nulops" - {
 
-      'blankline - checkExpansion(parse("\n"), Seq())
-      'comment - checkExpansion(parse("# a comment"), Seq())
-      'template - checkExpansion(parse("Foo => Bar"), Seq())
-      'assignment - checkExpansion(parse("a = b"), Seq())
-
-      'individuals - {
-        'anIndividual - checkExpansion(parse("mySeq : Seq"), Seq())
+      'blankline - {
+        * - checkExpansion(Seq(BlankLine), Seq())
+        * - checkState(Seq(BlankLine), ExpansionContext.empty)
       }
-//      val input =
-//        parse("""DNASequence(x) => Sequence
-//        |   elements = x
-//        |   encoding = <SBOL:DNA>
-//        |
-//        |
-//        |cds_sequence : DNASequence("AAATG")""".stripMargin)
-//
-//      val output =  parse("""cds_sequence : Sequence
-//          |   elements = "AAATG"
-//          |   encoding = <SBOL:DNA>
-//          |""".stripMargin)
-//
-//      val raw =
-//        parse("""T(a) => F
-//          |  name = a
-//          |
-//          |ta : T("bob")
-//          |""".stripMargin)
-//
-//      checkExpansion(raw,output)
-//
-//      checkExpansion(
-//        parse("""
-//          |seq => Sequence
-//          |  a = b
-//          |  a = b
-//          |
-//          |BBa_J611210_seq : seq""".stripMargin), Seq()
-//      )
-//
+      'comment - {
+        * - checkExpansion(Seq(Comment("a comment")), Seq())
+        * - checkState(Seq(Comment("a comment")), ExpansionContext.empty)
+      }
+      'template - {
+        val foobar = short_c"Foo => Bar"
+        * - checkExpansion(Seq(foobar), Seq())
+        * - checkState(Seq(foobar), ExpansionContext(Constructors(Map(foobar.id -> foobar)), Bindings.empty))
+      }
     }
 
+    'assignment - {
+      * - {
+        val aAsB = short_a"a = b"
+        * - checkExpansion(Seq(aAsB), Seq(aAsB))
+        * - checkState(Seq(aAsB), ExpansionContext(Constructors.empty, Bindings(Map(aAsB.property -> aAsB.value))))
+      }
+
+      * - {
+        val stmts = parse(
+          """b = c
+            |a = b
+          """.stripMargin)
+
+        val resA = short_a"b = c"
+        val resB = short_a"a = c"
+
+        * - checkExpansion(stmts, Seq(resA, resB))
+        * - checkState(stmts, ExpansionContext(Constructors.empty, Bindings(Map(resA.property -> resA.value, resB.property -> resB.value))))
+      }
+    }
+
+    'individuals - {
+      * - checkExpansion(parse("mySeq : Seq"), parse("mySeq : Seq"))
+
+      * - checkExpansion(
+        parse("""mySeq : Seq
+          |  x = y
+        """.stripMargin),
+        parse("""mySeq : Seq
+          |  x = y
+        """.stripMargin)
+      )
+
+      * - checkExpansion(
+        parse("Foo => Bar"),
+        parse("foo : Foo"),
+        parse("foo : Bar"))
+
+      * - checkExpansion(
+        parse(
+          """Foo => Bar
+            |  x = y
+          """.stripMargin),
+        parse("foo : Foo"),
+        parse(
+          """foo : Bar
+            |  x = y""".stripMargin))
+
+      * - checkExpansion(
+        parse(
+          """Foo => Bar()
+            |  x = y
+          """.stripMargin),
+        parse("foo : Foo"),
+        parse(
+          """foo : Bar
+            |  x = y""".stripMargin))
+
+      * - checkExpansion(
+        parse(
+          """Foo => Bar()
+            |  x = y
+          """.stripMargin),
+        parse("foo : Foo()"),
+        parse(
+          """foo : Bar
+            |  x = y""".stripMargin))
+
+      * - checkExpansion(
+        parse(
+          """Foo => Bar
+            |  x = y
+          """.stripMargin),
+        parse("foo : Foo()"),
+        parse(
+          """foo : Bar
+            |  x = y""".stripMargin))
+
+      * - checkExpansion(
+        parse(
+          """Foo(b) => Bar
+            |  a = b""".stripMargin),
+        parse("foo : Foo(y)"),
+        parse(
+          """foo : Bar
+            |  a = y""".stripMargin))
+
+    }
 
   }
-
 
 }

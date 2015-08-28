@@ -13,8 +13,13 @@ lazy val core = crossProject.settings(
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0-M5" cross CrossVersion.full)
   ).settings(sharedSettings : _*)
   
-lazy val coreJs = core.js
-lazy val coreJVM = core.jvm.settings(packAutoSettings : _*)
+lazy val coreJs = core.js.settings(
+  libraryDependencies += "com.github.japgolly.fork.scalaz" %%% "scalaz-core" % "7.1.3"
+)
+
+lazy val coreJVM = core.jvm.settings(packAutoSettings : _*).settings(
+  libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.1.3"
+)
 
 lazy val server = crossProject.settings(
   name := "shortbol-server"

@@ -18,7 +18,7 @@ object ParserTestSuite extends TestSuite{
 
 
   def shouldParse[T](txt: String, p: Parser[T], value: T): Unit = {
-    println(escape(txt))
+    //println(escape(txt))
     (Start ~ p ~ End).parse(txt) match {
       case s : Success[T] =>
         assert(s.value == value)
@@ -26,7 +26,7 @@ object ParserTestSuite extends TestSuite{
   }
 
   def shouldParse[T](txt: String, p: Parser[T]): Unit = {
-    println(escape(txt))
+    //println(escape(txt))
     (Start ~ p ~ End).parse(txt) match {
       case s : Success[T] =>
         assert(true)
@@ -35,7 +35,7 @@ object ParserTestSuite extends TestSuite{
   }
 
   def shouldNotParse[T](txt: String, p: Parser[T]): Unit = {
-    println(escape(txt))
+    //println(escape(txt))
     (Start ~ p ~ End).parse(txt) match {
       case s : Success[T] =>
         assert(false)

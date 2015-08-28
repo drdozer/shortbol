@@ -117,17 +117,17 @@ object ShortbolParsers {
 sealed class ShortbolParser(indent: Int) {
   import ShortbolParsers._
 
-  lazy val IndentSpaces = P( (" " * indent) ) log s"indent spaces $indent" /* spaces at exactly the number of indents */
-  lazy val Indent = P( IndentSpaces ~ " ".rep(1).! ) map (_.length) log s"indent starting from $indent" /* indent can be a new line repeated one or more times and if that succeeds then the current indent with at least one more space */
+  lazy val IndentSpaces = P( (" " * indent) ) //log s"indent spaces $indent" /* spaces at exactly the number of indents */
+  lazy val Indent = P( IndentSpaces ~ " ".rep(1).! ) map (_.length) //log s"indent starting from $indent" /* indent can be a new line repeated one or more times and if that succeeds then the current indent with at least one more space */
 
   def IndentBlock[T](p: ShortbolParser => Parser[T]) = Indent.flatMap { extra =>
-    println(s"got extra indent $extra")
-    p(new ShortbolParser(indent + extra)) log s"block indented by $extra"
-  } log s"indent block $indent"
+    //println(s"got extra indent $extra")
+    p(new ShortbolParser(indent + extra)) //log s"block indented by $extra"
+  } //log s"indent block $indent"
 
-  lazy val InstanceBody = P(BodyStmt.rep(sep = Nl ~ IndentSpaces)) log "instance body"
+  lazy val InstanceBody = P(BodyStmt.rep(sep = Nl ~ IndentSpaces)) //log "instance body"
 
-  lazy val IndentedInstanceBody = P((SpNl ~ IndentBlock(_.InstanceBody)) | NoBody) log "indented instance body"
+  lazy val IndentedInstanceBody = P((SpNl ~ IndentBlock(_.InstanceBody)) | NoBody) //log "indented instance body"
 
   lazy val NestedInstance = InstanceExp.map(shortbol.NestedInstance)
 
@@ -145,7 +145,7 @@ sealed class ShortbolParser(indent: Int) {
   lazy val InstanceExp: Parser[shortbol.InstanceExp] = P(Identifier ~ Space.rep ~ Colon ~! Space.rep ~ PrefixConstructorApp) map
     (shortbol.InstanceExp.apply _ tupled)
 
-  lazy val BodyStmt: Parser[shortbol.BodyStmt] = P(Assignment | NestedInstance | ConstructorApp | Comment | ShortbolParsers.BlankLine) log "body statement"
+  lazy val BodyStmt: Parser[shortbol.BodyStmt] = P(Assignment | NestedInstance | ConstructorApp | Comment | ShortbolParsers.BlankLine) //log "body statement"
 }
 
 object ShortbolParser extends ShortbolParser(0) {
@@ -162,5 +162,21 @@ object ShortbolParser extends ShortbolParser(0) {
 
   lazy val TopLevels = P(TopLevel.rep(sep = SpNl))
 
-  lazy val File = P(Start ~ TopLevels ~ End)
+  lazy val SBFile = P(Start ~ TopLevels ~ End) map
+    shortbol.SBFile.apply
+}
+
+object DSL {
+
+  import fastparse.core.Result.{Failure, Success}
+  implicit class SBCHelper(val _sc: StringContext) extends AnyVal {
+    protected def parse[T](p: Parser[T], args: Any*): T = p.parse(_sc.s(args :_*)) match {
+      case Success(s, _) =>
+        s
+    }
+
+    def short_c(args: Any*): shortbol.ConstructorDef = parse(ShortbolParser.ConstructorDef, args :_*)
+    def short_a(args: Any*): shortbol.Assignment = parse(ShortbolParsers.Assignment, args :_*)
+  }
+
 }
