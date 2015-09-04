@@ -164,4 +164,6 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     }
   }
 
+  def append(f: SBFile): Unit =
+    append(f.tops)
 }

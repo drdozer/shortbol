@@ -123,10 +123,25 @@ object Expander {
     }
   }
 
+  implicit def SeqExpander[T : Expander]: Expander[Seq[T]] = new Expander[Seq[T]] {
+    override def expansion(ts: Seq[T]): ExState[Seq[T]] =
+      for {
+        es <- ts.to[List].traverseS(b => (b.expansion))
+      } yield es
+  }
+
   implicit val ConstructorAppExpander: Expander[ConstructorApp] = new Expander[ConstructorApp] {
     override def expansion(t: ConstructorApp): ExState[ConstructorApp] = t.cstr match {
       case TpeConstructor1(ident, args) =>
-        expandIfNeeded(t, ident, args)
+        for {
+          es <- expandIfNeeded(t, ident, args)
+          bs <- withStack(Seq(), Seq())(t.body.expansion)
+        } yield for {
+          e <- es
+          b <- bs
+        } yield {
+          e.copy(body = e.body ++ b)
+        }
     }
 
     def expandIfNeeded(t: ConstructorApp, ident: Identifier, args: Seq[ValueExp]): ExState[ConstructorApp] = for {
@@ -141,19 +156,15 @@ object Expander {
 
     def expandDefinitely(c: ConstructorDef, args: Seq[ValueExp]): ExState[ConstructorApp] =
       for {
-        bdy <- withStack(c.args, args)(c.cstrApp.body.to[List].traverseS(b => (b.expansion)))
+        bdy <- withStack(c.args, args)(c.cstrApp.body.expansion)
       } yield c.cstrApp.cstr match {
         case TpeConstructor1(ident, _) => ConstructorApp(TpeConstructor1(ident, Seq()), bdy.flatten) :: Nil
       }
 
     def withStack[T](names: Seq[LocalName], values: Seq[ValueExp])(sf: ExState[T]): ExState[T] = for {
       ec <- get[ExpansionContext]
-      _ = println(s"before: $ec")
-      _ = println(s"  names: $names")
-      _ = println(s" values: $values")
       _ <- modify ((_: ExpansionContext).withContext(names, values))
       ec2 <- get[ExpansionContext]
-      _ = println(s"after: $ec")
       v <- sf
       _ <- put(ec)
     } yield v
@@ -161,7 +172,6 @@ object Expander {
 
   implicit val InstanceExpExpander: Expander[InstanceExp] = new Expander[InstanceExp] {
     def expansion(i: InstanceExp) = {
-      println(s"expansioning ${i}")
       for {
         ce <- i.cstrApp.expansion
       } yield for { c <- ce } yield InstanceExp(i.id, c)

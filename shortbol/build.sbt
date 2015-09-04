@@ -18,7 +18,9 @@ lazy val coreJs = core.js.settings(
 )
 
 lazy val coreJVM = core.jvm.settings(packAutoSettings : _*).settings(
-  libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.1.3"
+  resolvers += Resolver.sonatypeRepo("public"),
+  libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.1.3",
+  libraryDependencies += "com.github.scopt" %% "scopt" % "3.3.0"
 )
 
 lazy val server = crossProject.settings(
