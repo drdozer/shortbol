@@ -35,7 +35,7 @@ sealed trait TopLevel
 
 case object BlankLine extends TopLevel with BodyStmt
 
-case class Import(path: String) extends TopLevel
+case class Import(path: Identifier) extends TopLevel
 
 case class Comment(commentText: String) extends TopLevel with BodyStmt
 

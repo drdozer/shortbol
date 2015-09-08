@@ -154,7 +154,7 @@ object ShortbolParser extends ShortbolParser(0) {
   lazy val ConstructorDef = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~! Space.rep ~ PrefixConstructorApp) map
     (shortbol.ConstructorDef.apply _ tupled)
 
-  lazy val Import = P("import" ~ Space.rep(1) ~ (!Space ~ !Nl ~ AnyChar).rep(1).!) map
+  lazy val Import = P("import" ~ Space.rep(1) ~ Identifier) map
     shortbol.Import.apply
 
   lazy val TopLevel: Parser[TopLevel] = P(

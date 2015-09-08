@@ -48,64 +48,66 @@ object ParserTestSuite extends TestSuite{
   /*scala test for automated testing - random leters ext */
 
   val tests = TestSuite {
-    'LocalName - {
-      'accepts - {
-        * - shouldParse("anAlphaIdentifier", ShortbolParsers.LocalName, LocalName("anAlphaIdentifier"))
-        * - shouldParse("a1234", ShortbolParsers.LocalName, LocalName("a1234"))
-        * - shouldParse("_ajfh13", ShortbolParsers.LocalName, LocalName("_ajfh13"))
-        * - shouldParse("a1234.abc-c", ShortbolParsers.LocalName, LocalName("a1234.abc-c"))
+    'identifiers - {
+      'LocalName - {
+        'accepts - {
+          * - shouldParse("anAlphaIdentifier", ShortbolParsers.LocalName, LocalName("anAlphaIdentifier"))
+          * - shouldParse("a1234", ShortbolParsers.LocalName, LocalName("a1234"))
+          * - shouldParse("_ajfh13", ShortbolParsers.LocalName, LocalName("_ajfh13"))
+          * - shouldParse("a1234.abc-c", ShortbolParsers.LocalName, LocalName("a1234.abc-c"))
+        }
+
+        'rejects - {
+          * - shouldNotParse("1abc", ShortbolParsers.LocalName)
+          * - shouldNotParse(".abc1", ShortbolParsers.LocalName)
+          * - shouldNotParse("-abc1", ShortbolParsers.LocalName)
+        }
       }
 
-      'rejects - {
-        * - shouldNotParse("1abc", ShortbolParsers.LocalName)
-        * - shouldNotParse(".abc1", ShortbolParsers.LocalName)
-        * - shouldNotParse("-abc1", ShortbolParsers.LocalName)
-      }
-    }
+      'NSPrefix - {
+        'accepts - {
+          * - shouldParse("anAlphaIdentifier", ShortbolParsers.NSPrefix, NSPrefix("anAlphaIdentifier"))
+          * - shouldParse("a1234", ShortbolParsers.NSPrefix, NSPrefix("a1234"))
+          * - shouldParse("_ajfh13", ShortbolParsers.NSPrefix, NSPrefix("_ajfh13"))
+          * - shouldParse("a1234.abc-c", ShortbolParsers.NSPrefix, NSPrefix("a1234.abc-c"))
+        }
 
-    'NSPrefix - {
-      'accepts - {
-        * - shouldParse("anAlphaIdentifier", ShortbolParsers.NSPrefix, NSPrefix("anAlphaIdentifier"))
-        * - shouldParse("a1234", ShortbolParsers.NSPrefix, NSPrefix("a1234"))
-        * - shouldParse("_ajfh13", ShortbolParsers.NSPrefix, NSPrefix("_ajfh13"))
-        * - shouldParse("a1234.abc-c", ShortbolParsers.NSPrefix, NSPrefix("a1234.abc-c"))
-      }
-
-      'rejects - {
-        * - shouldNotParse("1abc", ShortbolParsers.NSPrefix)
-        * - shouldNotParse(".abc1", ShortbolParsers.NSPrefix)
-        * - shouldNotParse("-abc1", ShortbolParsers.NSPrefix)
-      }
-    }
-
-    'QName - {
-      'accepts - {
-        * - shouldParse("a123:b234", ShortbolParsers.QName, QName(NSPrefix("a123"), LocalName("b234")))
-        * - shouldParse("_a123.2:b234-5", ShortbolParsers.QName, QName(NSPrefix("_a123.2"), LocalName("b234-5")))
+        'rejects - {
+          * - shouldNotParse("1abc", ShortbolParsers.NSPrefix)
+          * - shouldNotParse(".abc1", ShortbolParsers.NSPrefix)
+          * - shouldNotParse("-abc1", ShortbolParsers.NSPrefix)
+        }
       }
 
-      'rejects - {
-        * - shouldNotParse("._a123.2:1b234-5", ShortbolParsers.QName)
-        * - shouldNotParse("abc : cba ", ShortbolParsers.QName)
-        * - shouldNotParse("abc :cba ", ShortbolParsers.QName)
-        * - shouldNotParse("abc: cba ", ShortbolParsers.QName)
-      }
-    }
+      'QName - {
+        'accepts - {
+          * - shouldParse("a123:b234", ShortbolParsers.QName, QName(NSPrefix("a123"), LocalName("b234")))
+          * - shouldParse("_a123.2:b234-5", ShortbolParsers.QName, QName(NSPrefix("_a123.2"), LocalName("b234-5")))
+        }
 
-    'Url - {
-      'accepts - {
-        * - shouldParse(
-          "a123_.-~",
-          ShortbolParsers.Url,
-          Url("a123_.-~"))
-        * - shouldParse(
-          "http://www.scala-lang.org/documentation/getting-started.html",
-          ShortbolParsers.Url,
-          Url("http://www.scala-lang.org/documentation/getting-started.html"))
+        'rejects - {
+          * - shouldNotParse("._a123.2:1b234-5", ShortbolParsers.QName)
+          * - shouldNotParse("abc : cba ", ShortbolParsers.QName)
+          * - shouldNotParse("abc :cba ", ShortbolParsers.QName)
+          * - shouldNotParse("abc: cba ", ShortbolParsers.QName)
+        }
       }
 
-      'rejects - {
-        * - shouldNotParse("<www.google.co.uk>", ShortbolParsers.Url)
+      'Url - {
+        'accepts - {
+          * - shouldParse(
+            "a123_.-~",
+            ShortbolParsers.Url,
+            Url("a123_.-~"))
+          * - shouldParse(
+            "http://www.scala-lang.org/documentation/getting-started.html",
+            ShortbolParsers.Url,
+            Url("http://www.scala-lang.org/documentation/getting-started.html"))
+        }
+
+        'rejects - {
+          * - shouldNotParse("<www.google.co.uk>", ShortbolParsers.Url)
+        }
       }
     }
 
@@ -221,8 +223,8 @@ object ParserTestSuite extends TestSuite{
 
     'Import - {
       'accepts - {
-        * - shouldParse("import template_libary", ShortbolParser.Import, Import("template_libary"))
-        * - shouldParse("import /var/foo/libary/template_libary", ShortbolParser.Import, Import("/var/foo/libary/template_libary"))
+        * - shouldParse("import template_libary", ShortbolParser.Import, Import(LocalName("template_libary")))
+        * - shouldParse("import <var/foo/libary/template_libary>", ShortbolParser.Import, Import(Url("var/foo/libary/template_libary")))
       }
 
       'rejects - {
@@ -787,7 +789,7 @@ object ParserTestSuite extends TestSuite{
 
       * - shouldParse(
         "import blablabla", ShortbolParser.TopLevel,
-        Import("blablabla")
+        Import(LocalName("blablabla"))
       )
 
       * - shouldParse(

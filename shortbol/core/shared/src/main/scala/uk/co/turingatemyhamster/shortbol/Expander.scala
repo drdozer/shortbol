@@ -5,21 +5,8 @@ import uk.co.turingatemyhamster.shortbol.Expander.ExState
 import scalaz._
 import Scalaz._
 
-object Ops {
-
-  def constructors(tops: List[TopLevel]): Constructors =
-    Constructors(tops.collect { case cd : ConstructorDef  => cd.id -> cd } toMap)  // Creates map of constuctors
-
-  def individuals(tops: List[TopLevel]): Individuals =
-    Individuals(tops.collect { case i : InstanceExp => i.id -> i } toMap)  // Creates map of instance expressions
-
-  def constructorsForIndividuals(cstrs: Constructors, inds: Individuals) =
-    for {
-      (_, i) <- inds.byId  //Here i is an Instance expression.
-      TpeConstructor1(id, _) <- i.cstrApp.cstr::Nil //Getting type constructor from instance expression
-      c <- cstrs.byId.get(id)  //
-    } yield (i, c)
-
+trait Resolver {
+  def resolve(id: Identifier): SBFile
 }
 
 case class Constructors(byId: Map[Identifier, ConstructorDef])
@@ -27,8 +14,6 @@ case class Constructors(byId: Map[Identifier, ConstructorDef])
 object Constructors {
   val empty = Constructors(Map.empty)
 }
-
-case class Individuals(byId: Map[Identifier, InstanceExp])
 
 case class Bindings(bs: Map[Identifier, ValueExp])
 
@@ -52,7 +37,16 @@ object ExpansionContext {
 
 @typeclass
 trait Expander[T] {
+  self =>
   def expansion(t: T): ExState[T]
+  final def log(msg: String) = new Expander[T] {
+    override def expansion(t: T): ExState[T] = for {
+      e <- self.expansion(t)
+    } yield {
+        println(s"Expanding: $msg\n\tbefore: $t\n\t after: $e")
+        e
+      }
+  }
 }
 
 
@@ -138,9 +132,8 @@ object Expander {
           bs <- withStack(Seq(), Seq())(t.body.expansion)
         } yield for {
           e <- es
-          b <- bs
         } yield {
-          e.copy(body = e.body ++ b)
+          e.copy(body = e.body ++ bs.flatten)
         }
     }
 
@@ -150,7 +143,7 @@ object Expander {
         case Some(c) =>
           expandDefinitely(c, args)
         case None =>
-          singleton(t)
+          singleton(t.copy(body = Seq())) // there's no body from an unexpanded template
       }
     } yield e
 
@@ -164,9 +157,8 @@ object Expander {
     def withStack[T](names: Seq[LocalName], values: Seq[ValueExp])(sf: ExState[T]): ExState[T] = for {
       ec <- get[ExpansionContext]
       _ <- modify ((_: ExpansionContext).withContext(names, values))
-      ec2 <- get[ExpansionContext]
       v <- sf
-      _ <- put(ec)
+      _ <- put(ec) // fixme: we should be only overwriting the bindings
     } yield v
   }
 

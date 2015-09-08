@@ -95,11 +95,9 @@ object ExpansionTestSuite extends TestSuite {
 
       * - checkExpansion(
         parse("""mySeq : Seq
-          |  x = y
-        """.stripMargin),
+          |  x = y""".stripMargin),
         parse("""mySeq : Seq
-          |  x = y
-        """.stripMargin)
+          |  x = y""".stripMargin)
       )
 
       * - checkExpansion(
@@ -155,6 +153,17 @@ object ExpansionTestSuite extends TestSuite {
         parse(
           """foo : Bar
             |  a = y""".stripMargin))
+
+      * - checkExpansion(
+        parse(
+          """Foo => Bar
+          """.stripMargin),
+          parse(
+            """foo : Foo
+              |  x = y""".stripMargin),
+          parse(
+            """foo : Bar
+              |  x = y""".stripMargin))
 
     }
 
