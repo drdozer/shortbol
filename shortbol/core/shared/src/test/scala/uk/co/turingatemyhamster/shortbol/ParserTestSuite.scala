@@ -223,8 +223,8 @@ object ParserTestSuite extends TestSuite{
 
     'Import - {
       'accepts - {
-        * - shouldParse("import template_libary", ShortbolParser.Import, Import(LocalName("template_libary")))
-        * - shouldParse("import <var/foo/libary/template_libary>", ShortbolParser.Import, Import(Url("var/foo/libary/template_libary")))
+        * - shouldParse("import template_libary", ShortbolParser.Import, UnprocessedImport(LocalName("template_libary")))
+        * - shouldParse("import <var/foo/libary/template_libary>", ShortbolParser.Import, UnprocessedImport(Url("var/foo/libary/template_libary")))
       }
 
       'rejects - {
@@ -789,7 +789,7 @@ object ParserTestSuite extends TestSuite{
 
       * - shouldParse(
         "import blablabla", ShortbolParser.TopLevel,
-        Import(LocalName("blablabla"))
+        UnprocessedImport(LocalName("blablabla"))
       )
 
       * - shouldParse(

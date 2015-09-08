@@ -39,7 +39,7 @@ object Shortbol {
       case Some(Config(p : Preprocess)) =>
         preprocess(p)
       case None =>
-        //parser.showUsageAsError
+        // parser will have shown a usage error
     }
 
   }
@@ -49,13 +49,13 @@ object Shortbol {
 
     for (file <- p.files) {
       println(s"Processing $file")
-      ShortbolParser.SBFile.parse(Source.fromFile(file).mkString) match {
+      Fixture.parser.SBFile.parse(Source.fromFile(file).mkString) match {
         case f: Failure =>
           System.err.println(f.traced)
         case Success(sbf, _) =>
           val out = new FileWriter(shortToLongFile(file))
-          val pp = new PrettyPrinter(out)
-          for(expanded <- sbf.expansion.eval(ExpansionContext.empty))
+          val pp = Fixture.prettyPrinter(out)
+          for(expanded <- sbf.expansion.eval(Fixture.emptyContext))
             pp.append(expanded)
           out.close()
       }

@@ -34,9 +34,8 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
       }
       append(" => ")
       append(app)
-    case Import(path) =>
-      append("import ")
-      append(path)
+    case i : Import =>
+      append(i)
     case c : Comment =>
       append(c)
       append("\n")
@@ -53,6 +52,17 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   def append(c: Comment): Unit = {
     append("#")
     append(c.commentText)
+  }
+
+  def append(i: Import): Unit = i match {
+    case UnprocessedImport(path) =>
+      append("import ")
+      append(path)
+    case ProcessedImport(path, file) =>
+      append(Comment(s" <<< Imported content for $path"))
+      append(file)
+      append(indentStr)
+      append(Comment(s" Imported content for $path >>>"))
   }
 
   def append(app: ConstructorApp): Unit = {

@@ -35,7 +35,11 @@ sealed trait TopLevel
 
 case object BlankLine extends TopLevel with BodyStmt
 
-case class Import(path: Identifier) extends TopLevel
+trait Import extends TopLevel
+
+case class UnprocessedImport(path: Identifier) extends Import
+
+case class ProcessedImport(path: Identifier, imported: SBFile) extends Import
 
 case class Comment(commentText: String) extends TopLevel with BodyStmt
 

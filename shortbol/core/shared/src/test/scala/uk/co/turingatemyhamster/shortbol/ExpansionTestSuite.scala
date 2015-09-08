@@ -7,7 +7,6 @@ import fastparse.parsers.Terminals.{Start, End}
 import utest._
 import scalaz._
 import Scalaz._
-import Expander.ops._
 import DSL._
 
 
@@ -29,14 +28,34 @@ object ExpansionTestSuite extends TestSuite {
         s.value.tops
     }
 
-  def expanded(libs: Seq[TopLevel], tops: Seq[TopLevel]): Seq[TopLevel] =
-    SBFile(libs ++ tops).expansion.eval(ExpansionContext.empty).map(_.tops).flatten
+  def expanded(tops: Seq[TopLevel]): Seq[TopLevel] =
+    Fixture.expand(SBFile(tops))._2.map(_.tops).flatten
+
+  def expanded(tops: Seq[TopLevel], ctxt: ExpansionContext): Seq[TopLevel] =
+    Fixture.expand(SBFile(tops), ctxt)._2.map(_.tops).flatten
 
   def expState(libs: Seq[TopLevel], tops: Seq[TopLevel]): ExpansionContext =
-    SBFile(libs ++ tops).expansion.exec(ExpansionContext.empty)
+    Fixture.expand(SBFile(libs ++ tops))._1
 
   def checkExpansion[T](in: Seq[TopLevel], expected: Seq[TopLevel]): Unit = {
-    val expansion = expanded(Seq(), in)
+    val expansion = expanded(in)
+    assert(expansion == expected)
+  }
+
+  val pp = Fixture.prettyPrinter(System.out)
+
+  def checkExpansion[T](imports: (Identifier, Seq[TopLevel])*)
+                       (in: Seq[TopLevel], expected: Seq[TopLevel]): Unit =
+  {
+    val ctxt = Fixture.emptyContext.copy(
+      rslvr = Resolver.fromValues(imports map { case (i, ts) => i -> SBFile(ts) } :_*))
+    val expansion = expanded(in, ctxt)
+    println("%% expansion")
+    pp.append(expansion)
+    println()
+    println("%% expected")
+    pp.append(expected)
+    println()
     assert(expansion == expected)
   }
 
@@ -45,27 +64,22 @@ object ExpansionTestSuite extends TestSuite {
     assert(st == expected)
   }
 
-  def checkExpansion[T](lib: Seq[TopLevel], in: Seq[TopLevel], expected: Seq[TopLevel]): Unit = {
-    val exp = expanded(lib, in)
-    assert(exp == expected)
-  }
-
   val tests = TestSuite{
 
-    "nulops" - {
+    "nullops" - {
 
       'blankline - {
         * - checkExpansion(Seq(BlankLine), Seq())
-        * - checkState(Seq(BlankLine), ExpansionContext.empty)
+        * - checkState(Seq(BlankLine), Fixture.emptyContext)
       }
       'comment - {
         * - checkExpansion(Seq(Comment("a comment")), Seq())
-        * - checkState(Seq(Comment("a comment")), ExpansionContext.empty)
+        * - checkState(Seq(Comment("a comment")), Fixture.emptyContext)
       }
       'template - {
         val foobar = short_c"Foo => Bar"
         * - checkExpansion(Seq(foobar), Seq())
-        * - checkState(Seq(foobar), ExpansionContext(Map(foobar.id -> foobar), Map.empty))
+        * - checkState(Seq(foobar), Fixture.emptyContext.copy(cstrs = Map(foobar.id -> foobar)))
       }
     }
 
@@ -73,7 +87,7 @@ object ExpansionTestSuite extends TestSuite {
       * - {
         val aAsB = short_a"a = b"
         * - checkExpansion(Seq(aAsB), Seq(aAsB))
-        * - checkState(Seq(aAsB), ExpansionContext(Map.empty, Map(aAsB.property -> aAsB.value)))
+        * - checkState(Seq(aAsB), Fixture.emptyContext.copy(bndgs = Map(aAsB.property -> aAsB.value)))
       }
 
       * - {
@@ -86,7 +100,7 @@ object ExpansionTestSuite extends TestSuite {
         val resB = short_a"a = c"
 
         * - checkExpansion(stmts, Seq(resA, resB))
-        * - checkState(stmts, ExpansionContext(Map.empty, Map(resA.property -> resA.value, resB.property -> resB.value)))
+        * - checkState(stmts, Fixture.emptyContext.copy(bndgs = Map(resA.property -> resA.value, resB.property -> resB.value)))
       }
     }
 
@@ -101,7 +115,7 @@ object ExpansionTestSuite extends TestSuite {
       )
 
       * - checkExpansion(
-        parse("Foo => Bar"),
+        parse("Foo => Bar") ++
         parse("foo : Foo"),
         parse("foo : Bar"))
 
@@ -109,7 +123,7 @@ object ExpansionTestSuite extends TestSuite {
         parse(
           """Foo => Bar
             |  x = y
-          """.stripMargin),
+          """.stripMargin) ++
         parse("foo : Foo"),
         parse(
           """foo : Bar
@@ -119,7 +133,7 @@ object ExpansionTestSuite extends TestSuite {
         parse(
           """Foo => Bar()
             |  x = y
-          """.stripMargin),
+          """.stripMargin) ++
         parse("foo : Foo"),
         parse(
           """foo : Bar
@@ -129,7 +143,7 @@ object ExpansionTestSuite extends TestSuite {
         parse(
           """Foo => Bar()
             |  x = y
-          """.stripMargin),
+          """.stripMargin) ++
         parse("foo : Foo()"),
         parse(
           """foo : Bar
@@ -139,7 +153,7 @@ object ExpansionTestSuite extends TestSuite {
         parse(
           """Foo => Bar
             |  x = y
-          """.stripMargin),
+          """.stripMargin) ++
         parse("foo : Foo()"),
         parse(
           """foo : Bar
@@ -148,7 +162,7 @@ object ExpansionTestSuite extends TestSuite {
       * - checkExpansion(
         parse(
           """Foo(b) => Bar
-            |  a = b""".stripMargin),
+            |  a = b""".stripMargin) ++
         parse("foo : Foo(y)"),
         parse(
           """foo : Bar
@@ -157,7 +171,7 @@ object ExpansionTestSuite extends TestSuite {
       * - checkExpansion(
         parse(
           """Foo => Bar
-          """.stripMargin),
+          """.stripMargin) ++
           parse(
             """foo : Foo
               |  x = y""".stripMargin),
@@ -167,6 +181,57 @@ object ExpansionTestSuite extends TestSuite {
 
     }
 
+    'imports - {
+
+      * - checkExpansion()(
+        parse("""mySeq : Seq
+                |  x = y""".stripMargin),
+        parse("""mySeq : Seq
+                |  x = y""".stripMargin)
+      )
+
+      * - checkExpansion(Url("exampleImport") -> Seq())(
+        parse("""mySeq : Seq
+                |  x = y""".stripMargin),
+        parse("""mySeq : Seq
+                |  x = y""".stripMargin)
+      )
+
+      * - checkExpansion(Url("exampleImport") -> parse("""Foo => Bar"""))(
+        parse("""mySeq : Seq
+                |  x = y""".stripMargin),
+        parse("""mySeq : Seq
+                |  x = y""".stripMargin)
+      )
+
+      * - checkExpansion(Url("exampleImport") -> parse("""Foo => Bar"""))(
+        parse("""import <exampleImport>
+                |mySeq : Seq
+                |  x = y""".stripMargin),
+        ProcessedImport(Url("exampleImport"), SBFile(Seq())) +:
+          parse("""mySeq : Seq
+                |  x = y""".stripMargin)
+      )
+
+      * - checkExpansion(Url("exampleImport") -> parse("""cat : Animal"""))(
+        parse("""import <exampleImport>
+                |mySeq : Seq
+                |  x = y""".stripMargin),
+        ProcessedImport(Url("exampleImport"), SBFile(parse("""cat : Animal"""))) +:
+          parse("""mySeq : Seq
+                  |  x = y""".stripMargin)
+      )
+
+      * - checkExpansion(Url("exampleImport") -> parse("""Foo => Bar"""))(
+        parse("""import <exampleImport>
+                |mySeq : Foo
+                |  x = y""".stripMargin),
+        ProcessedImport(Url("exampleImport"), SBFile(Seq())) +:
+          parse("""mySeq : Bar
+                  |  x = y""".stripMargin)
+      )
+
+    }
   }
 
 }

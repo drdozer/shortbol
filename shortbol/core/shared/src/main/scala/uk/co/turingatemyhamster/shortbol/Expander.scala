@@ -5,11 +5,12 @@ import uk.co.turingatemyhamster.shortbol.Expander.ExState
 import scalaz._
 import Scalaz._
 
-trait Resolver {
-  def resolve(id: Identifier): SBFile
-}
 
-case class ExpansionContext(cstrs: Map[Identifier, ConstructorDef], bndgs: Map[Identifier, ValueExp]) {
+case class ExpansionContext(rslvr: Resolver,
+                            cstrs: Map[Identifier, ConstructorDef] = Map.empty,
+                            bndgs: Map[Identifier, ValueExp] = Map.empty,
+                            thrwn: Seq[Throwable] = Seq.empty)
+{
 
   def withConstructor(c: ConstructorDef) =
     copy(cstrs = cstrs + (c.id -> c))
@@ -20,10 +21,6 @@ case class ExpansionContext(cstrs: Map[Identifier, ConstructorDef], bndgs: Map[I
 
 }
 
-object ExpansionContext {
-  val empty = ExpansionContext(Map.empty, Map.empty)
-}
-
 @typeclass
 trait Expander[T] {
   self =>
@@ -32,7 +29,6 @@ trait Expander[T] {
     override def expansion(t: T): ExState[T] = for {
       e <- self.expansion(t)
     } yield {
-        println(s"Expanding: $msg\n\tbefore: $t\n\t after: $e")
         e
       }
   }
@@ -58,8 +54,26 @@ object Expander {
   }
 
   implicit val BlankLineExpander: Expander[BlankLine.type] = swallowExpander[BlankLine.type]
-  implicit val ImportExpander: Expander[Import] = swallowExpander[Import]
   implicit val CommentExpander: Expander[Comment] = swallowExpander[Comment]
+
+  implicit val ImportExpander: Expander[Import] = new Expander[Import] {
+    override def expansion(t: Import): ExState[Import] = t match {
+      case UnprocessedImport(path) =>
+        for {
+          resolver <- gets ((_: ExpansionContext).rslvr)
+          i <- resolver.resolve(path) match {
+            case \/-(imported) =>
+              for {
+                ex <- imported.expansion
+              } yield ProcessedImport(path, SBFile(ex.map(_.tops).flatten)) :: Nil
+            case -\/(err) =>
+              for {
+                _ <- modify((ec: ExpansionContext) => ec.copy(thrwn = ec.thrwn :+ err))
+              } yield t :: Nil
+          }
+        } yield i
+    }
+  }
 
   implicit val ConstructorDefExpander: Expander[ConstructorDef] = new Expander[ConstructorDef] {
     override def expansion(t: ConstructorDef) = for {
@@ -104,7 +118,7 @@ object Expander {
       case c : ConstructorDef =>
         for { e <- c.expansion } yield e
     }
-  }
+  } log "TopLevel"
 
   implicit def SeqExpander[T : Expander]: Expander[Seq[T]] = new Expander[Seq[T]] {
     override def expansion(ts: Seq[T]): ExState[Seq[T]] =

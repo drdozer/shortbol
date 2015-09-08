@@ -155,7 +155,7 @@ object ShortbolParser extends ShortbolParser(0) {
     (shortbol.ConstructorDef.apply _ tupled)
 
   lazy val Import = P("import" ~ Space.rep(1) ~ Identifier) map
-    shortbol.Import.apply
+    shortbol.UnprocessedImport.apply
 
   lazy val TopLevel: Parser[TopLevel] = P(
     (InstanceExp | ConstructorDef | Comment | Import | Assignment | ShortbolParsers.BlankLine))
