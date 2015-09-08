@@ -35,7 +35,7 @@ object ShortbolServer extends App{
                 case Success(tls, _) =>
                   val out = new java.lang.StringBuilder
                   val pp = PrettyPrinter(out)
-                  val cstrs = Ops.constructors(tls)
+                  //val cstrs = Ops.constructors(tls)
                   val inds = tls collect { case i : InstanceExp => i }
                   val ex = ExpansionContext(cstrs, Bindings(Map()))
 
