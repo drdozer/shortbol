@@ -28,8 +28,11 @@ object ExpansionTestSuite extends TestSuite {
         s.value.tops
     }
 
-  def expanded(tops: Seq[TopLevel]): Seq[TopLevel] =
-    Fixture.expand(SBFile(tops))._2.map(_.tops).flatten
+  def expanded(tops: Seq[TopLevel]): Seq[TopLevel] = {
+    val (es, ex) = Fixture.expand(SBFile(tops))
+    assert(es.thrwn.isEmpty)
+    ex.map(_.tops).flatten
+  }
 
   def expanded(tops: Seq[TopLevel], ctxt: ExpansionContext): Seq[TopLevel] =
     Fixture.expand(SBFile(tops), ctxt)._2.map(_.tops).flatten
@@ -108,15 +111,17 @@ object ExpansionTestSuite extends TestSuite {
       * - checkExpansion(parse("mySeq : Seq"), parse("mySeq : Seq"))
 
       * - checkExpansion(
-        parse("""mySeq : Seq
+        parse(
+          """mySeq : Seq
           |  x = y""".stripMargin),
-        parse("""mySeq : Seq
+        parse(
+          """mySeq : Seq
           |  x = y""".stripMargin)
       )
 
       * - checkExpansion(
         parse("Foo => Bar") ++
-        parse("foo : Foo"),
+          parse("foo : Foo"),
         parse("foo : Bar"))
 
       * - checkExpansion(
@@ -124,7 +129,7 @@ object ExpansionTestSuite extends TestSuite {
           """Foo => Bar
             |  x = y
           """.stripMargin) ++
-        parse("foo : Foo"),
+          parse("foo : Foo"),
         parse(
           """foo : Bar
             |  x = y""".stripMargin))
@@ -134,7 +139,7 @@ object ExpansionTestSuite extends TestSuite {
           """Foo => Bar()
             |  x = y
           """.stripMargin) ++
-        parse("foo : Foo"),
+          parse("foo : Foo"),
         parse(
           """foo : Bar
             |  x = y""".stripMargin))
@@ -144,7 +149,7 @@ object ExpansionTestSuite extends TestSuite {
           """Foo => Bar()
             |  x = y
           """.stripMargin) ++
-        parse("foo : Foo()"),
+          parse("foo : Foo()"),
         parse(
           """foo : Bar
             |  x = y""".stripMargin))
@@ -154,7 +159,7 @@ object ExpansionTestSuite extends TestSuite {
           """Foo => Bar
             |  x = y
           """.stripMargin) ++
-        parse("foo : Foo()"),
+          parse("foo : Foo()"),
         parse(
           """foo : Bar
             |  x = y""".stripMargin))
@@ -163,7 +168,7 @@ object ExpansionTestSuite extends TestSuite {
         parse(
           """Foo(b) => Bar
             |  a = b""".stripMargin) ++
-        parse("foo : Foo(y)"),
+          parse("foo : Foo(y)"),
         parse(
           """foo : Bar
             |  a = y""".stripMargin))
@@ -175,10 +180,17 @@ object ExpansionTestSuite extends TestSuite {
           parse(
             """foo : Foo
               |  x = y""".stripMargin),
-          parse(
-            """foo : Bar
+        parse(
+          """foo : Bar
               |  x = y""".stripMargin))
 
+      * - checkExpansion(
+        parse(
+          """Foo => Bar
+           |Bar => Baz
+           |foo : Foo""".stripMargin),
+        parse(
+          "foo : Baz"))
     }
 
     'imports - {

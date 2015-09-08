@@ -118,7 +118,7 @@ object Expander {
       case c : ConstructorDef =>
         for { e <- c.expansion } yield e
     }
-  } log "TopLevel"
+  }
 
   implicit def SeqExpander[T : Expander]: Expander[Seq[T]] = new Expander[Seq[T]] {
     override def expansion(ts: Seq[T]): ExState[Seq[T]] =
@@ -153,9 +153,10 @@ object Expander {
     def expandDefinitely(c: ConstructorDef, args: Seq[ValueExp]): ExState[ConstructorApp] =
       for {
         bdy <- withStack(c.args, args)(c.cstrApp.body.expansion)
-      } yield c.cstrApp.cstr match {
-        case TpeConstructor1(ident, _) => ConstructorApp(TpeConstructor1(ident, Seq()), bdy.flatten) :: Nil
-      }
+        cd <- (c.cstrApp.cstr match {
+          case TpeConstructor1(ident, _) => ConstructorApp(TpeConstructor1(ident, Seq()), bdy.flatten)
+        }).expansion
+      } yield cd
 
     def withStack[T](names: Seq[LocalName], values: Seq[ValueExp])(sf: ExState[T]): ExState[T] = for {
       ec <- get[ExpansionContext]
