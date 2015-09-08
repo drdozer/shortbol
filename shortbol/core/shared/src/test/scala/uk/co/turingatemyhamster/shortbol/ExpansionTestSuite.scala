@@ -65,7 +65,7 @@ object ExpansionTestSuite extends TestSuite {
       'template - {
         val foobar = short_c"Foo => Bar"
         * - checkExpansion(Seq(foobar), Seq())
-        * - checkState(Seq(foobar), ExpansionContext(Constructors(Map(foobar.id -> foobar)), Bindings.empty))
+        * - checkState(Seq(foobar), ExpansionContext(Map(foobar.id -> foobar), Map.empty))
       }
     }
 
@@ -73,7 +73,7 @@ object ExpansionTestSuite extends TestSuite {
       * - {
         val aAsB = short_a"a = b"
         * - checkExpansion(Seq(aAsB), Seq(aAsB))
-        * - checkState(Seq(aAsB), ExpansionContext(Constructors.empty, Bindings(Map(aAsB.property -> aAsB.value))))
+        * - checkState(Seq(aAsB), ExpansionContext(Map.empty, Map(aAsB.property -> aAsB.value)))
       }
 
       * - {
@@ -86,7 +86,7 @@ object ExpansionTestSuite extends TestSuite {
         val resB = short_a"a = c"
 
         * - checkExpansion(stmts, Seq(resA, resB))
-        * - checkState(stmts, ExpansionContext(Constructors.empty, Bindings(Map(resA.property -> resA.value, resB.property -> resB.value))))
+        * - checkState(stmts, ExpansionContext(Map.empty, Map(resA.property -> resA.value, resB.property -> resB.value)))
       }
     }
 

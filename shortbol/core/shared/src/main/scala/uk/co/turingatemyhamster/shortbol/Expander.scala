@@ -9,30 +9,19 @@ trait Resolver {
   def resolve(id: Identifier): SBFile
 }
 
-case class Constructors(byId: Map[Identifier, ConstructorDef])
-
-object Constructors {
-  val empty = Constructors(Map.empty)
-}
-
-case class Bindings(bs: Map[Identifier, ValueExp])
-
-object Bindings {
-  val empty = Bindings(Map.empty)
-}
-
-case class ExpansionContext(cstrs: Constructors, bndgs: Bindings) {
+case class ExpansionContext(cstrs: Map[Identifier, ConstructorDef], bndgs: Map[Identifier, ValueExp]) {
 
   def withConstructor(c: ConstructorDef) =
-    copy(cstrs = cstrs.copy(byId = cstrs.byId + (c.id -> c)))
+    copy(cstrs = cstrs + (c.id -> c))
 
   def withContext(names: Seq[Identifier], values: Seq[ValueExp]) =
-    copy(bndgs = bndgs.copy(bs = bndgs.bs ++ (names zip values)))
+    copy(bndgs = bndgs ++ (names zip values))
+
 
 }
 
 object ExpansionContext {
-  val empty = ExpansionContext(Constructors.empty, Bindings.empty)
+  val empty = ExpansionContext(Map.empty, Map.empty)
 }
 
 @typeclass
@@ -138,7 +127,7 @@ object Expander {
     }
 
     def expandIfNeeded(t: ConstructorApp, ident: Identifier, args: Seq[ValueExp]): ExState[ConstructorApp] = for {
-      co <- gets ((_: ExpansionContext).cstrs.byId.get(ident))
+      co <- gets ((_: ExpansionContext).cstrs.get(ident))
       e <- co match {
         case Some(c) =>
           expandDefinitely(c, args)
@@ -195,7 +184,7 @@ object Expander {
       case ln: LocalName =>
         for {
           ec <- get
-        } yield (ec.bndgs.bs.get(ln).collect{ case i : Identifier => i } getOrElse id) :: Nil
+        } yield (ec.bndgs.get(ln).collect{ case i : Identifier => i } getOrElse id) :: Nil
       case _ =>
         singleton(id)
     }
@@ -206,7 +195,7 @@ object Expander {
       case ln: LocalName =>
         for {
           ec <- get
-        } yield ec.bndgs.bs.getOrElse(ln, ve) :: Nil
+        } yield ec.bndgs.getOrElse(ln, ve) :: Nil
       case _ =>
         singleton(ve)
     }
