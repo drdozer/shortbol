@@ -7,6 +7,7 @@ import Scalaz._
 
 
 case class ExpansionContext(rslvr: Resolver,
+                            rctxt: ResolutionContext = ResolutionContext(Url(""), PrefixBindingsImpl(None, Map.empty)),
                             cstrs: Map[Identifier, ConstructorDef] = Map.empty,
                             bndgs: Map[Identifier, ValueExp] = Map.empty,
                             thrwn: Seq[Throwable] = Seq.empty)
@@ -61,7 +62,8 @@ object Expander {
       case UnprocessedImport(path) =>
         for {
           resolver <- gets ((_: ExpansionContext).rslvr)
-          i <- resolver.resolve(path) match {
+          ctxt <- gets ((_: ExpansionContext).rctxt)
+          i <- resolver.resolve(ctxt, path) match {
             case \/-(imported) =>
               for {
                 ex <- imported.expansion
