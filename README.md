@@ -1,0 +1,2 @@
+# shortbol
+SBOL shorthand environment.
