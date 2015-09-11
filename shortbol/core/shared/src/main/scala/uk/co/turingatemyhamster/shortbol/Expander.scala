@@ -7,7 +7,7 @@ import Scalaz._
 
 
 case class ExpansionContext(rslvr: Resolver,
-                            rctxt: ResolutionContext = ResolutionContext(Url(""), PrefixBindingsImpl(None, Map.empty)),
+                            rctxt: ResolutionContext = ResolutionContext(None, PrefixBindingsImpl(None, Map.empty)),
                             cstrs: Map[Identifier, ConstructorDef] = Map.empty,
                             bndgs: Map[Identifier, ValueExp] = Map.empty,
                             thrwn: Seq[Throwable] = Seq.empty)

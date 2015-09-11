@@ -50,4 +50,4 @@ case class ConstructorDef(id: Identifier,
                           args: Seq[LocalName],
                           cstrApp: ConstructorApp) extends TopLevel
 
-case class SBFile(tops: Seq[TopLevel])
+case class SBFile(tops: Seq[TopLevel] = Seq(), rdfAbout: Option[Url] = None, source: Option[Url] = None)

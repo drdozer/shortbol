@@ -163,7 +163,7 @@ object ShortbolParser extends ShortbolParser(0) {
   lazy val TopLevels = P(TopLevel.rep(sep = SpNl))
 
   lazy val SBFile = P(Start ~ TopLevels ~ End) map
-    shortbol.SBFile.apply
+    (tops => shortbol.SBFile(tops = tops))
 }
 
 object DSL {

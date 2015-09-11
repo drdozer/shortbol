@@ -14,11 +14,17 @@ trait ResolverProvider extends ResolverBase {
 
   protected def parser: ShortbolParser.type
 
-  override def resolve(baseUrl: Url, url: Url): Throwable \/ SBFile = {
-    val resUri = new URI(baseUrl.url).resolve(url.url)
-    val src = Source.fromURL(resUri.toString)
+  override def resolve(baseUrl: Option[Url], url: Url): Throwable \/ SBFile = {
+    val resUri = baseUrl match {
+      case Some(b) =>
+        new URI(b.url).resolve(url.url).toString
+      case None =>
+        url.url
+    }
+    val src = Source.fromURL(resUri)
     parser.SBFile.parse(src.mkString) match {
-      case Result.Success(s, _) => s.right
+      case Result.Success(s, _) =>
+        s.copy(rdfAbout = Some(url), source = Some(Url(resUri))).right
       case f: Result.Failure =>
         new Exception(s"Failed to parse $url at ${f.index}: ${f.traced.fullStack}").left
     }

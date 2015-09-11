@@ -38,10 +38,10 @@ trait ResolverBase extends Resolver {
     }
   }
 
-  def resolve(baseUrl: Url, url: Url): Throwable \/ SBFile
+  def resolve(baseUrl: Option[Url], url: Url): Throwable \/ SBFile
 }
 
-case class ResolutionContext(baseUrl: Url, bindings: PrefixBindings)
+case class ResolutionContext(baseUrl: Option[Url], bindings: PrefixBindings)
 
 trait PrefixBindings {
   def resolve(pfx: Option[NSPrefix]): Option[Url]

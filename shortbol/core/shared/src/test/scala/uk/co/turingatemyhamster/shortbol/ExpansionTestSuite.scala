@@ -67,7 +67,7 @@ object ExpansionTestSuite extends TestSuite {
     assert(st == expected)
   }
 
-  val tests = TestSuite{
+  val tests = TestSuite {
 
     "nullops" - {
 
