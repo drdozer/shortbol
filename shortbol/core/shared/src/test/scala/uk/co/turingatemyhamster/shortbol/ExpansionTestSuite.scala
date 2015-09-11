@@ -90,7 +90,8 @@ object ExpansionTestSuite extends TestSuite {
       * - {
         val aAsB = short_a"a = b"
         * - checkExpansion(Seq(aAsB), Seq(aAsB))
-        * - checkState(Seq(aAsB), Fixture.emptyContext.copy(bndgs = Map(aAsB.property -> aAsB.value)))
+        * - checkState(Seq(aAsB), Fixture.emptyContext.copy(bndgs = Map(
+          aAsB.property -> aAsB.value)))
       }
 
       * - {
@@ -99,11 +100,44 @@ object ExpansionTestSuite extends TestSuite {
             |a = b
           """.stripMargin)
 
-        val resA = short_a"b = c"
-        val resB = short_a"a = c"
+        val res1 = short_a"b = c"
+        val res2 = short_a"a = c"
 
-        * - checkExpansion(stmts, Seq(resA, resB))
-        * - checkState(stmts, Fixture.emptyContext.copy(bndgs = Map(resA.property -> resA.value, resB.property -> resB.value)))
+        * - checkExpansion(stmts, Seq(res1, res2))
+        * - checkState(stmts, Fixture.emptyContext.copy(bndgs = Map(
+          res1.property -> res1.value, res2.property -> res2.value)))
+      }
+
+      * - {
+        val stmts = parse(
+          """c = d
+            |b = c
+            |a = b
+          """.stripMargin)
+
+        val res1 = short_a"c = d"
+        val res2 = short_a"b = d"
+        val res3 = short_a"a = d"
+
+        * - checkExpansion(stmts, Seq(res1, res2, res3))
+        * - checkState(stmts, Fixture.emptyContext.copy(bndgs = Map(
+          res1.property -> res1.value, res2.property -> res2.value, res3.property -> res3.value)))
+      }
+
+      * - {
+        val stmts = parse(
+          """bx = cx
+            |cx = dx
+            |ax = bx
+          """.stripMargin)
+
+        val res1 = short_a"bx = cx"
+        val res2 = short_a"cx = dx"
+        val res3 = short_a"ax = dx"
+
+        * - checkExpansion(stmts, Seq(res1, res2, res3))
+        * - checkState(stmts, Fixture.emptyContext.copy(bndgs = Map(
+          res1.property -> res1.value, res2.property -> res2.value, res3.property -> res3.value)))
       }
     }
 

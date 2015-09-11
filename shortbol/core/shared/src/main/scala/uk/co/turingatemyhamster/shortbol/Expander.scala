@@ -19,7 +19,19 @@ case class ExpansionContext(rslvr: Resolver,
   def withContext(names: Seq[Identifier], values: Seq[ValueExp]) =
     copy(bndgs = bndgs ++ (names zip values))
 
-
+  def resolveBinding(id: Identifier): Option[ValueExp] =
+    bndgs.get(id) orElse {
+      id match {
+        case ln : LocalName =>
+          val sameLn = bndgs.collect { case (QName(_, qln), ve) if qln == ln => ve }
+          if(sameLn.size == 1)
+            sameLn.headOption
+          else
+            None
+        case _ =>
+          None
+      }
+    }
 }
 
 @typeclass
@@ -43,6 +55,8 @@ object Expander {
   import ops._
 
   def singleton[T](t: T): ExState[T] = List(t).point[({type l[a] = State[ExpansionContext, a]})#l]
+
+  def constant[T](t: T): State[ExpansionContext, T] = t.point[({type l[a] = State[ExpansionContext, a]})#l]
 
   def noopExpander[T]: Expander[T] = new Expander[T] {
     override def expansion(t: T): ExState[T] =
@@ -197,22 +211,27 @@ object Expander {
   }
 
   implicit val IdentifierExpander: Expander[Identifier] = new Expander[Identifier] {
-    def expansion(id: Identifier) = id match {
-      case ln: LocalName =>
-        for {
-          ec <- get
-        } yield (ec.bndgs.get(ln).collect{ case i : Identifier => i } getOrElse id) :: Nil
-      case _ =>
-        singleton(id)
-    }
+    def expansion(id: Identifier) = for {
+      r <- resolveWithAssignment(id)
+    } yield r :: Nil
+
+    def resolveWithAssignment(id: Identifier): State[ExpansionContext, Identifier] = for {
+      b <- gets ((_: ExpansionContext).resolveBinding(id))
+      rb <- b match {
+        case Some(rid : Identifier) =>
+          resolveWithAssignment(rid)
+        case _ =>
+          constant(id)
+      }
+    } yield rb
   }
 
   implicit val ValueExpExpander: Expander[ValueExp] = new Expander[ValueExp] {
     def expansion(ve: ValueExp): ExState[ValueExp] = ve match {
-      case ln: LocalName =>
+      case id: Identifier =>
         for {
-          ec <- get
-        } yield ec.bndgs.getOrElse(ln, ve) :: Nil
+          e <- id.expansion
+        } yield e
       case _ =>
         singleton(ve)
     }
