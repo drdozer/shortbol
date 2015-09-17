@@ -162,6 +162,16 @@ object Expander {
         case Some(c) =>
           expandDefinitely(c, args)
         case None =>
+          for {
+            r <- gets ((_: ExpansionContext).resolveBinding(ident))
+            re <- r match {
+              case Some(id : Identifier) =>
+                expandIfneeded(t, id, args)
+              case None =>
+
+            }
+          }
+          // fixme: attempt to perform one round of assignment resolution
           singleton(t.copy(body = Seq())) // there's no body from an unexpanded template
       }
     } yield e
