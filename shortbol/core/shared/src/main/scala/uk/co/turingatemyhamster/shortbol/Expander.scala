@@ -157,24 +157,29 @@ object Expander {
     }
 
     def expandIfNeeded(t: ConstructorApp, ident: Identifier, args: Seq[ValueExp]): ExState[ConstructorApp] = for {
-      co <- gets ((_: ExpansionContext).cstrs.get(ident))
+      co <- cstr(ident)
       e <- co match {
         case Some(c) =>
           expandDefinitely(c, args)
         case None =>
           for {
-            r <- gets ((_: ExpansionContext).resolveBinding(ident))
+            r <- resolveBinding(ident)
             re <- r match {
               case Some(id : Identifier) =>
-                expandIfneeded(t, id, args)
+                expandIfNeeded(t, id, args)
               case None =>
-
+                singleton(t.copy(cstr = rename(t.cstr, ident), body = Seq()))
             }
-          }
-          // fixme: attempt to perform one round of assignment resolution
-          singleton(t.copy(body = Seq())) // there's no body from an unexpanded template
+          } yield re
       }
     } yield e
+
+    def rename(t: TpeConstructor, id: Identifier): TpeConstructor = t match {
+      case TpeConstructorStar =>
+        TpeConstructorStar
+      case t1 : TpeConstructor1 =>
+        t1.copy(id = id)
+    }
 
     def expandDefinitely(c: ConstructorDef, args: Seq[ValueExp]): ExState[ConstructorApp] =
       for {
@@ -226,7 +231,7 @@ object Expander {
     } yield r :: Nil
 
     def resolveWithAssignment(id: Identifier): State[ExpansionContext, Identifier] = for {
-      b <- gets ((_: ExpansionContext).resolveBinding(id))
+      b <- resolveBinding(id)
       rb <- b match {
         case Some(rid : Identifier) =>
           resolveWithAssignment(rid)
@@ -246,5 +251,11 @@ object Expander {
         singleton(ve)
     }
   }
+
+  def cstr(id: Identifier): State[ExpansionContext, Option[ConstructorDef]] =
+    gets ((_: ExpansionContext).cstrs.get(id))
+
+  def resolveBinding(id: Identifier): State[ExpansionContext, Option[ValueExp]] =
+    gets ((_: ExpansionContext).resolveBinding(id))
 
 }
