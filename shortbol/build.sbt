@@ -14,11 +14,13 @@ lazy val core = crossProject.settings(
   ).settings(sharedSettings : _*)
   
 lazy val coreJs = core.js.settings(
+  libraryDependencies += "uk.co.turingatemyhamster" %%% "datatree-core" % "develop-0.2.1",
   libraryDependencies += "com.github.japgolly.fork.scalaz" %%% "scalaz-core" % "7.1.3"
 )
 
 lazy val coreJVM = core.jvm.settings(packAutoSettings : _*).settings(
   resolvers += Resolver.sonatypeRepo("public"),
+  libraryDependencies += "uk.co.turingatemyhamster" %% "datatree-core" % "develop-0.2.1",
   libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.1.3",
   libraryDependencies += "com.github.scopt" %% "scopt" % "3.3.0"
 )
