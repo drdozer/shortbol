@@ -8,85 +8,65 @@ import web._
 /**
  * Created by nmrp3 on 23/09/15.
  */
-trait Exporter[T, E] {
-  def apply(t: T): E
-}
-
-object Exporter {
-  implicit def export[T, E](t: T)(implicit ev: Exporter[T, E]): E = ev.apply(t)
-  implicit def exportAs[E] = new AnyRef {
-    def apply[T](t: T)(implicit ev: Exporter[T, E]): E = ev.apply(t)
-  }
-
-  implicit def seqExporter[T, E](implicit ev: Exporter[T, E]): Exporter[Seq[T], Seq[E]] = new Exporter[Seq[T], Seq[E]] {
-    override def apply(t: Seq[T]): Seq[E] = t map ev.apply
-  }
-
-  implicit def sbfileExporter[DT <: Datatree](implicit dtDsl: DatatreeDSL[DT],
-                                              webDsl: WebDSL[DT],
-                                              relDsl: RelationsDSL[DT]): Exporter[SBFile, DT#DocumentRoot] = new Exporter[SBFile, DT#DocumentRoot] {
-    override def apply(t: SBFile): DT#DocumentRoot = {
-      import dtDsl._
-      import relDsl._
-
-      DocumentRoot(ZeroMany(), ZeroMany(export(t.tops).flatten :_*))
-    }
-  }
-
-  implicit def topLevelExporter[DT <: Datatree](implicit dtDsl: DatatreeDSL[DT],
-                                                webDsl: WebDSL[DT],
-                                                relDsl: RelationsDSL[DT]): Exporter[TopLevel, Option[DT#TopLevelDocument]] = new Exporter[TopLevel, Option[DT#TopLevelDocument]] {
-    override def apply(t: TopLevel): Option[DT#TopLevelDocument] = t match {
-      case i : InstanceExp =>
-        Some(export(i))
-      case _ =>
-        None
-    }
-  }
-
-  implicit def instanceExpExporter[DT <: Datatree](implicit dtDsl: DatatreeDSL[DT],
-                                                   webDsl: WebDSL[DT],
-                                                   relDsl: RelationsDSL[DT]): Exporter[InstanceExp, DT#TopLevelDocument] = new Exporter[InstanceExp, DT#TopLevelDocument] {
-    override def apply(t: InstanceExp): DT#TopLevelDocument = {
-      import dtDsl._
-      import relDsl._
-
-      TopLevelDocument(ZeroMany(), ZeroOne(exportAs[DT#Uri](t.id)), One(exportAs[DT#QName](t.cstrApp.cstr)), ZeroMany())
-    }
-  }
-
-  implicit def tpeConstructor[DT <: Datatree](implicit dtDsl: DatatreeDSL[DT],
-                                              webDsl: WebDSL[DT],
-                                              relDsl: RelationsDSL[DT]): Exporter[TpeConstructor, DT#QName] = new Exporter[TpeConstructor, DT#QName] {
-    override def apply(t: TpeConstructor): DT#QName = t match {
-      case TpeConstructor1(id, _) =>
-        exportAs[DT#QName](id)
-    }
-  }
-
-  implicit def identifierExporterUri[DT <: Datatree](implicit dtDsl: DatatreeDSL[DT],
-                                                     webDsl: WebDSL[DT],
-                                                     relDsl: RelationsDSL[DT]): Exporter[Identifier, DT#Uri] = new Exporter[Identifier, DT#Uri] {
-    override def apply(t: Identifier): DT#Uri = {
-      import webDsl._
-
-      t match {
-        case shortbol.Url(ln) =>
-          Uri(ln)
-      }
-    }
-  }
-
-  implicit def identifierExporterQName[DT <: Datatree](implicit dtDsl: DatatreeDSL[DT],
-                                                     webDsl: WebDSL[DT],
-                                                     relDsl: RelationsDSL[DT]): Exporter[Identifier, DT#QName] = new Exporter[Identifier, DT#QName] {
-    override def apply(t: Identifier): DT#QName = {
-      import webDsl._
-
-      t match {
-        case shortbol.QName(pfx, ln) =>
-          QName(null.asInstanceOf[DT#Namespace], LocalName(ln.name), Prefix(pfx.pfx))
-      }
-    }
-  }
-}
+//case class Exporter[T, E](export: T => E)
+//
+//object Exporter {
+//
+//  implicit class ExporterOps[T](val _t: T) extends AnyVal {
+//    def export[E](implicit ev: Exporter[T, E]): E = ev.export(_t)
+//  }
+//
+//}
+//
+//object ExporterEnv {
+//  def apply[DT <: Datatree](implicit _dtDSL: DatatreeDSL[DT], _webDSL: WebDSL[DT], _relDSL: RelationsDSL[DT]) = new ExporterEnv[DT] {
+//    val dtDSL = _dtDSL
+//    val webDSL = _webDSL
+//    val relDSL = _relDSL
+//  }
+//}
+//
+//trait ExporterEnv[DT <: Datatree] {
+//  implicit val dtDSL: DatatreeDSL[DT]
+//  implicit val webDSL: WebDSL[DT]
+//  implicit val relDSL: RelationsDSL[DT]
+//
+//  import dtDSL._
+//  import webDSL._
+//  import relDSL._
+//
+//  import Exporter._
+//
+//  implicit def seqExporter[T, E](implicit ev: Exporter[T, E]): Exporter[Seq[T], Seq[E]] =
+//    Exporter { _ map ev.export }
+//
+//
+//
+//  implicit val sbfileExporter: Exporter[SBFile, DT#DocumentRoot] =
+//    Exporter { (t: SBFile) =>
+//      DocumentRoot(ZeroMany(), ZeroMany(t.tops.export.flatten :_*))
+//    }
+//
+//
+//
+//  implicit val instanceExpExporter: Exporter[InstanceExp, DT#TopLevelDocument] =
+//    Exporter { case (t: InstanceExp) =>
+//      TopLevelDocument(ZeroMany(), ZeroOne(t.id.export), One(t.cstrApp.cstr.export), ZeroMany())
+//  }
+//
+//  implicit val tpeConstructor: Exporter[TpeConstructor, DT#QName] =
+//    Exporter[TpeConstructor, DT#QName] { _.id.export }
+//
+//  implicit val urlExporter: Exporter[Url, DT#Uri] =
+//    Exporter { (u: Url) =>
+//      u match {
+//        case shortbol.Url(ln) =>
+//          Uri(ln)
+//      }
+//  }
+//
+//  implicit def qnameExporterQName: Exporter[QName, DT#QName] =
+//    Exporter { case shortbol.QName(pfx, ln) =>
+//      QName(null.asInstanceOf[DT#Namespace], LocalName(ln.name), Prefix(pfx.pfx))
+//    }
+//}

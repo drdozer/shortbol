@@ -37,9 +37,9 @@ object ShortbolServer extends App{
                   val pp = PrettyPrinter(out)
                   //val cstrs = Ops.constructors(tls)
                   val inds = tls collect { case i : InstanceExp => i }
-                  val ex = ExpansionContext(cstrs, Bindings(Map()))
+                  val ex = EvalContext(cstrs, Bindings(Map()))
 
-                  import Expander.ops._
+                  import Eval.ops._
 
                   for {
                     i <- inds

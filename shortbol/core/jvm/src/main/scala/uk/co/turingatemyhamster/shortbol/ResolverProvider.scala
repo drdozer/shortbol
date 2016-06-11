@@ -1,7 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 
 import java.net.{URI}
-import fastparse.core.Result
+import fastparse.core.Parsed.{Success, Failure}
 
 import scala.io.Source
 import scalaz._
@@ -23,10 +23,10 @@ trait ResolverProvider extends ResolverBase {
     }
     val src = Source.fromURL(resUri)
     parser.SBFile.parse(src.mkString) match {
-      case Result.Success(s, _) =>
+      case Success(s, _) =>
         s.copy(rdfAbout = Some(url), source = Some(Url(resUri))).right
-      case f: Result.Failure =>
-        new Exception(s"Failed to parse $url at ${f.index}: ${f.traced.fullStack}").left
+      case f: Failure =>
+        new Exception(s"Failed to parse $url at ${f.index}: ${f.extra.traced}").left
     }
   }
 }

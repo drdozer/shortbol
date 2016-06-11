@@ -4,7 +4,7 @@ package shortbol
 import java.io.{FileWriter, File}
 import javax.xml.stream.XMLOutputFactory
 
-import fastparse.core.Result.{Failure, Success}
+//import fastparse.core.Result.{Failure, Success}
 import scopt.OptionParser
 import uk.co.turingatemyhamster.datatree.io.RdfIo
 
@@ -63,38 +63,39 @@ object Shortbol {
   }
 
   def preprocess(p: Preprocess): Unit = {
-    import Expander.ops._
-
-    for (file <- p.files) {
-      println(s"Processing $file")
-      Fixture.parser.SBFile.parse(Source.fromFile(file).mkString) match {
-        case f: Failure =>
-          System.err.println(f.traced)
-        case Success(sbf, _) =>
-          val out = new FileWriter(shortToLongFile(file))
-          val pp = Fixture.prettyPrinter(out)
-          for(expanded <- sbf.expansion.eval(Fixture.emptyContext))
-            pp.append(expanded)
-          out.close()
-      }
-    }
+    ???
+//    import Expander.ExpanderOps
+//    for (file <- p.files) {
+//      println(s"Processing $file")
+//      Fixture.parser.SBFile.parse(Source.fromFile(file).mkString) match {
+//        case f: Failure =>
+//          System.err.println(f.traced)
+//        case Success(sbf, _) =>
+//          val out = new FileWriter(shortToLongFile(file))
+//          val pp = Fixture.prettyPrinter(out)
+//          for(expanded <- sbf.expansion.eval(Fixture.emptyContext))
+//            pp.append(expanded)
+//          out.close()
+//      }
+//    }
   }
 
   def export(ex: Export): Unit = {
-    for (file <- ex.files) {
-      println(s"Exporting $file to ${longToRdfFile(file)}")
-      Fixture.parser.SBFile.parse(Source.fromFile(file).mkString) match {
-        case f : Failure =>
-          System.err.println(f.traced)
-        case Success(lbf, _) =>
-          import datatree.ast._
-          val docRoot = Fixture.toDatatree[AstDatatree](lbf)
-          val writer = XMLOutputFactory.newInstance.createXMLStreamWriter(
-            new FileWriter(longToRdfFile(file)))
-          RdfIo.write(writer, docRoot)
-          writer.close()
-      }
-    }
+    ???
+//    for (file <- ex.files) {
+//      println(s"Exporting $file to ${longToRdfFile(file)}")
+//      Fixture.parser.SBFile.parse(Source.fromFile(file).mkString) match {
+//        case f : Failure =>
+//          System.err.println(f.traced)
+//        case Success(lbf, _) =>
+//          import datatree.ast._
+//          val docRoot = Fixture.toDatatree[AstDatatree](lbf)
+//          val writer = XMLOutputFactory.newInstance.createXMLStreamWriter(
+//            new FileWriter(longToRdfFile(file)))
+//          RdfIo.write(writer, docRoot)
+//          writer.close()
+//      }
+//    }
   }
 
   def rewriteExtension(file: File, oldExt: String, newExt: String) =

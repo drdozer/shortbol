@@ -10,20 +10,18 @@ import web._
  */
 trait Fixture {
 
-  def expand(file: SBFile): (ExpansionContext, List[SBFile])
-  def expand(file: SBFile, ctxt: ExpansionContext): (ExpansionContext, List[SBFile])
+  def eval(file: SBFile): (EvalContext, List[SBFile])
+  def eval(file: SBFile, ctxt: EvalContext): (EvalContext, List[SBFile])
 
   def resolver: Resolver
 
-  def emptyContext: ExpansionContext
+  def emptyContext: EvalContext
 
   def prettyPrinter(out: Appendable): PrettyPrinter
 
   def parser: ShortbolParser.type
-
-  def toDatatree[DT <: Datatree](file: SBFile)(implicit dsl: DatatreeDSL[DT],
-                                               webDsl: WebDSL[DT],
-                                               relDsl: RelationsDSL[DT]): DT#DocumentRoot
+//
+//  def toDatatree[DT <: Datatree](file: SBFile)(implicit  ee: ExporterEnv[DT]): DT#DocumentRoot
 }
 
 object Fixture extends FixtureProvider

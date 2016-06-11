@@ -1,8 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 
 import fastparse.all._
-import fastparse.core.Result.Failure
-import fastparse.core.Result.Success
+import fastparse.core.Parsed.{Success, Failure}
 import uk.co.turingatemyhamster.shortbol
 import utest._
 
@@ -223,8 +222,8 @@ object ParserTestSuite extends TestSuite{
 
     'Import - {
       'accepts - {
-        * - shouldParse("import template_libary", ShortbolParser.Import, UnprocessedImport(LocalName("template_libary")))
-        * - shouldParse("import <var/foo/libary/template_libary>", ShortbolParser.Import, UnprocessedImport(Url("var/foo/libary/template_libary")))
+        * - shouldParse("import template_libary", ShortbolParser.Import, Import(LocalName("template_libary"), None))
+        * - shouldParse("import <var/foo/libary/template_libary>", ShortbolParser.Import, Import(Url("var/foo/libary/template_libary"), None))
       }
 
       'rejects - {
@@ -263,6 +262,23 @@ object ParserTestSuite extends TestSuite{
       )
     }
 
+    'InstanceExp - {
+      * - shouldParse(
+        "foo : bar", ShortbolParser.InstanceExp,
+        InstanceExp(LocalName("foo"),
+          ConstructorApp(TpeConstructor1(LocalName("bar"), Nil), Nil))
+      )
+
+      * - shouldParse("cds : DNAComponent", ShortbolParser.InstanceExp,
+        InstanceExp(
+          LocalName("cds"), ConstructorApp(
+            TpeConstructor1(
+              LocalName("DNAComponent"), Nil
+            ), Nil
+          )
+        )
+      )
+    }
 
     'NestedInstance - {
 
@@ -656,11 +672,21 @@ object ParserTestSuite extends TestSuite{
       * - shouldNotParse(
         "adrivesb", ShortbolParsers.InfixConstructorApp)
 
-      * - shouldNotParse(
-        "1 is_not 2", ShortbolParsers.InfixConstructorApp)
+      * - shouldParse(
+        "1 is_not 2", ShortbolParsers.InfixConstructorApp,
+        ConstructorApp(
+          TpeConstructor1(
+            LocalName("is_not"), Seq(IntegerLiteral(1), IntegerLiteral(2))
+          ), Nil
+        ))
 
-      * - shouldNotParse(
-        "\"a\" drives \"b\"",ShortbolParsers.InfixConstructorApp)
+      * - shouldParse(
+        "\"a\" drives \"b\"",ShortbolParsers.InfixConstructorApp,
+        ConstructorApp(
+          TpeConstructor1(
+            LocalName("drives"), Seq(StringLiteral("a"), StringLiteral("b"))
+          ), Nil
+        ))
 
       * - shouldParse(
         "<SBOL:google> maps_to <www.google.co.uk>",ShortbolParsers.InfixConstructorApp,
@@ -789,7 +815,7 @@ object ParserTestSuite extends TestSuite{
 
       * - shouldParse(
         "import blablabla", ShortbolParser.TopLevel,
-        UnprocessedImport(LocalName("blablabla"))
+        Import(LocalName("blablabla"), None)
       )
 
       * - shouldParse(
