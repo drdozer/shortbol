@@ -1,7 +1,9 @@
-package uk.co.turingatemyhamster.shortbol
+package uk.co.turingatemyhamster.shortbol.ops
 
+import uk.co.turingatemyhamster.shortbol.ast._
+
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
 
 trait Resolver {
   def resolve(ctxt: ResolutionContext, id: Identifier): Throwable \/ SBFile

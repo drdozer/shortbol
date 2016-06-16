@@ -1,7 +1,10 @@
 package uk.co.turingatemyhamster.shortbol
 
-import java.net.{URI}
-import fastparse.core.Parsed.{Success, Failure}
+import java.net.URI
+
+import fastparse.core.Parsed.{Failure, Success}
+import uk.co.turingatemyhamster.shortbol.ast.{SBFile, Url}
+import uk.co.turingatemyhamster.shortbol.ops.{ResolverBase, ShortbolParser}
 
 import scala.io.Source
 import scalaz._

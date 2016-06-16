@@ -8,7 +8,7 @@ import utest._
 import utest.framework.Test
 import scalaz._
 import Scalaz._
-import DSL._
+import uk.co.turingatemyhamster.shortbol.ops.DSL._
 
 import ExpansionTestSuite.{checkExpansion, parse}
 

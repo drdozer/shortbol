@@ -8,6 +8,8 @@ import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import fastparse.core.Result.{Failure, Success}
 import uk.co.turingatemyhamster.shortbol._
+import uk.co.turingatemyhamster.shortbol.ast.InstanceExp
+import uk.co.turingatemyhamster.shortbol.ops.{EvalContext, PrettyPrinter, ShortbolParser}
 
 import scala.concurrent.duration._
 
@@ -39,7 +41,7 @@ object ShortbolServer extends App{
                   val inds = tls collect { case i : InstanceExp => i }
                   val ex = EvalContext(cstrs, Bindings(Map()))
 
-                  import Eval.ops._
+                  import uk.co.turingatemyhamster.shortbol.ops.Eval.ops._
 
                   for {
                     i <- inds

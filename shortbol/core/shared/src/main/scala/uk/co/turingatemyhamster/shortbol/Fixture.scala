@@ -3,6 +3,8 @@ package shortbol
 
 import datatree._
 import relations._
+import uk.co.turingatemyhamster.shortbol.ast.{SBFile, TopLevel}
+import uk.co.turingatemyhamster.shortbol.ops.{EvalContext, PrettyPrinter, Resolver, ShortbolParser}
 import web._
 
 /**
@@ -10,8 +12,8 @@ import web._
  */
 trait Fixture {
 
-  def eval(file: SBFile): (EvalContext, List[SBFile])
-  def eval(file: SBFile, ctxt: EvalContext): (EvalContext, List[SBFile])
+  def eval(file: SBFile): (EvalContext, Seq[TopLevel.InstanceExp])
+  def eval(file: SBFile, ctxt: EvalContext): (EvalContext, Seq[TopLevel.InstanceExp])
 
   def resolver: Resolver
 

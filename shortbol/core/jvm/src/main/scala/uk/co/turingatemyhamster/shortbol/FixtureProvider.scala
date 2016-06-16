@@ -4,6 +4,8 @@ package shortbol
 import datatree._
 import web._
 import relations._
+import uk.co.turingatemyhamster.shortbol.ast.{SBFile, TopLevel}
+import uk.co.turingatemyhamster.shortbol.ops.{EvalContext, PrettyPrinter, Resolver, ShortbolParser}
 
 ///**
 // * Created by nmrp3 on 08/09/15.
@@ -11,12 +13,12 @@ import relations._
 trait FixtureProvider extends Fixture {
   self =>
 
-  import Eval.EvalOps
+  import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 
-  override def eval(file: SBFile): (EvalContext, List[InstanceExp]) =
+  override def eval(file: SBFile): (EvalContext, Seq[TopLevel.InstanceExp]) =
     eval(file, emptyContext)
 
-  override def eval(file: SBFile, ctxt: EvalContext): (EvalContext, List[InstanceExp]) =
+  override def eval(file: SBFile, ctxt: EvalContext): (EvalContext, Seq[TopLevel.InstanceExp]) =
     file.eval.run(ctxt)
 
   override def resolver: Resolver = new ResolverProvider {

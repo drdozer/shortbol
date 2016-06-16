@@ -1,7 +1,8 @@
-package uk.co.turingatemyhamster
-package shortbol
+package uk.co.turingatemyhamster.shortbol
+package ops
 
 import fastparse.all._
+import fastparse.parsers.Combinators
 
 
 object ShortbolParsers {
@@ -55,26 +56,26 @@ object ShortbolParsers {
   lazy val NCName = P( NCName0 ~ NCNameChar.rep )
 
   lazy val LocalName = P( NCName.! )
-    .map(shortbol.LocalName.apply)
+    .map(ast.LocalName.apply)
   lazy val NSPrefix = P( NCName.! )
-    .map(shortbol.NSPrefix.apply)
+    .map(ast.NSPrefix.apply)
   lazy val QName = P(NSPrefix ~ Colon ~ LocalName)
-    .map(shortbol.QName.apply _ tupled)
+    .map(ast.QName.apply _ tupled)
 
   lazy val UrlUnreserved = P( NCNameChar | Tilde )
   lazy val UrlReserved = P( Bang | Star | SQuote | LEllipse | REllipse | SemiColon | Colon | At | Amph | Eq | Plus | Dollar |
     Coma | Question | Percent | Hash | LBox | RBox | BackSlash)
 
-  lazy val Url = P( (UrlUnreserved | UrlReserved).rep.! ).map(shortbol.Url)
+  lazy val Url = P( (UrlUnreserved | UrlReserved).rep.! ).map(ast.Url)
 
   lazy val QuotedIdentifier = P(Lt ~/ (QName | Url) ~/ Gt)
-  lazy val Identifier: Parser[Identifier] = P( QuotedIdentifier | LocalName)
+  lazy val Identifier: Parser[ast.Identifier] = P( QuotedIdentifier | LocalName)
 
   lazy val QuotedStringLiteral = P(DQuote ~/ (!DQuote ~ !Nl ~ AnyChar).rep.! ~ DQuote) map
-    (s => shortbol.StringLiteral(s))
+    (s => ast.StringLiteral(s))
 
   lazy val CurlyStringLiteral = P(LBrace ~/ (!RBrace ~ !Nl ~ AnyChar).rep.! ~ RBrace) map
-    (s => shortbol.StringLiteral(s, escaped = true))
+    (s => ast.StringLiteral(s, escaped = true))
 
   lazy val StringLiteral = P(QuotedStringLiteral | CurlyStringLiteral)
 
@@ -83,15 +84,15 @@ object ShortbolParsers {
   lazy val MultiLineLiteralEnd = P(Space.rep.! ~ RBrace) map
     (_.length)
   lazy val MultiLineLiteral = P(MultiLineLiteralStart ~/ MultiLineLiteralLine.rep ~ MultiLineLiteralEnd) map
-    { case (ss, i) => shortbol.MultiLineLiteral(ss map (_ substring i), i) }
+    { case (ss, i) => ast.MultiLineLiteral(ss map (_ substring i), i) }
 
   lazy val DigitSign = P(Plus | Hyphen)
-  lazy val IntegerLiteral = P((DigitSign.? ~ Digit.rep(1)).!).map(_.toInt).map(shortbol.IntegerLiteral)
-  lazy val ValueExp: Parser[ValueExp] = P(
+  lazy val IntegerLiteral = P((DigitSign.? ~ Digit.rep(1)).!).map(_.toInt).map(ast.IntegerLiteral)
+  lazy val ValueExp: Parser[ast.ValueExp] = P(
     Identifier | StringLiteral.noCut | MultiLineLiteral | IntegerLiteral)
 
-  lazy val Assignment: Parser[Assignment] = P(Identifier ~ Space.rep ~ Eq ~/ Space.rep ~ ValueExp) map
-    (shortbol.Assignment.apply _ tupled)
+  lazy val Assignment: Parser[ast.Assignment] = P(Identifier ~ Space.rep ~ Eq ~/ Space.rep ~ ValueExp) map
+    (ast.Assignment.apply _ tupled)
 
   lazy val NoBody = Pass map (_ => Seq())
 
@@ -103,21 +104,56 @@ object ShortbolParsers {
   lazy val ValueList = P(LEllipse ~ ValueExp.rep(0, ComaSep) ~ REllipse)
   lazy val ValueListO = P(ValueList | NoArgs)
 
-  lazy val InfixConstructorApp: Parser[ConstructorApp] = P(ValueExp ~ Space.rep ~ Identifier ~ Space.rep ~ ValueExp) map
-    { case(a, r, b) => ConstructorApp(TpeConstructor1(r, Seq(a, b)), Seq()) }
+  lazy val InfixConstructorApp: Parser[ast.ConstructorApp] = P(ValueExp ~ Space.rep ~ Identifier ~ Space.rep ~ ValueExp) map
+    { case(a, r, b) => ast.ConstructorApp(ast.TpeConstructor1(r, Seq(a, b)), Seq()) }
 
-  lazy val Comment: Parser[shortbol.Comment] = P(Hash ~/ (!Nl ~ AnyChar).rep.!) map
-    shortbol.Comment.apply
+  lazy val Comment: Parser[ast.Comment] = P(Hash ~/ (!Nl ~ AnyChar).rep.!) map
+    ast.Comment.apply
 
-  lazy val BlankLine: Parser[shortbol.BlankLine.type] = P(Space.rep) map
-    (_ => shortbol.BlankLine)
+  lazy val BlankLine: Parser[ast.BlankLine.type] = P(Space.rep) map
+    (_ => ast.BlankLine)
 }
 
 /**
  * Created by nmrp3 on 14/06/15.
  */
 sealed class ShortbolParser(indent: Int) {
+  self =>
+
   import ShortbolParsers._
+
+  object topLevel {
+    val Assignment = ShortbolParsers.Assignment map ast.TopLevel.Assignment
+    val BlankLine = ShortbolParsers.BlankLine map ast.TopLevel.BlankLine
+    val Import = P("import" ~ Space.rep(1) ~ Identifier) map ast.TopLevel.Import
+    val Comment = ShortbolParsers.Comment map ast.TopLevel.Comment
+    val InstanceExp = self.InstanceExp map ast.TopLevel.InstanceExp
+    val ConstructorDef = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~/ Space.rep ~ PrefixConstructorApp) map
+        (ast.TopLevel.ConstructorDef.apply _ tupled)
+  }
+
+  lazy val TopLevel = P(
+    topLevel.Import |
+      topLevel.Comment |
+      topLevel.InstanceExp |
+      topLevel.ConstructorDef |
+      topLevel.Assignment |
+      topLevel.BlankLine)
+
+  object bodyStmt {
+    val Assignment = ShortbolParsers.Assignment map ast.BodyStmt.Assignment
+    val BlankLine = ShortbolParsers.BlankLine map ast.BodyStmt.BlankLine
+    val Comment = ShortbolParsers.Comment map ast.BodyStmt.Comment
+    val InstanceExp = self.InstanceExp map ast.BodyStmt.InstanceExp
+    val ConstructorApp = self.ConstructorApp map ast.BodyStmt.ConstructorApp
+  }
+
+  lazy val BodyStmt: Parser[ast.BodyStmt] = P(
+    bodyStmt.Assignment |
+      bodyStmt.InstanceExp |
+      bodyStmt.ConstructorApp |
+      bodyStmt.Comment |
+      bodyStmt.BlankLine) //log "body statement"
 
   lazy val IndentSpaces = P( (" " * indent) ) //log s"indent spaces $indent" /* spaces at exactly the number of indents */
   lazy val Indent = P( IndentSpaces ~ " ".rep(1).! ) map (_.length) //log s"indent starting from $indent" /* indent can be a new line repeated one or more times and if that succeeds then the current indent with at least one more space */
@@ -127,48 +163,33 @@ sealed class ShortbolParser(indent: Int) {
     p(new ShortbolParser(indent + extra)) //log s"block indented by $extra"
   } //log s"indent block $indent"
 
-  lazy val InstanceBody: Parser[Seq[shortbol.BodyStmt]] = P(BodyStmt.rep(sep = Nl ~ IndentSpaces)) //log "instance body"
+  lazy val InstanceBody: Parser[Seq[ast.BodyStmt]] = P(BodyStmt.rep(sep = Nl ~ IndentSpaces)) //log "instance body"
 
-  lazy val IndentedInstanceBody: Parser[Seq[shortbol.BodyStmt]] = P((SpNl ~ IndentBlock(_.InstanceBody)) | NoBody) //log "indented instance body"
+  lazy val IndentedInstanceBody: Parser[Seq[ast.BodyStmt]] = P((SpNl ~ IndentBlock(_.InstanceBody)) | NoBody) //log "indented instance body"
 
-  lazy val NestedInstance: Parser[shortbol.NestedInstance] = InstanceExp.map(shortbol.NestedInstance.apply _)
+  lazy val PrefixConstructorApp: Parser[ast.ConstructorApp] = P(TpeConstructor ~ Space.rep ~ IndentedInstanceBody) map
+    (ast.ConstructorApp.apply _ tupled)
 
-  lazy val PrefixConstructorApp: Parser[shortbol.ConstructorApp] = P(TpeConstructor ~ Space.rep ~ IndentedInstanceBody) map
-    (shortbol.ConstructorApp.apply _ tupled)
+  lazy val ConstructorApp: Parser[ast.ConstructorApp] = P(InfixConstructorApp | PrefixConstructorApp)
 
-  lazy val ConstructorApp: Parser[shortbol.ConstructorApp] = P(InfixConstructorApp | PrefixConstructorApp)
+  lazy val TpeConstructorStar: Parser[ast.TpeConstructorStar.type] = P(Star) map
+    (_ => ast.TpeConstructorStar)
+  lazy val TpeConstructor1: Parser[ast.TpeConstructor1] = P(Identifier ~ Space.rep ~ ValueListO) map
+    (ast.TpeConstructor1.apply _ tupled)
+  lazy val TpeConstructor: Parser[ast.TpeConstructor] = P(TpeConstructor1 | TpeConstructorStar)
 
-  lazy val TpeConstructorStar: Parser[shortbol.TpeConstructorStar.type] = P(Star) map
-    (_ => shortbol.TpeConstructorStar)
-  lazy val TpeConstructor1: Parser[shortbol.TpeConstructor1] = P(Identifier ~ Space.rep ~ ValueListO) map
-    (shortbol.TpeConstructor1.apply _ tupled)
-  lazy val TpeConstructor: Parser[shortbol.TpeConstructor] = P(TpeConstructor1 | TpeConstructorStar)
-
-  lazy val InstanceExp: Parser[shortbol.InstanceExp] =
+  lazy val InstanceExp: Parser[ast.InstanceExp] =
     P(Identifier ~ Space.rep ~ Colon ~/ Space.rep ~ PrefixConstructorApp) map
-      (shortbol.InstanceExp.apply _ tupled)
-
-  lazy val BodyStmt: Parser[shortbol.BodyStmt] =
-    P(Assignment | NestedInstance | ConstructorApp | Comment | ShortbolParsers.BlankLine) //log "body statement"
+      (ast.InstanceExp.apply _ tupled)
 }
 
 object ShortbolParser extends ShortbolParser(0) {
   import ShortbolParsers._
 
-  lazy val ConstructorDef: Parser[shortbol.ConstructorDef] = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~/ Space.rep ~ PrefixConstructorApp) map
-    (shortbol.ConstructorDef.apply _ tupled)
+  lazy val TopLevels: Parser[Seq[ast.TopLevel]] = P(TopLevel.rep(sep = SpNl))
 
-  lazy val Import: Parser[shortbol.Import] = P("import" ~ Space.rep(1) ~ Identifier) map
-    (id => shortbol.Import(id, None))
-
-  lazy val TopLevel: Parser[shortbol.TopLevel] = P(
-    Import | Comment | InstanceExp | ConstructorDef | Assignment | ShortbolParsers.BlankLine
-  )
-
-  lazy val TopLevels: Parser[Seq[shortbol.TopLevel]] = P(TopLevel.rep(sep = SpNl))
-
-  lazy val SBFile: Parser[shortbol.SBFile] = P(Start ~ TopLevels ~ End) map
-    (tops => shortbol.SBFile(tops = tops))
+  lazy val SBFile: Parser[ast.SBFile] = P(Start ~ TopLevels ~ End) map
+    (tops => ast.SBFile(tops = tops))
 }
 
 object DSL {
@@ -180,8 +201,8 @@ object DSL {
         s
     }
 
-    def short_c(args: Any*): shortbol.ConstructorDef = parse(ShortbolParser.ConstructorDef, args :_*)
-    def short_a(args: Any*): shortbol.Assignment = parse(ShortbolParsers.Assignment, args :_*)
+    def short_c(args: Any*): ast.TopLevel.ConstructorDef = parse(ShortbolParser.topLevel.ConstructorDef, args :_*)
+    def short_a(args: Any*): ast.Assignment = parse(ShortbolParsers.Assignment, args :_*)
   }
 
 }

@@ -1,11 +1,13 @@
 package uk.co.turingatemyhamster.shortbol
 
 import fastparse.core.Parsed.Success
-import fastparse.parsers.Terminals.{Start, End}
+import fastparse.parsers.Terminals.{End, Start}
 import utest._
+
 import scalaz._
 import Scalaz._
-import DSL._
+import uk.co.turingatemyhamster.shortbol.ast._
+import uk.co.turingatemyhamster.shortbol.ops.{EvalContext, Resolver, ShortbolParser}
 
 
 /**

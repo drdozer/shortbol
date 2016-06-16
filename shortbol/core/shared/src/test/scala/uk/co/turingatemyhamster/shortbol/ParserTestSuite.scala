@@ -1,8 +1,10 @@
 package uk.co.turingatemyhamster.shortbol
 
 import fastparse.all._
-import fastparse.core.Parsed.{Success, Failure}
+import fastparse.core.Parsed.{Failure, Success}
 import uk.co.turingatemyhamster.shortbol
+import uk.co.turingatemyhamster.shortbol.ast._
+import uk.co.turingatemyhamster.shortbol.ops.{ShortbolParser, ShortbolParsers}
 import utest._
 
 /**
@@ -239,7 +241,7 @@ object ParserTestSuite extends TestSuite{
     'IndentedInstanceBody - {
       * - shouldParse(
         "\n ", ShortbolParser.IndentedInstanceBody,
-        Seq(shortbol.BlankLine)
+        Seq(BlankLine)
       )
     }
 
@@ -257,7 +259,7 @@ object ParserTestSuite extends TestSuite{
         ConstructorApp(
           TpeConstructor1(
             LocalName("DNAComponent"), Nil
-          ), Seq(shortbol.BlankLine)
+          ), Seq(ast.BlankLine)
         )
       )
     }
@@ -316,7 +318,7 @@ object ParserTestSuite extends TestSuite{
               LocalName("cds"), ConstructorApp(
                 TpeConstructor1(
                   LocalName("DNAComponent"), Nil
-                ), Seq(shortbol.BlankLine)
+                ), Seq(ast.BlankLine)
               )
             )
           )
@@ -329,7 +331,7 @@ object ParserTestSuite extends TestSuite{
               LocalName("cds"), ConstructorApp(
                 TpeConstructor1(
                   LocalName("DNAComponent"), Nil
-                ), Seq(shortbol.BlankLine, shortbol.BlankLine)
+                ), Seq(ast.BlankLine, ast.BlankLine)
               )
             )
           )
@@ -345,13 +347,13 @@ object ParserTestSuite extends TestSuite{
                 ), Seq(
                   BlankLine,
                   BlankLine,
-                  shortbol.Assignment(
+                  ast.Assignment(
                     LocalName("role"), QName(
                       NSPrefix("SBOL"), LocalName("CDS")
                     )
                   ),
                   BlankLine,
-                  shortbol.Assignment(
+                  ast.Assignment(
                     LocalName("foo"), LocalName("bar")
                   ),
                   BlankLine,
@@ -372,7 +374,7 @@ object ParserTestSuite extends TestSuite{
                   LocalName("DNAComponent"),
                   Nil
                 ),Seq(
-                  shortbol.Assignment(
+                  ast.Assignment(
                     LocalName(
                       "role"),QName(
                       NSPrefix
@@ -380,7 +382,7 @@ object ParserTestSuite extends TestSuite{
                     )
                   ),
                   BlankLine,
-                  shortbol.Assignment(LocalName("foo"),LocalName("bar")
+                  ast.Assignment(LocalName("foo"),LocalName("bar")
                   ),
                   NestedInstance(
                     InstanceExp(
@@ -410,14 +412,12 @@ object ParserTestSuite extends TestSuite{
                   LocalName("DNAComponent"), Nil
                 ),
                 Seq(
-                  shortbol.
-                    Assignment(
+                  ast.Assignment(
                       LocalName("role"),QName(
                         NSPrefix("SBOL"),
                         LocalName("CDS")
                       )
-                    ),shortbol.
-                    Assignment(LocalName("foo"),
+                    ),ast.Assignment(LocalName("foo"),
                       LocalName("bar")
                     ),
                   NestedInstance(InstanceExp(
@@ -429,9 +429,7 @@ object ParserTestSuite extends TestSuite{
                         LocalName("public")
                         ,
                         List(
-                        )),Seq(shortbol
-                        .
-                          Assignment(
+                        )),Seq(Assignment(
                             LocalName("foo"),LocalName("bar")
                           )))
                   ))
@@ -448,7 +446,7 @@ object ParserTestSuite extends TestSuite{
               LocalName("cds"), ConstructorApp(
                 TpeConstructor1(
                   LocalName("DNAComponent"),Nil
-                ),Seq(shortbol.Assignment(
+                ),Seq(ast.Assignment(
                   LocalName("role"),QName(
                     NSPrefix("SBOL"),LocalName("CDS")
                   )
@@ -468,9 +466,9 @@ object ParserTestSuite extends TestSuite{
               LocalName("cds"), ConstructorApp(
                 TpeConstructor1(
                   LocalName("DNAComponent"),Nil
-                ),Seq(shortbol.Assignment(
+                ),Seq(ast.Assignment(
                   LocalName("type"),LocalName("DNA")
-                ),shortbol.Assignment(
+                ),ast.Assignment(
                   LocalName("role"),QName(
                     NSPrefix("SBOL"),LocalName("CDS")
                   )
@@ -773,7 +771,7 @@ object ParserTestSuite extends TestSuite{
             TpeConstructor1(
               LocalName("ComponentDefinition"), Nil
 
-            ), Seq(shortbol.Assignment(LocalName("type"), LocalName("DNA")))
+            ), Seq(ast.Assignment(LocalName("type"), LocalName("DNA")))
           )
 
         )
@@ -789,7 +787,7 @@ object ParserTestSuite extends TestSuite{
             TpeConstructor1(
               LocalName("ComponentDefinition"), Nil
 
-            ), Seq(shortbol.Assignment(LocalName("type"), LocalName("DNA")), NestedInstance(InstanceExp(LocalName("sequence"), ConstructorApp(TpeConstructor1(LocalName("DNASequence"), List()), List()))))
+            ), Seq(ast.Assignment(LocalName("type"), LocalName("DNA")), NestedInstance(InstanceExp(LocalName("sequence"), ConstructorApp(TpeConstructor1(LocalName("DNASequence"), List()), List()))))
           )
 
         )
