@@ -4,6 +4,7 @@ package shortbol.ops
 import shapeless.{:+:, ::, CNil, Coproduct, Generic, HList, HNil, Inl, Inr}
 import shortbol.ast._
 import shortbol.shapeless._
+import uk.co.turingatemyhamster.shortbol.ops.EvalEval.Aux
 
 import scalaz.Scalaz._
 import scalaz._
@@ -78,8 +79,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
     override val emptyProduct = identityEval[HNil]
 
-    override def product[H, T <: HList, HH, TT <: HList](ch: EvalEval.Aux[H, HH],
-                                        ct: EvalEval.Aux[T, TT]) = new Eval[H::T]
+    override def product[H, HH, T <: HList, TT <: HList](ch: Aux[H, HH], ct: Aux[T, TT]) = new Eval[H::T]
     {
       override type Result = HH::TT
       override def apply(ht: H::T) = for {
@@ -99,28 +99,34 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
   }
 
   implicit class EvalOps[T](val _t: T) extends AnyVal {
-    def eval(implicit e: Eval[T]): EvalState[e.Result] = e(_t)
+    def eval[U](implicit e: EvalEval.Aux[T, U]): EvalState[U] = e(_t)
   }
 
-//  implicit def seqExpander[T, R](implicit evT: EvalEval.Aux[T, R]): Eval[List[T]] = new Eval[List[T]] {
-//    override type Result = List[R]
-//    override def apply(ts: List[T]) = ts.traverseS(_.eval)
-//  }
+  implicit def seq[T, U](implicit pa: EvalEval.Aux[T, U]): EvalEval.Aux[Seq[T], Seq[U]] =
+    Eval.typeClass.project(implicitly[EvalEval.Aux[List[T], List[U]]], (_: Seq[T]).to[List], implicitly[List[U]<:<Seq[U]])
 
-  implicit def seq[T, U](implicit pa: EvalEval.Aux[List[T], List[U]]): EvalEval.Aux[Seq[T], Seq[U]] =
-    Eval.typeClass.project(pa, (_: Seq[T]).to[List], implicitly[List[U]<:<Seq[U]])
 
-  implicit lazy val tpeConstructor = Eval[TpeConstructor, TpeConstructor]
-  implicit lazy val valueExp = Eval[ValueExp, ValueExp]
-  implicit lazy val bdyStmt = Eval[BodyStmt, BodyStmt]
-
-  // Smelly! Find a way to compute OTI
+  // Smelly! Find a way to compute this
   implicit lazy val topLevel: EvalEval.Aux[TopLevel, Option[TopLevel.InstanceExp]] = {
-    type OTI = Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil
-    val tlG = Generic[TopLevel]
-    val gev = Eval[tlG.Repr, OTI]
-    typeClass.project[TopLevel, tlG.Repr, Option[TopLevel.InstanceExp], OTI](gev, tlG.to, _.unify)
+    type U = Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil
+    val g = Generic[TopLevel]
+    val e = Eval[g.Repr, U]
+    typeClass.project[TopLevel, g.Repr, Option[TopLevel.InstanceExp], U](e, g.to, _.unify)
   }
+
+  implicit val bodyStmt = Eval[BodyStmt, BodyStmt]
+
+  // Smelly! Find a way to conpute this
+  implicit lazy val valueExp: EvalEval.Aux[ValueExp, ValueExp] = {
+    type U = IntegerLiteral :+: Identifier :+: MultiLineLiteral :+: Identifier :+: StringLiteral :+: Identifier :+: CNil
+    val g = Generic[ValueExp]
+    val e = Eval[g.Repr, U]
+    typeClass.project[ValueExp, g.Repr, ValueExp, U](e, g.to, _.unify)
+  }
+
+  implicit val tpeConstructor = Eval[TpeConstructor, TpeConstructor]
+
+  implicit val literal = Eval[Literal, Literal]
 
   // fixme: see if this is redundant
   implicit val sbFile: EvalEval.Aux[SBFile, Seq[TopLevel.InstanceExp]] = new Eval[SBFile] {
@@ -205,12 +211,10 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
       ca.cstr match {
         case TpeConstructor1(id, args) =>
           for {
-            es <- expandIfNeeded(ca, id, args)
-            bs <- withStack(Seq(), Seq())(ca.body.eval)
-          } yield for {
-            e <- es
+            e <- expandIfNeeded(ca, id, args)
+            bs <- withStack(Seq(), Seq())(ca.body.eval[Seq[BodyStmt]])
           } yield {
-            e.copy(body = e.body ++ bs.flatten)
+            e.copy(body = e.body ++ bs)
           }
       }
     }
@@ -244,7 +248,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
       for {
         bdy <- withStack(c.args, args)(c.cstrApp.body.eval)
         cd <- (c.cstrApp.cstr match {
-          case TpeConstructor1(ident, _) => ConstructorApp(TpeConstructor1(ident, Seq()), bdy.flatten)
+          case TpeConstructor1(ident, _) => ConstructorApp(TpeConstructor1(ident, Seq()), bdy)
         }).eval
       } yield cd
 
@@ -273,27 +277,16 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     } yield oi map TopLevel.InstanceExp
   }
 
-  //
-//  implicit val BodyStmtExpander: Expander[Ast.SBOL.BodyStmt, Ast.SBOL.BodyStmt] = new Expander[Ast.SBOL.BodyStmt, Ast.SBOL.BodyStmt] {
-//    def apply(stmt: BodyStmt): ExState[BodyStmt] = stmt match {
-//      case Assignment(prop, value) =>
-//        for {
-//          pe <- prop.eval
-//          ve <- value.eval
-//        } yield for { p <- pe; v <- ve } yield Assignment(p, v)
-//      case c : Ast.SBOL.ConstructorApp =>
-//        for { e <- c.eval } yield e
-//      case Ast.SBOL.NestedInstance(nested) =>
-//        for {
-//          ie <- nested.eval
-//        } yield for { i <- ie } yield NestedInstance(i)
-//      case BlankLine =>
-//        for { e <- BlankLine.eval } yield e
-//      case c : Comment =>
-//        for { e <- c.eval } yield e
-//    }
-//  }
-//
+  implicit val tpeConstructor1: EvalEval.Aux[TpeConstructor1, TpeConstructor1] = new Eval[TpeConstructor1] {
+    override type Result = TpeConstructor1
+
+    override def apply(t: TpeConstructor1) = for {
+      id <- t.id.eval
+      args <- t.args.eval[Seq[ValueExp]] // fixme: unable to derive U =:= Seq[ValueExp]
+    } yield TpeConstructor1(id, args)
+  }
+
+  implicit val tpeConstructorStar: EvalEval.Aux[TpeConstructorStar.type, TpeConstructorStar.type] = identityEval
 
   implicit val identifier: EvalEval.Aux[Identifier, Identifier] = new Eval[Identifier] {
     override type Result = Identifier
@@ -311,7 +304,18 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     } yield rb
   }
 
-  implicit val literal: EvalEval.Aux[Literal, Literal] = identityEval
+  def as[T, U](implicit e: EvalEval.Aux[U, U], to: T <:< U): EvalEval.Aux[T, U] =
+    typeClass.project[T, U, U, U](e, to, identity)
+
+  implicit val stringLiteral: EvalEval.Aux[StringLiteral, StringLiteral] = identityEval
+  implicit val multiLineLiteral: EvalEval.Aux[MultiLineLiteral, MultiLineLiteral] = identityEval
+  implicit val integerLiteral: EvalEval.Aux[IntegerLiteral, IntegerLiteral] = identityEval
+//  implicit val localName: EvalEval.Aux[LocalName, LocalName] = identityEval
+//  implicit val qname: EvalEval.Aux[QName, QName] = identityEval
+//  implicit val url: EvalEval.Aux[Url, Url] = identityEval
+  implicit val localName: EvalEval.Aux[LocalName, Identifier] = as[LocalName, Identifier]
+  implicit val qname: EvalEval.Aux[QName, Identifier] = as[QName, Identifier]
+  implicit val url: EvalEval.Aux[Url, Identifier] = as[Url, Identifier]
 
   def cstr(id: Identifier): State[EvalContext, Option[TopLevel.ConstructorDef]] =
     gets ((_: EvalContext).cstrs.get(id))

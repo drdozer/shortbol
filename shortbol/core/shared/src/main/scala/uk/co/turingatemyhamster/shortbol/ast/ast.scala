@@ -62,3 +62,22 @@ case class ConstructorApp(cstr: TpeConstructor,
 
 // the whole thing
 case class SBFile(tops: Seq[TopLevel] = Seq.empty, rdfAbout: Option[Url] = None, source: Option[Url] = None)
+
+object sugar {
+  import scala.language.implicitConversions
+
+  implicit def tlAssignment[A](a: A)(implicit e: A => ast.Assignment): TopLevel.Assignment = TopLevel.Assignment(a)
+  implicit def tlBlankLine(bl: BlankLine.type): TopLevel.BlankLine = TopLevel.BlankLine(bl)
+  implicit def tlComment(c: Comment): TopLevel.Comment = TopLevel.Comment(c)
+
+  implicit def bsAssignment[A](a: A)(implicit e: A => ast.Assignment): BodyStmt.Assignment = BodyStmt.Assignment(a)
+  implicit def bsBlankLine(bl: BlankLine.type): BodyStmt.BlankLine = BodyStmt.BlankLine(bl)
+  implicit def bsComment(c: Comment): BodyStmt.Comment = BodyStmt.Comment(c)
+  implicit def bsInstanceExp(ie: InstanceExp): BodyStmt.InstanceExp = BodyStmt.InstanceExp(ie)
+
+  implicit def ass[A, B](ab: (A, B))(implicit ai: A => Identifier, bv: B => ValueExp): Assignment = Assignment(ab._1, ab._2)
+
+  implicit def strLN(s: String): LocalName = LocalName(s)
+  implicit def strNP(s: String): NSPrefix = NSPrefix(s)
+  implicit def intIL(i: Int): IntegerLiteral = IntegerLiteral(i)
+}

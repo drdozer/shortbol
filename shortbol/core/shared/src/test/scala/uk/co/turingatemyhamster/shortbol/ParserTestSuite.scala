@@ -6,10 +6,11 @@ import uk.co.turingatemyhamster.shortbol
 import uk.co.turingatemyhamster.shortbol.ast._
 import uk.co.turingatemyhamster.shortbol.ops.{ShortbolParser, ShortbolParsers}
 import utest._
+import ast.sugar._
 
 /**
- * Created by chris on 17/07/15.
- */
+  * Created by chris on 17/07/15.
+  */
 object ParserTestSuite extends TestSuite{
 
   def escape(raw: String): String = {
@@ -224,13 +225,13 @@ object ParserTestSuite extends TestSuite{
 
     'Import - {
       'accepts - {
-        * - shouldParse("import template_libary", ShortbolParser.Import, Import(LocalName("template_libary"), None))
-        * - shouldParse("import <var/foo/libary/template_libary>", ShortbolParser.Import, Import(Url("var/foo/libary/template_libary"), None))
+        * - shouldParse("import template_libary", ShortbolParser.topLevel.Import, TopLevel.Import(LocalName("template_libary")))
+        * - shouldParse("import <var/foo/libary/template_libary>", ShortbolParser.topLevel.Import, TopLevel.Import(Url("var/foo/libary/template_libary")))
       }
 
       'rejects - {
-        * - shouldNotParse("importtemplate_libary", ShortbolParser.Import)
-        * - shouldNotParse("import template\n_libary", ShortbolParser.Import)
+        * - shouldNotParse("importtemplate_libary", ShortbolParser.topLevel.Import)
+        * - shouldNotParse("import template\n_libary", ShortbolParser.topLevel.Import)
       }
     }
 
@@ -241,7 +242,7 @@ object ParserTestSuite extends TestSuite{
     'IndentedInstanceBody - {
       * - shouldParse(
         "\n ", ShortbolParser.IndentedInstanceBody,
-        Seq(BlankLine)
+        Seq(BodyStmt.BlankLine(BlankLine))
       )
     }
 
@@ -259,7 +260,7 @@ object ParserTestSuite extends TestSuite{
         ConstructorApp(
           TpeConstructor1(
             LocalName("DNAComponent"), Nil
-          ), Seq(ast.BlankLine)
+          ), Seq(ast.BlankLine : BodyStmt)
         )
       )
     }
@@ -282,83 +283,73 @@ object ParserTestSuite extends TestSuite{
       )
     }
 
-    'NestedInstance - {
+    'InstanceExp - {
 
       'accepts - {
 
-        * - shouldParse("cds : DNAComponent", ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("cds"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"), Nil
-                ), Nil
-              )
+        * - shouldParse("cds : DNAComponent", ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("cds"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"), Nil
+              ), Nil
             )
           )
         )
 
-        * - shouldParse("cds:DNAComponent", ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("cds"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"), Nil
-                ), Nil
-              )
+        * - shouldParse("cds:DNAComponent", ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("cds"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"), Nil
+              ), Nil
             )
           )
         )
 
         * - shouldParse(
           """cds : DNAComponent
-            | """.stripMargin, ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("cds"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"), Nil
-                ), Seq(ast.BlankLine)
-              )
+            | """.stripMargin, ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("cds"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"), Nil
+              ), Seq(ast.BlankLine)
             )
           )
         )
 
         * - shouldParse(
-          "cds : DNAComponent\n \n ", ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("cds"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"), Nil
-                ), Seq(ast.BlankLine, ast.BlankLine)
-              )
+          "cds : DNAComponent\n \n ", ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("cds"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"), Nil
+              ), Seq(ast.BlankLine, ast.BlankLine)
             )
           )
         )
 
         * - shouldParse(
-          "cds : DNAComponent\n   \n   \n   role = <SBOL:CDS>\n   \n   foo = bar\n   \n   ", ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("cds"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"), Nil
-                ), Seq(
-                  BlankLine,
-                  BlankLine,
-                  ast.Assignment(
-                    LocalName("role"), QName(
-                      NSPrefix("SBOL"), LocalName("CDS")
-                    )
-                  ),
-                  BlankLine,
-                  ast.Assignment(
-                    LocalName("foo"), LocalName("bar")
-                  ),
-                  BlankLine,
-                  BlankLine
-                )
+          "cds : DNAComponent\n   \n   \n   role = <SBOL:CDS>\n   \n   foo = bar\n   \n   ", ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("cds"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"), Nil
+              ), Seq(
+                BlankLine,
+                BlankLine,
+                Assignment(
+                  LocalName("role"), QName(
+                    NSPrefix("SBOL"), LocalName("CDS")
+                  )
+                ),
+                BlankLine,
+                Assignment(
+                  LocalName("foo"), LocalName("bar")
+                ),
+                BlankLine,
+                BlankLine
               )
             )
           )
@@ -366,31 +357,27 @@ object ParserTestSuite extends TestSuite{
 
         * - shouldParse(
           "cds : DNAComponent\n   role = <SBOL:CDS>\n   \n   foo = bar\n   component : public",
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("cds"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"),
-                  Nil
-                ),Seq(
-                  ast.Assignment(
-                    LocalName(
-                      "role"),QName(
-                      NSPrefix
-                      ("SBOL"), LocalName("CDS")
-                    )
-                  ),
-                  BlankLine,
-                  ast.Assignment(LocalName("foo"),LocalName("bar")
-                  ),
-                  NestedInstance(
-                    InstanceExp(
-                      LocalName("component"),ConstructorApp(
-                        TpeConstructor1(LocalName(
-                          "public"),List()),List()))
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("cds"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"),
+                Nil
+              ),Seq(
+                Assignment(
+                  LocalName(
+                    "role"),QName(
+                    NSPrefix
+                    ("SBOL"), LocalName("CDS")
                   )
-                )
+                ),
+                BlankLine,
+                Assignment(LocalName("foo"),LocalName("bar")
+                ),
+                InstanceExp(
+                  LocalName("component"),ConstructorApp(
+                    TpeConstructor1(LocalName(
+                      "public"),List()),List()))
               )
             )
           )
@@ -405,34 +392,33 @@ object ParserTestSuite extends TestSuite{
           """.
             stripMargin.
             trim,
-          ShortbolParser.NestedInstance, NestedInstance(
-            InstanceExp(
-              LocalName("cds"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"), Nil
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("cds"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"), Nil
+              ),
+              Seq(
+                Assignment(
+                  LocalName("role"),QName(
+                    NSPrefix("SBOL"),
+                    LocalName("CDS")
+                  )
+                ),ast.Assignment(LocalName("foo"),
+                  LocalName("bar")
                 ),
-                Seq(
-                  ast.Assignment(
-                      LocalName("role"),QName(
-                        NSPrefix("SBOL"),
-                        LocalName("CDS")
-                      )
-                    ),ast.Assignment(LocalName("foo"),
-                      LocalName("bar")
-                    ),
-                  NestedInstance(InstanceExp(
-                    LocalName(
-                      "component")
-                    ,
-                    ConstructorApp(
-                      TpeConstructor1(
-                        LocalName("public")
-                        ,
-                        List(
-                        )),Seq(Assignment(
-                            LocalName("foo"),LocalName("bar")
-                          )))
-                  ))
+                InstanceExp(
+                  LocalName(
+                    "component")
+                  ,
+                  ConstructorApp(
+                    TpeConstructor1(
+                      LocalName("public")
+                      ,
+                      List(
+                      )),Seq(Assignment(
+                      LocalName("foo"),LocalName("bar")
+                    )))
                 )
               )
             )
@@ -440,18 +426,16 @@ object ParserTestSuite extends TestSuite{
         )
         * - shouldParse(
           """cds : DNAComponent
-            |  role = <SBOL:CDS>""".stripMargin,ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("cds"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"),Nil
-                ),Seq(ast.Assignment(
-                  LocalName("role"),QName(
-                    NSPrefix("SBOL"),LocalName("CDS")
-                  )
-                ))
-              )
+            |  role = <SBOL:CDS>""".stripMargin,ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("cds"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"),Nil
+              ),Seq(ast.Assignment(
+                LocalName("role"),QName(
+                  NSPrefix("SBOL"),LocalName("CDS")
+                )
+              ))
             )
           )
         )
@@ -460,144 +444,124 @@ object ParserTestSuite extends TestSuite{
           """cds : DNAComponent
             |  type = DNA
             |  role = <SBOL:CDS>""".stripMargin,
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("cds"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"),Nil
-                ),Seq(ast.Assignment(
-                  LocalName("type"),LocalName("DNA")
-                ),ast.Assignment(
-                  LocalName("role"),QName(
-                    NSPrefix("SBOL"),LocalName("CDS")
-                  )
-                ))
-              )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("cds"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"),Nil
+              ),Seq(ast.Assignment(
+                LocalName("type"),LocalName("DNA")
+              ),ast.Assignment(
+                LocalName("role"),QName(
+                  NSPrefix("SBOL"),LocalName("CDS")
+                )
+              ))
             )
           )
         )
 
         * - shouldParse(
           "dna_sequence : DNASequence(x)",
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("dna_sequence"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNASequence"),Seq(LocalName("x"))
-                ),Nil
-              )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("dna_sequence"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNASequence"),Seq(LocalName("x"))
+              ),Nil
             )
           )
         )
 
         * - shouldParse(
           "dna_sequence : DNASequence(\"AAAAGTAAAACA\")",
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("dna_sequence"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNASequence"),Seq(StringLiteral("AAAAGTAAAACA"))
-                ),Nil
-              )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("dna_sequence"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNASequence"),Seq(StringLiteral("AAAAGTAAAACA"))
+              ),Nil
             )
           )
         )
 
         * - shouldParse(
           "dna_sequence : DNASequence(\"AAAAGTAAAACA\")",
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("dna_sequence"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNASequence"),Seq(StringLiteral("AAAAGTAAAACA"))
-                ),Nil
-              )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("dna_sequence"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNASequence"),Seq(StringLiteral("AAAAGTAAAACA"))
+              ),Nil
             )
           )
         )
 
         * - shouldParse(
           "i : Inline(20,50)",
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("i"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("Inline"),Seq(IntegerLiteral(20),IntegerLiteral(50))
-                ),Nil
-              )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("i"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("Inline"),Seq(IntegerLiteral(20),IntegerLiteral(50))
+              ),Nil
             )
           )
         )
 
         * - shouldParse(
           "pass_qname : Test(<SBOL:DNA>)",
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("pass_qname"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("Test"),Seq(QName(NSPrefix("SBOL"),LocalName("DNA")))
-                ),Nil
-              )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("pass_qname"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("Test"),Seq(QName(NSPrefix("SBOL"),LocalName("DNA")))
+              ),Nil
             )
           )
         )
 
         * - shouldParse(
           "pass_url : Test(<www.google.co.uk>)",
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("pass_url"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("Test"),Seq(Url("www.google.co.uk"))
-                ),Nil
-              )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("pass_url"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("Test"),Seq(Url("www.google.co.uk"))
+              ),Nil
             )
           )
         )
 
         * - shouldParse(
           "url : <www.google.co.uk>",
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("url"), ConstructorApp(
-                TpeConstructor1(
-                  Url("www.google.co.uk"),Nil)
-                ,Nil)
-            )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("url"), ConstructorApp(
+              TpeConstructor1(
+                Url("www.google.co.uk"),Nil)
+              ,Nil)
           )
         )
 
         * - shouldParse(
           "<SBOL:google> : <www.google.co.uk>",
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              QName(NSPrefix("SBOL"),LocalName("google")), ConstructorApp(
-                TpeConstructor1(
-                  Url("www.google.co.uk"),Nil)
-                ,Nil)
-            )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            QName(NSPrefix("SBOL"),LocalName("google")), ConstructorApp(
+              TpeConstructor1(
+                Url("www.google.co.uk"),Nil)
+              ,Nil)
           )
         )
 
         * - shouldParse(
           "DNA : DNAComponent()",
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("DNA"), ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"),Nil)
-                ,Nil)
-            )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("DNA"), ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"),Nil)
+              ,Nil)
           )
         )
 
@@ -608,26 +572,22 @@ object ParserTestSuite extends TestSuite{
             |   component : public
             |        foo = bar
           """.stripMargin.trim,
-          ShortbolParser.NestedInstance,
-          NestedInstance(
-            InstanceExp(
-              LocalName("cds"),
-              ConstructorApp(
-                TpeConstructor1(
-                  LocalName("DNAComponent"), Nil),
-                Seq(
-                  Assignment(LocalName("role"), QName(NSPrefix("SBOL"), LocalName("CDS"))),
-                  Assignment(LocalName("foo"), LocalName("bar")),
-                  NestedInstance(
-                    InstanceExp(
-                      LocalName("component"),
-                      ConstructorApp(
-                        TpeConstructor1(
-                          LocalName("public"), Nil),
-                        Seq(
-                          Assignment(LocalName("foo"), LocalName("bar"))
-                        )
-                      )
+          ShortbolParser.InstanceExp,
+          InstanceExp(
+            LocalName("cds"),
+            ConstructorApp(
+              TpeConstructor1(
+                LocalName("DNAComponent"), Nil),
+              Seq(
+                Assignment(LocalName("role"), QName(NSPrefix("SBOL"), LocalName("CDS"))),
+                Assignment(LocalName("foo"), LocalName("bar")),
+                InstanceExp(
+                  LocalName("component"),
+                  ConstructorApp(
+                    TpeConstructor1(
+                      LocalName("public"), Nil),
+                    Seq(
+                      Assignment(LocalName("foo"), LocalName("bar"))
                     )
                   )
                 )
@@ -643,7 +603,7 @@ object ParserTestSuite extends TestSuite{
           """cds : DNAComponent
             |  role = <SBOL:CDS>
             |  component => DNA""".stripMargin,
-          ShortbolParser.NestedInstance)
+          ShortbolParser.InstanceExp)
 
         //At a different nest.
         * - shouldNotParse(
@@ -651,7 +611,7 @@ object ParserTestSuite extends TestSuite{
             |   role = <SBOL:CDS>
             |      foo = bar
           """.stripMargin.trim,
-          ShortbolParser.NestedInstance
+          ShortbolParser.InstanceExp
         )
       }
     }
@@ -701,8 +661,8 @@ object ParserTestSuite extends TestSuite{
     'ConstructorDef - {
 
       * - shouldParse(
-        "DNAComponent => ComponentDefinition", ShortbolParser.ConstructorDef,
-        ConstructorDef(LocalName("DNAComponent"), Nil,
+        "DNAComponent => ComponentDefinition", ShortbolParser.topLevel.ConstructorDef,
+        TopLevel.ConstructorDef(LocalName("DNAComponent"), Nil,
           ConstructorApp(
             TpeConstructor1(
               LocalName("ComponentDefinition"), Nil
@@ -713,8 +673,8 @@ object ParserTestSuite extends TestSuite{
         )
       )
       * - shouldParse(
-        "DNAComponent=>ComponentDefinition", ShortbolParser.ConstructorDef,
-        ConstructorDef(LocalName("DNAComponent"), Nil,
+        "DNAComponent=>ComponentDefinition", ShortbolParser.topLevel.ConstructorDef,
+        TopLevel.ConstructorDef(LocalName("DNAComponent"), Nil,
           ConstructorApp(
             TpeConstructor1(
               LocalName("ComponentDefinition"), Nil
@@ -726,8 +686,8 @@ object ParserTestSuite extends TestSuite{
       )
 
       * - shouldParse(
-        "DNASequence(x) => Sequence", ShortbolParser.ConstructorDef,
-        ConstructorDef(LocalName("DNASequence"), Seq(LocalName("x")),
+        "DNASequence(x) => Sequence", ShortbolParser.topLevel.ConstructorDef,
+        TopLevel.ConstructorDef(LocalName("DNASequence"), Seq(LocalName("x")),
           ConstructorApp(
             TpeConstructor1(
               LocalName("Sequence"), Nil
@@ -739,8 +699,8 @@ object ParserTestSuite extends TestSuite{
       )
 
       * - shouldParse(
-        "DNASequence  (x)  =>  Sequence", ShortbolParser.ConstructorDef,
-        ConstructorDef(LocalName("DNASequence"), Seq(LocalName("x")),
+        "DNASequence  (x)  =>  Sequence", ShortbolParser.topLevel.ConstructorDef,
+        TopLevel.ConstructorDef(LocalName("DNASequence"), Seq(LocalName("x")),
           ConstructorApp(
             TpeConstructor1(
               LocalName("Sequence"), Nil
@@ -751,8 +711,8 @@ object ParserTestSuite extends TestSuite{
         )
       )
 
-      * - shouldParse("a => b(x)", ShortbolParser.ConstructorDef,
-        ConstructorDef(LocalName("a"), Nil,
+      * - shouldParse("a => b(x)", ShortbolParser.topLevel.ConstructorDef,
+        TopLevel.ConstructorDef(LocalName("a"), Nil,
           ConstructorApp(
             TpeConstructor1(
               LocalName("b"), Seq(LocalName("x"))
@@ -765,13 +725,13 @@ object ParserTestSuite extends TestSuite{
       * - shouldParse(
         """DNAComponent => ComponentDefinition
           |   type = DNA
-        """.stripMargin.trim, ShortbolParser.ConstructorDef,
-        ConstructorDef(LocalName("DNAComponent"), Nil,
+        """.stripMargin.trim, ShortbolParser.topLevel.ConstructorDef,
+        TopLevel.ConstructorDef(LocalName("DNAComponent"), Nil,
           ConstructorApp(
             TpeConstructor1(
               LocalName("ComponentDefinition"), Nil
 
-            ), Seq(ast.Assignment(LocalName("type"), LocalName("DNA")))
+            ), Seq(BodyStmt.Assignment(Assignment(LocalName("type"), LocalName("DNA"))))
           )
 
         )
@@ -781,13 +741,14 @@ object ParserTestSuite extends TestSuite{
         """DNAComponent => ComponentDefinition
           |   type = DNA
           |   sequence : DNASequence
-        """.stripMargin.trim, ShortbolParser.ConstructorDef,
-        ConstructorDef(LocalName("DNAComponent"), Nil,
+        """.stripMargin.trim, ShortbolParser.topLevel.ConstructorDef,
+        TopLevel.ConstructorDef(LocalName("DNAComponent"), Nil,
           ConstructorApp(
             TpeConstructor1(
               LocalName("ComponentDefinition"), Nil
 
-            ), Seq(ast.Assignment(LocalName("type"), LocalName("DNA")), NestedInstance(InstanceExp(LocalName("sequence"), ConstructorApp(TpeConstructor1(LocalName("DNASequence"), List()), List()))))
+            ), Seq(ast.Assignment(LocalName("type"), LocalName("DNA")),
+              InstanceExp(LocalName("sequence"), ConstructorApp(TpeConstructor1(LocalName("DNASequence"), List()), List())))
           )
 
         )
@@ -800,29 +761,33 @@ object ParserTestSuite extends TestSuite{
 
       * - shouldParse(
         "foo : bar", ShortbolParser.TopLevel,
-        InstanceExp(LocalName("foo"),
-          ConstructorApp(TpeConstructor1(LocalName("bar"), Nil), Nil))
+        TopLevel.InstanceExp(
+          InstanceExp(
+            LocalName("foo"),
+           ConstructorApp(TpeConstructor1(LocalName("bar"), Nil), Nil)
+          )
+        )
       )
 
       * - shouldParse(
         "foo => bar", ShortbolParser.TopLevel,
-        ConstructorDef(LocalName("foo"),
+        TopLevel.ConstructorDef(LocalName("foo"),
           Nil,
           ConstructorApp(TpeConstructor1(LocalName("bar"), Nil), Nil))
       )
 
       * - shouldParse(
         "import blablabla", ShortbolParser.TopLevel,
-        Import(LocalName("blablabla"), None)
+        TopLevel.Import(LocalName("blablabla"))
       )
 
       * - shouldParse(
         "#comment", ShortbolParser.TopLevel,
-        Comment("comment"))
+        TopLevel.Comment(Comment("comment")))
 
       * - shouldParse(
         "", ShortbolParser.TopLevel,
-        BlankLine
+        TopLevel.BlankLine(BlankLine)
       )
 
       * - shouldParse(
@@ -831,7 +796,7 @@ object ParserTestSuite extends TestSuite{
 
       * - shouldParse(
         "x = y", ShortbolParser.TopLevel,
-        Assignment(LocalName("x"), LocalName("y")))
+        TopLevel.Assignment(Assignment(LocalName("x"), LocalName("y"))))
     }
 
     'TopLevels - {

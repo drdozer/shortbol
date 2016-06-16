@@ -10,7 +10,7 @@ import scalaz._
 import Scalaz._
 import uk.co.turingatemyhamster.shortbol.ops.DSL._
 
-import ExpansionTestSuite.{checkExpansion, parse}
+//import EvalTestSuite.{checkEval, parse}
 
 //object IntegrationTestSuite extends TestSuite {
 //  override def tests = TestSuite {
