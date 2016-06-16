@@ -41,7 +41,8 @@ object EvalTestSuite extends TestSuite {
 
   class InContext[T](t: T, c0: EvalContext) {
     def evaluatesTo[U](u: U)(implicit e: EvalEval.Aux[T, U]) = new Object {
-      def withContext(as: Assignment*): Unit = withContext(emptyContext.copy(bndgs = Map.empty ++ as.map(a => a.property -> a.value)))
+      def withAssignments(as: Assignment*): Unit = withContext(emptyContext.copy(bndgs = Map.empty ++ as.map(a => a.property -> a.value)))
+      def withConstructors(cs: (Identifier, TopLevel.ConstructorDef)*): Unit = withContext(emptyContext.copy(cstrs = Map.empty ++ cs))
       def withContext(c: EvalContext): Unit = {
         val (cc, uu) = e(t).run(c0)
         assert(cc == c)
@@ -84,31 +85,31 @@ object EvalTestSuite extends TestSuite {
 
     'localName - {
       * - { LocalName("a") evaluatesTo ("a" : Identifier) withContext emptyContext }
-      * - { LocalName("a") inContext ("a" -> "x") evaluatesTo ("x" : Identifier) withContext ("a" -> "x") }
-      * - { LocalName("a") inContext ("a" -> Url("x")) evaluatesTo (Url("x") : Identifier) withContext ("a" -> Url("x")) }
-      * - { LocalName("a") inContext ("a" -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) withContext ("a" -> QName("foo", "bar")) }
-      * - { LocalName("a") inContext (QName("foo", "a") -> "x") evaluatesTo ("x" : Identifier) withContext (QName("foo", "a") -> "x") }
-      * - { LocalName("a") inContext ("a" -> 42) evaluatesTo ("a" : Identifier) withContext ("a" -> 42) }
+      * - { LocalName("a") inContext ("a" -> "x") evaluatesTo ("x" : Identifier) withAssignments ("a" -> "x") }
+      * - { LocalName("a") inContext ("a" -> Url("x")) evaluatesTo (Url("x") : Identifier) withAssignments ("a" -> Url("x")) }
+      * - { LocalName("a") inContext ("a" -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) withAssignments ("a" -> QName("foo", "bar")) }
+      * - { LocalName("a") inContext (QName("foo", "a") -> "x") evaluatesTo ("x" : Identifier) withAssignments (QName("foo", "a") -> "x") }
+      * - { LocalName("a") inContext ("a" -> 42) evaluatesTo ("a" : Identifier) withAssignments ("a" -> 42) }
     }
 
     'url - {
       * - { Url("a") evaluatesTo (Url("a") : Identifier) withContext emptyContext }
-      * - { Url("a") inContext (Url("a") -> "x") evaluatesTo ("x" : Identifier) withContext (Url("a") -> "x") }
-      * - { Url("a") inContext (Url("a") -> Url("x")) evaluatesTo (Url("x") : Identifier) withContext (Url("a") -> Url("x")) }
-      * - { Url("a") inContext (Url("a") -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) withContext (Url("a") -> QName("foo", "bar")) }
+      * - { Url("a") inContext (Url("a") -> "x") evaluatesTo ("x" : Identifier) withAssignments (Url("a") -> "x") }
+      * - { Url("a") inContext (Url("a") -> Url("x")) evaluatesTo (Url("x") : Identifier) withAssignments (Url("a") -> Url("x")) }
+      * - { Url("a") inContext (Url("a") -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) withAssignments (Url("a") -> QName("foo", "bar")) }
     }
 
     'qname - {
       * - { QName("pfx", "ln") evaluatesTo (QName("pfx", "ln") : Identifier) withContext emptyContext }
-      * - { QName("pfx", "ln") inContext (QName("pfx", "ln") -> "x") evaluatesTo ("x" : Identifier) withContext (QName("pfx", "ln") -> "x") }
-      * - { QName("pfx", "ln") inContext (QName("pfx", "ln") -> Url("x")) evaluatesTo (Url("x") : Identifier) withContext (QName("pfx", "ln") -> Url("x")) }
-      * - { QName("pfx", "ln") inContext (QName("pfx", "ln") -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) withContext (QName("pfx", "ln") -> QName("foo", "bar")) }
+      * - { QName("pfx", "ln") inContext (QName("pfx", "ln") -> "x") evaluatesTo ("x" : Identifier) withAssignments (QName("pfx", "ln") -> "x") }
+      * - { QName("pfx", "ln") inContext (QName("pfx", "ln") -> Url("x")) evaluatesTo (Url("x") : Identifier) withAssignments (QName("pfx", "ln") -> Url("x")) }
+      * - { QName("pfx", "ln") inContext (QName("pfx", "ln") -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) withAssignments (QName("pfx", "ln") -> QName("foo", "bar")) }
     }
 
     'valueExp - {
       * - { (StringLiteral("abc", false) : ValueExp) evaluatesTo (StringLiteral("abc", false) : ValueExp) withContext emptyContext }
-      * - { (LocalName("a") : ValueExp) inContext ("a" -> "x") evaluatesTo ("x" : ValueExp) withContext ("a" -> "x") }
-      * - { (LocalName("a") : ValueExp) inContext ("a" -> 42) evaluatesTo ("a" : ValueExp) withContext ("a" -> 42) }
+      * - { (LocalName("a") : ValueExp) inContext ("a" -> "x") evaluatesTo ("x" : ValueExp) withAssignments ("a" -> "x") }
+      * - { (LocalName("a") : ValueExp) inContext ("a" -> 42) evaluatesTo ("a" : ValueExp) withAssignments ("a" -> 42) }
       * - { (Url("a") : ValueExp) evaluatesTo (Url("a") : ValueExp) withContext emptyContext }
       * - { (QName("pfx", "ln") : ValueExp) evaluatesTo (QName("pfx", "ln") : ValueExp) withContext emptyContext }
       * - { (StringLiteral("abc", false) : ValueExp) evaluatesTo (StringLiteral("abc", false) : ValueExp) withContext emptyContext }
@@ -140,7 +141,7 @@ object EvalTestSuite extends TestSuite {
           StringLiteral("abc", false),
           LocalName("x"),
           42
-        ) withContext (
+        ) withAssignments (
           "a" -> "x"
           )
       }
@@ -150,25 +151,25 @@ object EvalTestSuite extends TestSuite {
       'raw - {
         * - { ("a" -> "b": Assignment) evaluatesTo ("a" -> "b": Assignment) withContext emptyContext }
 
-        * - { ("a" -> "b": Assignment) inContext ("a" -> "x") evaluatesTo ("x" -> "b": Assignment) withContext ("a" -> "x") }
+        * - { ("a" -> "b": Assignment) inContext ("a" -> "x") evaluatesTo ("x" -> "b": Assignment) withAssignments ("a" -> "x") }
 
-        * - { ("a" -> "b": Assignment) inContext ("b" -> "y") evaluatesTo ("a" -> "y": Assignment) withContext ("b" -> "y") }
+        * - { ("a" -> "b": Assignment) inContext ("b" -> "y") evaluatesTo ("a" -> "y": Assignment) withAssignments ("b" -> "y") }
       }
 
       'bodyStmt - {
         * - { ("a" -> "b" : BodyStmt) evaluatesTo ("a" -> "b" : BodyStmt) withContext emptyContext }
 
-        * - { ("a" -> "b" : BodyStmt) inContext("a" -> "x") evaluatesTo ("x" -> "b" : BodyStmt) withContext ("a" -> "x") }
+        * - { ("a" -> "b" : BodyStmt) inContext("a" -> "x") evaluatesTo ("x" -> "b" : BodyStmt) withAssignments ("a" -> "x") }
 
-        * - { ("a" -> "b" : BodyStmt) inContext("b" -> "y") evaluatesTo ("a" -> "y" : BodyStmt) withContext ("b" -> "y") }
+        * - { ("a" -> "b" : BodyStmt) inContext("b" -> "y") evaluatesTo ("a" -> "y" : BodyStmt) withAssignments ("b" -> "y") }
       }
 
       'topLevel - {
-        * - { ("a" -> "b" : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) withContext ("a" -> "b") }
+        * - { ("a" -> "b" : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) withAssignments ("a" -> "b") }
 
-        * - { ("a" -> "b" : TopLevel) inContext("a" -> "x") evaluatesTo (None : Option[TopLevel.InstanceExp]) withContext ("a" -> "x", "x" -> "b") }
+        * - { ("a" -> "b" : TopLevel) inContext("a" -> "x") evaluatesTo (None : Option[TopLevel.InstanceExp]) withAssignments ("a" -> "x", "x" -> "b") }
 
-        * - { ("a" -> "b" : TopLevel) inContext("b" -> "y") evaluatesTo (None : Option[TopLevel.InstanceExp]) withContext ("b" -> "y", "a" -> "y") }
+        * - { ("a" -> "b" : TopLevel) inContext("b" -> "y") evaluatesTo (None : Option[TopLevel.InstanceExp]) withAssignments ("b" -> "y", "a" -> "y") }
       }
     }
 
@@ -176,7 +177,7 @@ object EvalTestSuite extends TestSuite {
       * - {
         Seq[TopLevel](
           "b" -> "c",
-          "a" -> "b") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None) withContext (
+          "a" -> "b") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None) withAssignments (
           "b" -> "c",
           "a" -> "c")
       }
@@ -185,7 +186,7 @@ object EvalTestSuite extends TestSuite {
         Seq[TopLevel](
           "c" -> "d",
           "b" -> "c",
-          "a" -> "b") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None, None) withContext (
+          "a" -> "b") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None, None) withAssignments (
           "c" -> "d",
           "b" -> "d",
           "a" -> "d")
@@ -195,7 +196,7 @@ object EvalTestSuite extends TestSuite {
         Seq[TopLevel](
           "bx" -> "cx",
           "cx" -> "dx",
-          "ax" -> "bx") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None, None) withContext (
+          "ax" -> "bx") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None, None) withAssignments (
           "bx" -> "cx",
           "cx" -> "dx",
           "ax" -> "dx")
@@ -205,9 +206,9 @@ object EvalTestSuite extends TestSuite {
     'tpeConstructor1 - {
       'rename - {
         * - { TpeConstructor1("X", Seq()) evaluatesTo TpeConstructor1("X", Seq()) withContext emptyContext }
-        * - { TpeConstructor1("X", Seq()) inContext("a" -> "x") evaluatesTo TpeConstructor1("X", Seq()) withContext ("a" -> "x") }
-        * - { TpeConstructor1("X", Seq()) inContext("X" -> "Y") evaluatesTo TpeConstructor1("Y", Seq()) withContext ("X" -> "Y") }
-        * - { TpeConstructor1("X", Seq()) inContext(QName("ns", "X") -> "Y") evaluatesTo TpeConstructor1("Y", Seq()) withContext (QName("ns", "X") -> "Y") }
+        * - { TpeConstructor1("X", Seq()) inContext("a" -> "x") evaluatesTo TpeConstructor1("X", Seq()) withAssignments ("a" -> "x") }
+        * - { TpeConstructor1("X", Seq()) inContext("X" -> "Y") evaluatesTo TpeConstructor1("Y", Seq()) withAssignments ("X" -> "Y") }
+        * - { TpeConstructor1("X", Seq()) inContext(QName("ns", "X") -> "Y") evaluatesTo TpeConstructor1("Y", Seq()) withAssignments (QName("ns", "X") -> "Y") }
       }
 
       'expand_body - {
@@ -233,7 +234,7 @@ object EvalTestSuite extends TestSuite {
             StringLiteral("abc", false),
             LocalName("x"),
             42)
-            ) withContext (
+            ) withAssignments (
             "a" -> "x"
             )
         }
@@ -251,7 +252,7 @@ object EvalTestSuite extends TestSuite {
           StringLiteral("abc", false),
           LocalName("x"),
           42)
-          ) withContext (
+          ) withAssignments (
           "a" -> "x",
           "X" -> "Y"
           )
@@ -277,7 +278,7 @@ object EvalTestSuite extends TestSuite {
           StringLiteral("abc", false),
           LocalName("x"),
           42)
-        ) : TpeConstructor) withContext (
+        ) : TpeConstructor) withAssignments (
           "a" -> "x",
           "X" -> "Y"
           )
@@ -289,9 +290,13 @@ object EvalTestSuite extends TestSuite {
         "Foo",
         Seq(),
         ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
-      ) evaluatesTo (None: Option[TopLevel.InstanceExp]) withContext (
-
+      ) evaluatesTo (None: Option[TopLevel.InstanceExp]) withConstructors (
+        ("Foo": Identifier) -> TopLevel.ConstructorDef(
+        "Foo",
+        Seq(),
+        ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
         )
+      )
     }
 
     'constructorApp - {
