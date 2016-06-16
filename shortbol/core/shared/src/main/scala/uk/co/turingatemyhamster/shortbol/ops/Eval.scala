@@ -113,30 +113,59 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
   implicit lazy val tpeConstructor = Eval[TpeConstructor, TpeConstructor]
   implicit lazy val valueExp = Eval[ValueExp, ValueExp]
   implicit lazy val bdyStmt = Eval[BodyStmt, BodyStmt]
-  implicit lazy val topLevel = Eval[TopLevel, Option[TopLevel.InstanceExp]]
+
+  // Smelly! Find a way to compute OTI
+  implicit lazy val topLevel: EvalEval.Aux[TopLevel, Option[TopLevel.InstanceExp]] = {
+    type OTI = Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil
+    val tlG = Generic[TopLevel]
+    val gev = Eval[tlG.Repr, OTI]
+    typeClass.project[TopLevel, tlG.Repr, Option[TopLevel.InstanceExp], OTI](gev, tlG.to, _.unify)
+  }
 
   // fixme: see if this is redundant
   implicit val sbFile: EvalEval.Aux[SBFile, Seq[TopLevel.InstanceExp]] = new Eval[SBFile] {
     override type Result = Seq[TopLevel.InstanceExp]
-    val glt = Generic[List[TopLevel]]
-    val glo = Generic[List[Option[TopLevel.InstanceExp]]]
-    val eea = Eval[glt.Repr, glo.Repr]
-    val eeb = Eval[shapeless.:+:[scala.collection.immutable.::[TopLevel],shapeless.:+:[scala.collection.immutable.Nil.type,shapeless.CNil]],
-      shapeless.:+:[scala.collection.immutable.::[Option[TopLevel.InstanceExp]],shapeless.:+:[scala.collection.immutable.Nil.type,shapeless.CNil]]]
-    val tl = Eval[TopLevel, Option[TopLevel.InstanceExp]]
+
+    val tlg = Generic[TopLevel]
+    val oti = Generic[Option[TopLevel.InstanceExp]]
+//    val tlc = Eval[
+//      shapeless.:+:[TopLevel.Assignment,shapeless.:+:[TopLevel.BlankLine,shapeless.:+:[TopLevel.Comment,shapeless.:+:[TopLevel.ConstructorDef,shapeless.:+:[TopLevel.Import,shapeless.:+:[TopLevel.InstanceExp,shapeless.CNil]]]]]],
+//      shapeless.:+:[None.type,shapeless.:+:[Some[TopLevel.InstanceExp],shapeless.CNil]]](deriveCCons[
+//      TopLevel.Assignment,
+//      shapeless.:+:[TopLevel.BlankLine,shapeless.:+:[TopLevel.Comment,shapeless.:+:[TopLevel.ConstructorDef,shapeless.:+:[TopLevel.Import,shapeless.:+:[TopLevel.InstanceExp,shapeless.CNil]]]]],
+//
+//        ])
+//    val tl = Eval[TopLevel, Option[TopLevel.InstanceExp]](
+//      deriveInstance[TopLevel,
+//        shapeless.:+:[TopLevel.Assignment,shapeless.:+:[TopLevel.BlankLine,shapeless.:+:[TopLevel.Comment,shapeless.:+:[TopLevel.ConstructorDef,shapeless.:+:[TopLevel.Import,shapeless.:+:[TopLevel.InstanceExp,shapeless.CNil]]]]]],
+//        Option[TopLevel.InstanceExp],
+//        shapeless.:+:[None.type,shapeless.:+:[Some[TopLevel.InstanceExp],shapeless.CNil]]]
+//    )
+//
+//    val tlo = Eval[TopLevel, Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil]
+//
+//    deriveCCons[
+//      TopLevel.Assignment, shapeless.:+:[TopLevel.BlankLine,shapeless.:+:[TopLevel.Comment,shapeless.:+:[TopLevel.ConstructorDef,shapeless.:+:[TopLevel.Import,shapeless.:+:[TopLevel.InstanceExp,shapeless.CNil]]]]],
+//      Option[TopLevel.InstanceExp], Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil]
+//
+//    deriveInstance[
+//      TopLevel,
+//      shapeless.:+:[TopLevel.Assignment,shapeless.:+:[TopLevel.BlankLine,shapeless.:+:[TopLevel.Comment,shapeless.:+:[TopLevel.ConstructorDef,shapeless.:+:[TopLevel.Import,shapeless.:+:[TopLevel.InstanceExp,shapeless.CNil]]]]]],
+//
+//      ]
+//    deriveCCons[
+//            TopLevel.Assignment,
+//            TopLevel.BlankLine:+:TopLevel.Comment:+:TopLevel.Import:+:TopLevel.InstanceExp:+:TopLevel.ConstructorDef:+:CNil,
+//            Option[TopLevel.InstanceExp],
+//            Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil]
     val tlas = Eval[TopLevel.Assignment, Option[TopLevel.InstanceExp]]
     val tlbl = Eval[TopLevel.BlankLine, Option[TopLevel.InstanceExp]]
-    val tlim = Eval[TopLevel.Import, Option[TopLevel.InstanceExp]]
     val tlco = Eval[TopLevel.Comment, Option[TopLevel.InstanceExp]]
+    val tlim = Eval[TopLevel.Import, Option[TopLevel.InstanceExp]]
     val tlin = Eval[TopLevel.InstanceExp, Option[TopLevel.InstanceExp]]
     val tlcd = Eval[TopLevel.ConstructorDef, Option[TopLevel.InstanceExp]]
     override def apply(t: SBFile) = for {
-      ts <- t.tops.eval(seq[TopLevel, Option[TopLevel.InstanceExp]](
-        deriveInstance[
-          List[TopLevel],
-          glt.Repr,
-          List[Option[TopLevel.InstanceExp]],
-          glo.Repr]))
+      ts <- t.tops.eval
     } yield ts.flatten
   }
 
