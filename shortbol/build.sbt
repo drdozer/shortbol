@@ -3,6 +3,15 @@ lazy val sharedSettings = Seq(
   organization := "uk.co.turingatemyhamster",
   version := "0.0.1")
 
+lazy val ast = crossProject.settings(
+  name := "shortbol-ast",
+  libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.3",
+  testFrameworks += new TestFramework("utest.runner.Framework")
+).settings(sharedSettings : _*)
+
+lazy val astJs = ast.js
+
+lazy val astJVM = ast.jvm
 
 lazy val core = crossProject.settings(
   name := "shortbol-core",
@@ -12,7 +21,7 @@ lazy val core = crossProject.settings(
   libraryDependencies += "uk.co.turingatemyhamster" %%% "datatree-core" % "develop-0.2.1",
   testFrameworks += new TestFramework("utest.runner.Framework"),
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
-  ).settings(sharedSettings : _*)
+  ).settings(sharedSettings : _*).dependsOn(ast)
   
 lazy val coreJs = core.js.settings(
   libraryDependencies += "com.github.japgolly.fork.scalaz" %%% "scalaz-core" % "7.1.3"

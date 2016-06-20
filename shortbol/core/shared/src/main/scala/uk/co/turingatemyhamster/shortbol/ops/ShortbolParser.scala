@@ -88,11 +88,19 @@ object ShortbolParsers {
 
   lazy val DigitSign = P(Plus | Hyphen)
   lazy val IntegerLiteral = P((DigitSign.? ~ Digit.rep(1)).!).map(_.toInt).map(ast.IntegerLiteral)
-  lazy val ValueExp: Parser[ast.ValueExp] = P(
-    Identifier | StringLiteral.noCut | MultiLineLiteral | IntegerLiteral)
+  lazy val Literal = P(StringLiteral.noCut | MultiLineLiteral | IntegerLiteral)
 
   lazy val Assignment: Parser[ast.Assignment] = P(Identifier ~ Space.rep ~ Eq ~/ Space.rep ~ ValueExp) map
     (ast.Assignment.apply _ tupled)
+
+  object valueExp {
+    val Identifier = ShortbolParsers.Identifier map ast.ValueExp.Identifier
+    val Literal = ShortbolParsers.Literal map ast.ValueExp.Literal
+  }
+
+  lazy val ValueExp: Parser[ast.ValueExp] = P(
+    valueExp.Identifier | valueExp.Literal)
+
 
   lazy val NoBody = Pass map (_ => Seq())
 
@@ -128,8 +136,7 @@ sealed class ShortbolParser(indent: Int) {
     val Import = P("import" ~ Space.rep(1) ~ Identifier) map ast.TopLevel.Import
     val Comment = ShortbolParsers.Comment map ast.TopLevel.Comment
     val InstanceExp = self.InstanceExp map ast.TopLevel.InstanceExp
-    val ConstructorDef = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~/ Space.rep ~ PrefixConstructorApp) map
-        (ast.TopLevel.ConstructorDef.apply _ tupled)
+    val ConstructorDef = self.ConstructorDef map ast.TopLevel.ConstructorDef
   }
 
   lazy val TopLevel = P(
@@ -181,6 +188,9 @@ sealed class ShortbolParser(indent: Int) {
   lazy val InstanceExp: Parser[ast.InstanceExp] =
     P(Identifier ~ Space.rep ~ Colon ~/ Space.rep ~ PrefixConstructorApp) map
       (ast.InstanceExp.apply _ tupled)
+
+  lazy val ConstructorDef = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~/ Space.rep ~ PrefixConstructorApp) map
+      (ast.ConstructorDef.apply _ tupled)
 }
 
 object ShortbolParser extends ShortbolParser(0) {

@@ -24,29 +24,39 @@ object EvalTestSuite extends TestSuite {
 //    Literal(Constant(raw)).toString
 //  }
 //
-  def parse[T](shortbol: String): Seq[TopLevel] =
+  def parse(shortbol: String): SBFile =
     ShortbolParser.SBFile.parse(shortbol) match {
       case s : Success[SBFile] =>
-        s.value.tops
+        s.value
     }
 
-  import Fixture.emptyContext
+  def parse_instances(shortbol: String): Seq[TopLevel.InstanceExp] =
+    parse(shortbol).tops.collect { case i : TopLevel.InstanceExp => i }
+
+  def parse_constructorDef(shortbol: String): ConstructorDef =
+    ShortbolParser.ConstructorDef.parse(shortbol) match {
+      case s: Success[ConstructorDef] =>
+        s.value
+    }
+
+  val Ø = Fixture.emptyContext
+  val ⊥ = null.asInstanceOf[EvalContext]
 
   implicit class TestOps[T](_t: T) {
 
-    def inContext(c0: EvalContext) = new InContext(_t, c0)
-    def inContext(as: Assignment*) = new InContext(_t, emptyContext.copy(bndgs = Map.empty ++ as.map(a => a.property -> a.value)))
-    def evaluatesTo[U](u: U)(implicit e: EvalEval.Aux[T, U]) = (new InContext(_t, emptyContext)).evaluatesTo(u)(e)
+    def in(c0: EvalContext) = new InContext(_t, c0)
+    def evaluatesTo[U](u: U)(implicit e: EvalEval.Aux[T, U]) = (new InContext(_t, Ø)).evaluatesTo(u)(e)
   }
 
   class InContext[T](t: T, c0: EvalContext) {
-    def evaluatesTo[U](u: U)(implicit e: EvalEval.Aux[T, U]) = new Object {
-      def withAssignments(as: Assignment*): Unit = withContext(emptyContext.copy(bndgs = Map.empty ++ as.map(a => a.property -> a.value)))
-      def withConstructors(cs: (Identifier, TopLevel.ConstructorDef)*): Unit = withContext(emptyContext.copy(cstrs = Map.empty ++ cs))
-      def withContext(c: EvalContext): Unit = {
-        val (cc, uu) = e(t).run(c0)
-        assert(cc == c)
-        assert(uu == u)
+    def evaluatesTo[U](expectedResult: U)(implicit eval: EvalEval.Aux[T, U]) = new Object {
+      def in(expectedContext: EvalContext): Unit = {
+        assert(eval != null)
+        val (observedContext, observedResult) = eval(t).run(c0)
+
+        if(expectedContext != ⊥) assert(observedContext == expectedContext)
+
+        assert(observedResult == expectedResult)
       }
     }
   }
@@ -54,67 +64,67 @@ object EvalTestSuite extends TestSuite {
   val tests = TestSuite {
 
     'blankline - {
-      * - { BlankLine evaluatesTo BlankLine withContext emptyContext }
-      * - { (BlankLine : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) withContext emptyContext }
-      * - { (BlankLine : BodyStmt) evaluatesTo (BlankLine : BodyStmt) withContext emptyContext }
+      * - { BlankLine evaluatesTo BlankLine in Ø }
+      * - { (BlankLine : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) in Ø }
+      * - { (BlankLine : BodyStmt) evaluatesTo (BlankLine : BodyStmt) in Ø }
     }
 
     'comment - {
-      * - { Comment("a comment") evaluatesTo Comment("a comment") withContext emptyContext }
-      * - { (Comment("a comment") : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) withContext emptyContext }
-      * - { (Comment("a comment") : BodyStmt) evaluatesTo (Comment("a comment") : BodyStmt) withContext emptyContext }
+      * - { Comment("a comment") evaluatesTo Comment("a comment") in Ø }
+      * - { (Comment("a comment") : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) in Ø }
+      * - { (Comment("a comment") : BodyStmt) evaluatesTo (Comment("a comment") : BodyStmt) in Ø }
     }
 
     'stringLiteral - {
-      * - { StringLiteral("abc", false) evaluatesTo StringLiteral("abc", false) withContext emptyContext }
+      * - { StringLiteral("abc", false) evaluatesTo StringLiteral("abc", false) in Ø }
     }
 
     'multiLineLiteral - {
-      * - { MultiLineLiteral(Seq("abc", "def"), 4) evaluatesTo MultiLineLiteral(Seq("abc", "def"), 4) withContext emptyContext }
+      * - { MultiLineLiteral(Seq("abc", "def"), 4) evaluatesTo MultiLineLiteral(Seq("abc", "def"), 4) in Ø }
     }
 
     'integerLiteral - {
-      * - { IntegerLiteral(42) evaluatesTo IntegerLiteral(42) withContext emptyContext }
+      * - { IntegerLiteral(42) evaluatesTo IntegerLiteral(42) in Ø }
     }
 
     'literal - {
-      * - { (StringLiteral("abc", false) : Literal) evaluatesTo (StringLiteral("abc", false) : Literal) withContext emptyContext }
-      * - { (MultiLineLiteral(Seq("abc", "def"), 4) : Literal) evaluatesTo (MultiLineLiteral(Seq("abc", "def"), 4) : Literal) withContext emptyContext }
-      * - { (IntegerLiteral(42) : Literal) evaluatesTo (IntegerLiteral(42) : Literal) withContext emptyContext }
+      * - { (StringLiteral("abc", false) : Literal) evaluatesTo (StringLiteral("abc", false) : Literal) in Ø }
+      * - { (MultiLineLiteral(Seq("abc", "def"), 4) : Literal) evaluatesTo (MultiLineLiteral(Seq("abc", "def"), 4) : Literal) in Ø }
+      * - { (IntegerLiteral(42) : Literal) evaluatesTo (IntegerLiteral(42) : Literal) in Ø }
     }
 
     'localName - {
-      * - { LocalName("a") evaluatesTo ("a" : Identifier) withContext emptyContext }
-      * - { LocalName("a") inContext ("a" -> "x") evaluatesTo ("x" : Identifier) withAssignments ("a" -> "x") }
-      * - { LocalName("a") inContext ("a" -> Url("x")) evaluatesTo (Url("x") : Identifier) withAssignments ("a" -> Url("x")) }
-      * - { LocalName("a") inContext ("a" -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) withAssignments ("a" -> QName("foo", "bar")) }
-      * - { LocalName("a") inContext (QName("foo", "a") -> "x") evaluatesTo ("x" : Identifier) withAssignments (QName("foo", "a") -> "x") }
-      * - { LocalName("a") inContext ("a" -> 42) evaluatesTo ("a" : Identifier) withAssignments ("a" -> 42) }
+      * - { LocalName("a") evaluatesTo ("a" : Identifier) in Ø }
+      * - { LocalName("a") in Ø.withAssignments("a" -> "x") evaluatesTo ("x" : Identifier) in Ø.withAssignments ("a" -> "x") }
+      * - { LocalName("a") in Ø.withAssignments("a" -> Url("x")) evaluatesTo (Url("x") : Identifier) in Ø.withAssignments ("a" -> Url("x")) }
+      * - { LocalName("a") in Ø.withAssignments("a" -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) in Ø.withAssignments ("a" -> QName("foo", "bar")) }
+      * - { LocalName("a") in Ø.withAssignments(QName("foo", "a") -> "x") evaluatesTo ("x" : Identifier) in Ø.withAssignments (QName("foo", "a") -> "x") }
+      * - { LocalName("a") in Ø.withAssignments("a" -> 42) evaluatesTo ("a" : Identifier) in Ø.withAssignments ("a" -> 42) }
     }
 
     'url - {
-      * - { Url("a") evaluatesTo (Url("a") : Identifier) withContext emptyContext }
-      * - { Url("a") inContext (Url("a") -> "x") evaluatesTo ("x" : Identifier) withAssignments (Url("a") -> "x") }
-      * - { Url("a") inContext (Url("a") -> Url("x")) evaluatesTo (Url("x") : Identifier) withAssignments (Url("a") -> Url("x")) }
-      * - { Url("a") inContext (Url("a") -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) withAssignments (Url("a") -> QName("foo", "bar")) }
+      * - { Url("a") evaluatesTo (Url("a") : Identifier) in Ø }
+      * - { Url("a") in Ø.withAssignments(Url("a") -> "x") evaluatesTo ("x" : Identifier) in Ø.withAssignments (Url("a") -> "x") }
+      * - { Url("a") in Ø.withAssignments(Url("a") -> Url("x")) evaluatesTo (Url("x") : Identifier) in Ø.withAssignments (Url("a") -> Url("x")) }
+      * - { Url("a") in Ø.withAssignments(Url("a") -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) in Ø.withAssignments (Url("a") -> QName("foo", "bar")) }
     }
 
     'qname - {
-      * - { QName("pfx", "ln") evaluatesTo (QName("pfx", "ln") : Identifier) withContext emptyContext }
-      * - { QName("pfx", "ln") inContext (QName("pfx", "ln") -> "x") evaluatesTo ("x" : Identifier) withAssignments (QName("pfx", "ln") -> "x") }
-      * - { QName("pfx", "ln") inContext (QName("pfx", "ln") -> Url("x")) evaluatesTo (Url("x") : Identifier) withAssignments (QName("pfx", "ln") -> Url("x")) }
-      * - { QName("pfx", "ln") inContext (QName("pfx", "ln") -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) withAssignments (QName("pfx", "ln") -> QName("foo", "bar")) }
+      * - { QName("pfx", "ln") evaluatesTo (QName("pfx", "ln") : Identifier) in Ø }
+      * - { QName("pfx", "ln") in Ø.withAssignments(QName("pfx", "ln") -> "x") evaluatesTo ("x" : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> "x") }
+      * - { QName("pfx", "ln") in Ø.withAssignments(QName("pfx", "ln") -> Url("x")) evaluatesTo (Url("x") : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> Url("x")) }
+      * - { QName("pfx", "ln") in Ø.withAssignments(QName("pfx", "ln") -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> QName("foo", "bar")) }
     }
 
     'valueExp - {
-      * - { (StringLiteral("abc", false) : ValueExp) evaluatesTo (StringLiteral("abc", false) : ValueExp) withContext emptyContext }
-      * - { (LocalName("a") : ValueExp) inContext ("a" -> "x") evaluatesTo ("x" : ValueExp) withAssignments ("a" -> "x") }
-      * - { (LocalName("a") : ValueExp) inContext ("a" -> 42) evaluatesTo ("a" : ValueExp) withAssignments ("a" -> 42) }
-      * - { (Url("a") : ValueExp) evaluatesTo (Url("a") : ValueExp) withContext emptyContext }
-      * - { (QName("pfx", "ln") : ValueExp) evaluatesTo (QName("pfx", "ln") : ValueExp) withContext emptyContext }
-      * - { (StringLiteral("abc", false) : ValueExp) evaluatesTo (StringLiteral("abc", false) : ValueExp) withContext emptyContext }
-      * - { (MultiLineLiteral(Seq("abc", "def"), 4) : ValueExp) evaluatesTo (MultiLineLiteral(Seq("abc", "def"), 4) : ValueExp) withContext emptyContext }
-      * - { (42 : ValueExp) evaluatesTo (42 : ValueExp) withContext emptyContext }
+      * - { (StringLiteral("abc", false) : ValueExp) evaluatesTo (StringLiteral("abc", false) : ValueExp) in Ø }
+      * - { (LocalName("a") : ValueExp) in Ø.withAssignments("a" -> "x") evaluatesTo ("x" : ValueExp) in Ø.withAssignments ("a" -> "x") }
+      * - { (LocalName("a") : ValueExp) in Ø.withAssignments("a" -> 42) evaluatesTo (42 : ValueExp) in Ø.withAssignments ("a" -> 42) }
+      * - { (Url("a") : ValueExp) evaluatesTo (Url("a") : ValueExp) in Ø }
+      * - { (QName("pfx", "ln") : ValueExp) evaluatesTo (QName("pfx", "ln") : ValueExp) in Ø }
+      * - { (StringLiteral("abc", false) : ValueExp) evaluatesTo (StringLiteral("abc", false) : ValueExp) in Ø }
+      * - { (MultiLineLiteral(Seq("abc", "def"), 4) : ValueExp) evaluatesTo (MultiLineLiteral(Seq("abc", "def"), 4) : ValueExp) in Ø }
+      * - { (42 : ValueExp) evaluatesTo (42 : ValueExp) in Ø }
     }
 
     'valueExps - {
@@ -127,7 +137,7 @@ object EvalTestSuite extends TestSuite {
           StringLiteral("abc", false),
           LocalName("a"),
           42
-        ) withContext emptyContext
+        ) in Ø
       }
 
       * - {
@@ -135,13 +145,13 @@ object EvalTestSuite extends TestSuite {
           StringLiteral("abc", false),
           LocalName("a"),
           42
-        ) inContext (
+        ) in Ø.withAssignments(
           "a" -> "x"
           ) evaluatesTo Seq[ValueExp](
           StringLiteral("abc", false),
           LocalName("x"),
           42
-        ) withAssignments (
+        ) in Ø.withAssignments (
           "a" -> "x"
           )
       }
@@ -149,27 +159,27 @@ object EvalTestSuite extends TestSuite {
 
     'assignment - {
       'raw - {
-        * - { ("a" -> "b": Assignment) evaluatesTo ("a" -> "b": Assignment) withContext emptyContext }
+        * - { ("a" -> "b": Assignment) evaluatesTo ("a" -> "b": Assignment) in Ø }
 
-        * - { ("a" -> "b": Assignment) inContext ("a" -> "x") evaluatesTo ("x" -> "b": Assignment) withAssignments ("a" -> "x") }
+        * - { ("a" -> "b": Assignment) in Ø.withAssignments("a" -> "x") evaluatesTo ("x" -> "b": Assignment) in Ø.withAssignments ("a" -> "x") }
 
-        * - { ("a" -> "b": Assignment) inContext ("b" -> "y") evaluatesTo ("a" -> "y": Assignment) withAssignments ("b" -> "y") }
+        * - { ("a" -> "b": Assignment) in Ø.withAssignments("b" -> "y") evaluatesTo ("a" -> "y": Assignment) in Ø.withAssignments ("b" -> "y") }
       }
 
       'bodyStmt - {
-        * - { ("a" -> "b" : BodyStmt) evaluatesTo ("a" -> "b" : BodyStmt) withContext emptyContext }
+        * - { ("a" -> "b" : BodyStmt) evaluatesTo ("a" -> "b" : BodyStmt) in Ø }
 
-        * - { ("a" -> "b" : BodyStmt) inContext("a" -> "x") evaluatesTo ("x" -> "b" : BodyStmt) withAssignments ("a" -> "x") }
+        * - { ("a" -> "b" : BodyStmt) in Ø.withAssignments("a" -> "x") evaluatesTo ("x" -> "b" : BodyStmt) in Ø.withAssignments ("a" -> "x") }
 
-        * - { ("a" -> "b" : BodyStmt) inContext("b" -> "y") evaluatesTo ("a" -> "y" : BodyStmt) withAssignments ("b" -> "y") }
+        * - { ("a" -> "b" : BodyStmt) in Ø.withAssignments("b" -> "y") evaluatesTo ("a" -> "y" : BodyStmt) in Ø.withAssignments ("b" -> "y") }
       }
 
       'topLevel - {
-        * - { ("a" -> "b" : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) withAssignments ("a" -> "b") }
+        * - { ("a" -> "b" : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) in Ø.withAssignments ("a" -> "b") }
 
-        * - { ("a" -> "b" : TopLevel) inContext("a" -> "x") evaluatesTo (None : Option[TopLevel.InstanceExp]) withAssignments ("a" -> "x", "x" -> "b") }
+        * - { ("a" -> "b" : TopLevel) in Ø.withAssignments("a" -> "x") evaluatesTo (None : Option[TopLevel.InstanceExp]) in Ø.withAssignments ("a" -> "x", "x" -> "b") }
 
-        * - { ("a" -> "b" : TopLevel) inContext("b" -> "y") evaluatesTo (None : Option[TopLevel.InstanceExp]) withAssignments ("b" -> "y", "a" -> "y") }
+        * - { ("a" -> "b" : TopLevel) in Ø.withAssignments("b" -> "y") evaluatesTo (None : Option[TopLevel.InstanceExp]) in Ø.withAssignments ("b" -> "y", "a" -> "y") }
       }
     }
 
@@ -177,7 +187,7 @@ object EvalTestSuite extends TestSuite {
       * - {
         Seq[TopLevel](
           "b" -> "c",
-          "a" -> "b") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None) withAssignments (
+          "a" -> "b") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None) in Ø.withAssignments (
           "b" -> "c",
           "a" -> "c")
       }
@@ -186,7 +196,7 @@ object EvalTestSuite extends TestSuite {
         Seq[TopLevel](
           "c" -> "d",
           "b" -> "c",
-          "a" -> "b") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None, None) withAssignments (
+          "a" -> "b") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None, None) in Ø.withAssignments (
           "c" -> "d",
           "b" -> "d",
           "a" -> "d")
@@ -196,7 +206,7 @@ object EvalTestSuite extends TestSuite {
         Seq[TopLevel](
           "bx" -> "cx",
           "cx" -> "dx",
-          "ax" -> "bx") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None, None) withAssignments (
+          "ax" -> "bx") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None, None) in Ø.withAssignments (
           "bx" -> "cx",
           "cx" -> "dx",
           "ax" -> "dx")
@@ -205,10 +215,13 @@ object EvalTestSuite extends TestSuite {
 
     'tpeConstructor1 - {
       'rename - {
-        * - { TpeConstructor1("X", Seq()) evaluatesTo TpeConstructor1("X", Seq()) withContext emptyContext }
-        * - { TpeConstructor1("X", Seq()) inContext("a" -> "x") evaluatesTo TpeConstructor1("X", Seq()) withAssignments ("a" -> "x") }
-        * - { TpeConstructor1("X", Seq()) inContext("X" -> "Y") evaluatesTo TpeConstructor1("Y", Seq()) withAssignments ("X" -> "Y") }
-        * - { TpeConstructor1("X", Seq()) inContext(QName("ns", "X") -> "Y") evaluatesTo TpeConstructor1("Y", Seq()) withAssignments (QName("ns", "X") -> "Y") }
+        * - {
+          TpeConstructor1("X", Seq()) evaluatesTo TpeConstructor1("X", Seq()) in Ø
+        }
+        * - {
+          TpeConstructor1("X", Seq()) in Ø.withAssignments("a" -> "x") evaluatesTo TpeConstructor1("X", Seq()) in Ø.withAssignments ("a" -> "x") }
+        * - { TpeConstructor1("X", Seq()) in Ø.withAssignments("X" -> "Y") evaluatesTo TpeConstructor1("Y", Seq()) in Ø.withAssignments ("X" -> "Y") }
+        * - { TpeConstructor1("X", Seq()) in Ø.withAssignments(QName("ns", "X") -> "Y") evaluatesTo TpeConstructor1("Y", Seq()) in Ø.withAssignments (QName("ns", "X") -> "Y") }
       }
 
       'expand_body - {
@@ -217,86 +230,114 @@ object EvalTestSuite extends TestSuite {
             StringLiteral("abc", false),
             LocalName("a"),
             42)
-          ) evaluatesTo TpeConstructor1("X", Seq(
-            StringLiteral("abc", false),
-            LocalName("a"),
-            42)
-          ) withContext emptyContext
+          ) evaluatesTo (
+            (TpeConstructor1("X", Seq(
+              StringLiteral("abc", false),
+              LocalName("a"),
+              42)) : TpeConstructor) ->
+            Seq[BodyStmt]()
+            ) in Ø
         }
         * - {
           TpeConstructor1("X", Seq(
             StringLiteral("abc", false),
             LocalName("a"),
             42)
-          ) inContext (
+          ) in Ø.withAssignments (
             "a" -> "x"
             ) evaluatesTo TpeConstructor1("X", Seq(
             StringLiteral("abc", false),
             LocalName("x"),
             42)
-            ) withAssignments (
+            ) in Ø.withAssignments (
             "a" -> "x"
             )
         }
       }
 
       'rename_and_expand - {
-        TpeConstructor1("X", Seq(
+        TpeConstructor1("Foo", Seq(
           StringLiteral("abc", false),
           LocalName("a"),
           42)
-        ) inContext (
+        ) in Ø.withAssignments (
           "a" -> "x",
-          "X" -> "Y"
-          ) evaluatesTo TpeConstructor1("Y", Seq(
+          "Foo" -> "Bar"
+          ) evaluatesTo (
+          (TpeConstructor1("Foo", Seq(
           StringLiteral("abc", false),
           LocalName("x"),
-          42)
-          ) withAssignments (
+          42)) : TpeConstructor) ->
+          Seq[BodyStmt]()
+          ) in Ø.withAssignments (
           "a" -> "x",
-          "X" -> "Y"
+          "Foo" -> "Bar"
           )
       }
     }
 
     'tpeConstructorStar - {
-      TpeConstructorStar evaluatesTo TpeConstructorStar withContext emptyContext
+      TpeConstructorStar evaluatesTo (TpeConstructorStar, Seq.empty[BodyStmt]) in Ø
     }
 
     'tpeConstructor - {
-      * - { (TpeConstructorStar : TpeConstructor) evaluatesTo (TpeConstructorStar : TpeConstructor) withContext emptyContext }
+      * - { (TpeConstructorStar : TpeConstructor) evaluatesTo ((TpeConstructorStar : TpeConstructor, Seq.empty[BodyStmt])) in Ø }
 
       * - {
         (TpeConstructor1("X", Seq(
           StringLiteral("abc", false),
           LocalName("a"),
           42)
-        ) : TpeConstructor) inContext (
+        ) : TpeConstructor) in Ø.withAssignments(
           "a" -> "x",
           "X" -> "Y"
           ) evaluatesTo (TpeConstructor1("Y", Seq(
           StringLiteral("abc", false),
           LocalName("x"),
           42)
-        ) : TpeConstructor) withAssignments (
+        ) : TpeConstructor) in Ø.withAssignments (
           "a" -> "x",
           "X" -> "Y"
           )
       }
     }
 
-    'constructorDef - {
-      TopLevel.ConstructorDef(
-        "Foo",
-        Seq(),
-        ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
-      ) evaluatesTo (None: Option[TopLevel.InstanceExp]) withConstructors (
-        ("Foo": Identifier) -> TopLevel.ConstructorDef(
-        "Foo",
-        Seq(),
-        ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+    'tl_constructorDef - {
+      * - {
+        TopLevel.ConstructorDef(
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+          )
+        ) evaluatesTo (None: Option[TopLevel.InstanceExp]) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+          )
+          )
+      }
+
+      * - {
+        TopLevel.ConstructorDef(
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+          )
+        ) in Ø.withAssignments(
+          "Foo" -> "Bar"
+        ) evaluatesTo (None: Option[TopLevel.InstanceExp]) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+          )
+        ).withAssignments(
+          "Foo" -> "Bar"
         )
-      )
+      }
     }
 
     'constructorApp - {
@@ -307,181 +348,239 @@ object EvalTestSuite extends TestSuite {
         ) evaluatesTo ConstructorApp(
           TpeConstructor1("Foo", Seq()),
           Seq()
-        ) withContext emptyContext
+        ) in Ø
+      }
+
+      * - {
+        ConstructorApp(
+          TpeConstructor1("Foo", Seq()),
+          Seq()
+        ) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+          )
+        ) evaluatesTo ConstructorApp(
+          TpeConstructor1("Bar", Seq()),
+          Seq()
+        ) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+          )
+        )
+      }
+
+      * - {
+        ConstructorApp(
+          TpeConstructor1("Foo", Seq("a", "b")),
+          Seq()
+        ) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+          )
+        ) evaluatesTo ConstructorApp(
+          TpeConstructor1("Bar", Seq()),
+          Seq()
+        ) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+          )
+        )
+      }
+
+      * - {
+        ConstructorApp(
+          TpeConstructor1("Foo", Seq()),
+          Seq("a" -> "b")
+        ) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+          )
+        ) evaluatesTo ConstructorApp(
+          TpeConstructor1("Bar", Seq()),
+          Seq("a" -> "b")
+        ) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+          )
+        )
+      }
+
+      * - {
+        ConstructorApp(
+          TpeConstructor1("Foo", Seq()),
+          Seq()
+        ) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq("x" -> "y"))
+          )
+        ) evaluatesTo ConstructorApp(
+          TpeConstructor1("Bar", Seq()),
+          Seq("x" -> "y")
+        ) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq(),
+            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq("x" -> "y"))
+          )
+        )
+      }
+
+      * - {
+        ConstructorApp(
+          TpeConstructor1("Foo", Seq("matthew", 40)),
+          Seq()
+        ) in Ø.withConstructors(
+          ConstructorDef(
+            "Foo",
+            Seq("name", "age"),
+            ConstructorApp(TpeConstructor1(("foaf" :# "Person"), Seq()), Seq(
+              ("foaf" :# "name") -> "name",
+              ("foaf" :# "age") -> "age"
+            ))
+          )
+        ) evaluatesTo ConstructorApp(
+          TpeConstructor1("foaf" :# "Person", Seq()), Seq(
+            ("foaf" :# "name") -> "matthew",
+            ("foaf" :# "age") -> 40)
+        ) in Ø.withConstructors(
+          ConstructorDef(
+            "Foo",
+            Seq("name", "age"),
+            ConstructorApp(TpeConstructor1(("foaf" :# "Person"), Seq()), Seq(
+              ("foaf" :# "name") -> "name",
+              ("foaf" :# "age") -> "age"
+            ))
+          )
+        )
+      }
+
+      * - {
+        ConstructorApp(
+          TpeConstructor1("Foo", Seq("matthew", 40)),
+          Seq(("foaf" :# "knows") -> "caroline")
+        ) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq("name", "a"),
+            ConstructorApp(TpeConstructor1(("Bar"), Seq("a")), Seq(
+              ("foaf" :# "name") -> "name"
+            ))
+          ),
+          ConstructorDef(
+            "Bar",
+            Seq("age"),
+            ConstructorApp(TpeConstructor1(("foaf" :# "Person"), Seq()), Seq(
+              ("foaf" :# "age") -> "age"
+            ))
+          )
+        ) evaluatesTo ConstructorApp(
+          TpeConstructor1("foaf" :# "Person", Seq()), Seq(
+            ("foaf" :# "age") -> 40,
+            ("foaf" :# "name") -> "matthew",
+            ("foaf" :# "knows") -> "caroline")
+        ) in Ø.withConstructors (
+          ConstructorDef(
+            "Foo",
+            Seq("name", "a"),
+            ConstructorApp(TpeConstructor1(("Bar"), Seq("a")), Seq(
+              ("foaf" :# "name") -> "name"
+            ))
+          ),
+          ConstructorDef(
+            "Bar",
+            Seq("age"),
+            ConstructorApp(TpeConstructor1(("foaf" :# "Person"), Seq()), Seq(
+              ("foaf" :# "age") -> "age"
+            ))
+          )
+        )
       }
     }
 
-//    'individuals - {
-//      * - checkExpansion(parse("mySeq : Seq"), parse("mySeq : Seq"))
-//
-//      * - checkExpansion(
-//        parse(
-//          """mySeq : Seq
-//          |  x = y""".stripMargin),
-//        parse(
-//          """mySeq : Seq
-//          |  x = y""".stripMargin)
-//      )
-//
-//      * - checkExpansion(
-//        parse("Foo => Bar") ++
-//          parse("foo : Foo"),
-//        parse("foo : Bar"))
-//
-//      * - checkExpansion(
-//        parse(
-//          """Foo => Bar
-//            |  x = y
-//          """.stripMargin) ++
-//          parse("foo : Foo"),
-//        parse(
-//          """foo : Bar
-//            |  x = y""".stripMargin))
-//
-//      * - checkExpansion(
-//        parse(
-//          """Foo => Bar()
-//            |  x = y
-//          """.stripMargin) ++
-//          parse("foo : Foo"),
-//        parse(
-//          """foo : Bar
-//            |  x = y""".stripMargin))
-//
-//      * - checkExpansion(
-//        parse(
-//          """Foo => Bar()
-//            |  x = y
-//          """.stripMargin) ++
-//          parse("foo : Foo()"),
-//        parse(
-//          """foo : Bar
-//            |  x = y""".stripMargin))
-//
-//      * - checkExpansion(
-//        parse(
-//          """Foo => Bar
-//            |  x = y
-//          """.stripMargin) ++
-//          parse("foo : Foo()"),
-//        parse(
-//          """foo : Bar
-//            |  x = y""".stripMargin))
-//
-//      * - checkExpansion(
-//        parse(
-//          """Foo(b) => Bar
-//            |  a = b""".stripMargin) ++
-//          parse("foo : Foo(y)"),
-//        parse(
-//          """foo : Bar
-//            |  a = y""".stripMargin))
-//
-//      * - checkExpansion(
-//        parse(
-//          """Foo => Bar
-//          """.stripMargin) ++
-//          parse(
-//            """foo : Foo
-//              |  x = y""".stripMargin),
-//        parse(
-//          """foo : Bar
-//              |  x = y""".stripMargin))
-//
-//      * - checkExpansion(
-//        parse(
-//          """Foo => Bar
-//           |Bar => Baz
-//           |foo : Foo""".stripMargin),
-//        parse(
-//          "foo : Baz"))
-//    }
-//
-//    'individualAssignments - {
-//      * - checkExpansion(
-//        parse(
-//          """Foo = Bar
-//            |foo : Foo
-//          """.stripMargin),
-//        parse(
-//          """Foo = Bar
-//            |foo : Bar""".stripMargin
-//        ))
-//
-//      * - checkExpansion(
-//        parse(
-//          """Foo = Bar
-//            |Bar => Baz
-//            |foo : Foo
-//          """.stripMargin),
-//        parse(
-//          """Foo = Bar
-//            |foo : Baz""".stripMargin
-//        ))
-//
-//      * - checkExpansion(
-//        parse(
-//          """Foo => Bar
-//            |Bar = Baz
-//            |foo : Foo
-//          """.stripMargin),
-//        parse(
-//          """Bar = Baz
-//            |foo : Baz""".stripMargin
-//        ))
-//    }
-//
-//    'imports - {
-//
-//      * - checkExpansion()(
-//        parse("""mySeq : Seq
-//                |  x = y""".stripMargin),
-//        parse("""mySeq : Seq
-//                |  x = y""".stripMargin)
-//      )
-//
-//      * - checkExpansion(Url("exampleImport") -> SBFile())(
-//        parse("""mySeq : Seq
-//                |  x = y""".stripMargin),
-//        parse("""mySeq : Seq
-//                |  x = y""".stripMargin)
-//      )
-//
-//      * - checkExpansion(Url("exampleImport") -> SBFile(tops = parse("""Foo => Bar""")))(
-//        parse("""mySeq : Seq
-//                |  x = y""".stripMargin),
-//        parse("""mySeq : Seq
-//                |  x = y""".stripMargin)
-//      )
-//
-//      * - checkExpansion(Url("exampleImport") -> SBFile(tops = parse("""Foo => Bar""")))(
-//        parse("""import <exampleImport>
-//                |mySeq : Seq
-//                |  x = y""".stripMargin),
-//        ProcessedImport(Url("exampleImport"), SBFile(Seq())) +:
-//          parse("""mySeq : Seq
-//                |  x = y""".stripMargin)
-//      )
-//
-//      * - checkExpansion(Url("exampleImport") -> SBFile(tops = parse("""cat : Animal""")))(
-//        parse("""import <exampleImport>
-//                |mySeq : Seq
-//                |  x = y""".stripMargin),
-//        ProcessedImport(Url("exampleImport"), SBFile(parse("""cat : Animal"""))) +:
-//          parse("""mySeq : Seq
-//                  |  x = y""".stripMargin)
-//      )
-//
-//      * - checkExpansion(Url("exampleImport") -> SBFile(tops = parse("""Foo => Bar""")))(
-//        parse("""import <exampleImport>
-//                |mySeq : Foo
-//                |  x = y""".stripMargin),
-//        ProcessedImport(Url("exampleImport"), SBFile(Seq())) +:
-//          parse("""mySeq : Bar
-//                  |  x = y""".stripMargin)
-//      )
-//
-//    }
-  }
+    'sbfile - {
+      parse(
+        """WithNameAge(name, age) => WithAge(age)
+          |  <foaf:name> = name
+          |
+          |WithAge(age) => <foaf:person>
+          |  <foaf:age> = age
+          |
+          |me : WithNameAge("matthew", 40)
+          |  <foaf:knows> = "caroline"
+          |""".stripMargin) in Ø evaluatesTo parse_instances(
+        """me : <foaf:person>
+          |  <foaf:age> = 40
+          |  <foaf:name> = "matthew"
+          |  <foaf:knows> = "caroline"
+          |""".stripMargin) in Ø.withConstructors (
+        parse_constructorDef(
+          """WithNameAge(name, age) => WithAge(age)
+            |  <foaf:name> = name
+            |""".stripMargin),
+        parse_constructorDef(
+          """WithAge(age) => <foaf:person>
+            |  <foaf:age> = age
+            |""".stripMargin)
+      ).withInstances(
+        parse_instances(
+          """me : <foaf:person>
+            |  <foaf:age> = 40
+            |  <foaf:name> = "matthew"
+            |  <foaf:knows> = "caroline"
+            |""".stripMargin).map { i => i.instanceExp} :_*)
+    }
 
+    'import - {
+      val startCtxt = Ø.withResolver(Resolver.fromValues(
+        Url("http://xmlns.com/foaf/0.1/") -> parse(
+          """WithNameAge(name, age) => WithAge(age)
+            |  <foaf:name> = name
+            |
+            |WithAge(age) => <foaf:person>
+            |  <foaf:age> = age
+            |""".stripMargin
+        )
+      ))
+
+      parse(
+        """import <http://xmlns.com/foaf/0.1/>
+          |me : WithNameAge("matthew", 40)
+          |  <foaf:knows> = "caroline"
+          |""".stripMargin) in startCtxt evaluatesTo parse_instances(
+        """me : <foaf:person>
+          |  <foaf:age> = 40
+          |  <foaf:name> = "matthew"
+          |  <foaf:knows> = "caroline"
+          |""".stripMargin) in startCtxt.withConstructors (
+        parse_constructorDef(
+          """WithNameAge(name, age) => WithAge(age)
+            |  <foaf:name> = name
+            |""".stripMargin),
+        parse_constructorDef(
+          """WithAge(age) => <foaf:person>
+            |  <foaf:age> = age
+            |""".stripMargin)
+      ).withInstances(
+              parse_instances(
+                """me : <foaf:person>
+                  |  <foaf:age> = 40
+                  |  <foaf:name> = "matthew"
+                  |  <foaf:knows> = "caroline"
+                  |""".stripMargin).map { i => i.instanceExp} :_*)
+    }
+  }
 }

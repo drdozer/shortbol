@@ -50,6 +50,10 @@ object PrintApp extends TypeClassCompanion[PrintApp] {
 class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   import PrintApp._
 
+  def apply(t: TpeConstructor1) = t.append
+  def apply(c: ConstructorApp) = c.append
+  def apply(c: TopLevel.ConstructorDef) = c.append
+
   implicit val literal = PrintApp[Literal]
   implicit val identifier = PrintApp[Identifier]
   implicit val tpeConstructor = PrintApp[TpeConstructor]
@@ -75,7 +79,7 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     ie.cstrApp.append
   }
 
-  implicit lazy val constructorDef: PrintApp[TopLevel.ConstructorDef] = PrintApp.using { cd =>
+  implicit lazy val constructorDef: PrintApp[ConstructorDef] = PrintApp.using { cd =>
       indentStr.append
       cd.id.append
       if(cd.args.nonEmpty) {
@@ -105,7 +109,7 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   }
 
 
-  implicit lazy val constructor: PrintApp[ConstructorApp] = PrintApp.using { app =>
+  implicit lazy val constructorApp: PrintApp[ConstructorApp] = PrintApp.using { app =>
     app.cstr.append
     if(app.body.nonEmpty) {
       val pp = new PrettyPrinter(out, indent = indent + indentDepth)

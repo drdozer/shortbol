@@ -133,7 +133,7 @@ object ParserTestSuite extends TestSuite{
       'using_ValueExp - {
         shouldParse(
           "\"I am a string with some special chars ~#¢∞^&*()£@!.\"",
-          ShortbolParsers.ValueExp, StringLiteral("I am a string with some special chars ~#¢∞^&*()£@!."))
+          ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral("I am a string with some special chars ~#¢∞^&*()£@!.")))
       }
     }
 
@@ -166,10 +166,10 @@ object ParserTestSuite extends TestSuite{
       }
 
       'using_valueExp - {
-        * - shouldParse("{\nI am a string\n}", ShortbolParsers.ValueExp, MultiLineLiteral("I am a string\n"::Nil, 0))
-        * - shouldParse("{\n  I am a string\n  }", ShortbolParsers.ValueExp, MultiLineLiteral("I am a string\n"::Nil, 2))
-        * - shouldParse("{\n  I am a string\n }", ShortbolParsers.ValueExp, MultiLineLiteral(" I am a string\n"::Nil, 1))
-        * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParsers.ValueExp, MultiLineLiteral("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1))
+        * - shouldParse("{\nI am a string\n}", ShortbolParsers.ValueExp, ValueExp.Literal(MultiLineLiteral("I am a string\n"::Nil, 0)))
+        * - shouldParse("{\n  I am a string\n  }", ShortbolParsers.ValueExp, ValueExp.Literal(MultiLineLiteral("I am a string\n"::Nil, 2)))
+        * - shouldParse("{\n  I am a string\n }", ShortbolParsers.ValueExp, ValueExp.Literal(MultiLineLiteral(" I am a string\n"::Nil, 1)))
+        * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParsers.ValueExp, ValueExp.Literal(MultiLineLiteral("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1)))
       }
     }
 
@@ -662,78 +662,90 @@ object ParserTestSuite extends TestSuite{
 
       * - shouldParse(
         "DNAComponent => ComponentDefinition", ShortbolParser.topLevel.ConstructorDef,
-        TopLevel.ConstructorDef(LocalName("DNAComponent"), Nil,
-          ConstructorApp(
-            TpeConstructor1(
-              LocalName("ComponentDefinition"), Nil
+        TopLevel.ConstructorDef(
+          ConstructorDef(
+            LocalName("DNAComponent"), Nil,
+            ConstructorApp(
+              TpeConstructor1(
+                LocalName("ComponentDefinition"), Nil
 
-            ), Nil
+              ), Nil
+            )
           )
-
         )
       )
       * - shouldParse(
         "DNAComponent=>ComponentDefinition", ShortbolParser.topLevel.ConstructorDef,
-        TopLevel.ConstructorDef(LocalName("DNAComponent"), Nil,
-          ConstructorApp(
-            TpeConstructor1(
-              LocalName("ComponentDefinition"), Nil
+        TopLevel.ConstructorDef(
+          ConstructorDef(
+            LocalName("DNAComponent"), Nil,
+            ConstructorApp(
+              TpeConstructor1(
+                LocalName("ComponentDefinition"), Nil
 
-            ), Nil
+              ), Nil
+            )
           )
-
         )
       )
 
       * - shouldParse(
         "DNASequence(x) => Sequence", ShortbolParser.topLevel.ConstructorDef,
-        TopLevel.ConstructorDef(LocalName("DNASequence"), Seq(LocalName("x")),
-          ConstructorApp(
-            TpeConstructor1(
-              LocalName("Sequence"), Nil
+        TopLevel.ConstructorDef(
+          ConstructorDef(
+            LocalName("DNASequence"), Seq(LocalName("x")),
+            ConstructorApp(
+              TpeConstructor1(
+                LocalName("Sequence"), Nil
 
-            ), Nil
+              ), Nil
+            )
           )
-
         )
       )
 
       * - shouldParse(
         "DNASequence  (x)  =>  Sequence", ShortbolParser.topLevel.ConstructorDef,
-        TopLevel.ConstructorDef(LocalName("DNASequence"), Seq(LocalName("x")),
-          ConstructorApp(
-            TpeConstructor1(
-              LocalName("Sequence"), Nil
+        TopLevel.ConstructorDef(
+          ConstructorDef(
+            LocalName("DNASequence"), Seq(LocalName("x")),
+            ConstructorApp(
+              TpeConstructor1(
+                LocalName("Sequence"), Nil
 
-            ), Nil
+              ), Nil
+            )
           )
-
         )
       )
 
       * - shouldParse("a => b(x)", ShortbolParser.topLevel.ConstructorDef,
-        TopLevel.ConstructorDef(LocalName("a"), Nil,
-          ConstructorApp(
-            TpeConstructor1(
-              LocalName("b"), Seq(LocalName("x"))
+        TopLevel.ConstructorDef(
+          ConstructorDef(
+            LocalName("a"), Nil,
+            ConstructorApp(
+              TpeConstructor1(
+                LocalName("b"), Seq(LocalName("x"))
 
-            ), Nil
+              ), Nil
+            )
           )
-
         )
       )
       * - shouldParse(
         """DNAComponent => ComponentDefinition
           |   type = DNA
         """.stripMargin.trim, ShortbolParser.topLevel.ConstructorDef,
-        TopLevel.ConstructorDef(LocalName("DNAComponent"), Nil,
-          ConstructorApp(
-            TpeConstructor1(
-              LocalName("ComponentDefinition"), Nil
+        TopLevel.ConstructorDef(
+          ConstructorDef(
+            LocalName("DNAComponent"), Nil,
+            ConstructorApp(
+              TpeConstructor1(
+                LocalName("ComponentDefinition"), Nil
 
-            ), Seq(BodyStmt.Assignment(Assignment(LocalName("type"), LocalName("DNA"))))
+              ), Seq(BodyStmt.Assignment(Assignment(LocalName("type"), LocalName("DNA"))))
+            )
           )
-
         )
       )
 
@@ -742,17 +754,28 @@ object ParserTestSuite extends TestSuite{
           |   type = DNA
           |   sequence : DNASequence
         """.stripMargin.trim, ShortbolParser.topLevel.ConstructorDef,
-        TopLevel.ConstructorDef(LocalName("DNAComponent"), Nil,
-          ConstructorApp(
-            TpeConstructor1(
-              LocalName("ComponentDefinition"), Nil
-
-            ), Seq(ast.Assignment(LocalName("type"), LocalName("DNA")),
-              InstanceExp(LocalName("sequence"), ConstructorApp(TpeConstructor1(LocalName("DNASequence"), List()), List())))
+        TopLevel.ConstructorDef(
+          ConstructorDef(
+            LocalName("DNAComponent"), Nil,
+            ConstructorApp(
+              TpeConstructor1(
+                LocalName("ComponentDefinition"), Nil
+              ), Seq(ast.Assignment(LocalName("type"), LocalName("DNA")),
+                InstanceExp(LocalName("sequence"), ConstructorApp(TpeConstructor1(LocalName("DNASequence"), List()), List())))
+            )
           )
-
         )
       )
+
+      * - shouldParse(
+        """WithNameAge(name, age) => WithAge(age)
+          |  <foaf:name> = name
+        """.stripMargin.trim, ShortbolParser.ConstructorDef)
+
+      * - shouldParse(
+        """WithNameAge(name, age) => WithAge(age)
+          |  <foaf:name> = name
+        """.stripMargin.trim, ShortbolParser.topLevel.ConstructorDef)
 
 
     }
@@ -771,9 +794,12 @@ object ParserTestSuite extends TestSuite{
 
       * - shouldParse(
         "foo => bar", ShortbolParser.TopLevel,
-        TopLevel.ConstructorDef(LocalName("foo"),
-          Nil,
-          ConstructorApp(TpeConstructor1(LocalName("bar"), Nil), Nil))
+        TopLevel.ConstructorDef(
+          ConstructorDef(
+            LocalName("foo"),
+            Nil,
+            ConstructorApp(TpeConstructor1(LocalName("bar"), Nil), Nil))
+        )
       )
 
       * - shouldParse(
@@ -826,7 +852,7 @@ object ParserTestSuite extends TestSuite{
           |
           |BBa_J611210_seq : DNASequence("agcaaagc")
           |    a = b
-          |    a = b""".stripMargin,ShortbolParser.TopLevels
+          |    a = b""".stripMargin, ShortbolParser.TopLevels
       )
 
       * - shouldParse(
@@ -836,7 +862,7 @@ object ParserTestSuite extends TestSuite{
           |
           |b = a
           |b = a
-          |""".stripMargin,ShortbolParser.TopLevels
+          |""".stripMargin, ShortbolParser.TopLevels
 
       )
 
@@ -846,10 +872,29 @@ object ParserTestSuite extends TestSuite{
           |  a = b
           |  a = b
           |
-          |BBa_J611210_seq : seq""".stripMargin,ShortbolParser.TopLevels
+          |BBa_J611210_seq : seq""".stripMargin, ShortbolParser.TopLevels
 
       )
+    }
 
+    'SBFile - {
+      * - shouldParse(
+        """WithNameAge(name, age) => WithAge(age)
+          |  <foaf:name> = name
+          |
+          |WithAge(age) => <foaf:person>
+          |  <foaf:age> = age
+          |
+          |me : WithNameAge("matthew", 40)
+          |  <foaf:knows> = "caroline"
+          |""".stripMargin, ShortbolParser.SBFile)
+
+      * - shouldParse(
+        """me : <foaf:person>
+           |  <foaf:age> = 40
+           |  <foaf:name> = "matthew"
+           |  <foaf:knows> = "caroline"
+           |""".stripMargin, ShortbolParser.SBFile)
     }
 
   }
