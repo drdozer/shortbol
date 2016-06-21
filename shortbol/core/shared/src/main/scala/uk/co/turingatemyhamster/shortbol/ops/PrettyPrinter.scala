@@ -50,6 +50,7 @@ object PrintApp extends TypeClassCompanion[PrintApp] {
 class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   import PrintApp._
 
+  def apply(s: SBFile) = s.append
   def apply(t: TpeConstructor1) = t.append
   def apply(c: ConstructorApp) = c.append
   def apply(c: TopLevel.ConstructorDef) = c.append

@@ -7,23 +7,24 @@ import uk.co.turingatemyhamster.shortbol.ast.{SBFile, TopLevel}
 import uk.co.turingatemyhamster.shortbol.ops.{EvalContext, PrettyPrinter, Resolver, ShortbolParser}
 import web._
 
-/**
- * Created by nmrp3 on 08/09/15.
- */
-trait Fixture {
 
-  def eval(file: SBFile): (EvalContext, Seq[TopLevel.InstanceExp])
-  def eval(file: SBFile, ctxt: EvalContext): (EvalContext, Seq[TopLevel.InstanceExp])
+object Fixture {
 
-  def resolver: Resolver
+  import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 
-  def emptyContext: EvalContext
+  def eval(file: SBFile): (EvalContext, Seq[TopLevel.InstanceExp]) =
+    eval(file, emptyContext)
 
-  def prettyPrinter(out: Appendable): PrettyPrinter
+  def eval(file: SBFile, ctxt: EvalContext): (EvalContext, Seq[TopLevel.InstanceExp]) =
+    file.eval.run(ctxt)
 
-  def parser: ShortbolParser.type
+  def prettyPrinter(out: Appendable): PrettyPrinter = PrettyPrinter(out)
+
+  lazy val emptyContext: EvalContext = EvalContext(rslvr = resolver)
+
+  def parser: ShortbolParser.type = ShortbolParser
+
+  object resolver extends ResolverProvider
 //
 //  def toDatatree[DT <: Datatree](file: SBFile)(implicit  ee: ExporterEnv[DT]): DT#DocumentRoot
 }
-
-object Fixture extends FixtureProvider

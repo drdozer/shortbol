@@ -1,58 +1,49 @@
-package uk.turingatemyhamster.shortbol.server
+package uk.co.turingatemyhamster.shortbol
+package server
+
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl._
-import akka.http.scaladsl.server
-import akka.stream.ActorFlowMaterializer
-import akka.util.Timeout
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.Directives._
+import akka.stream.ActorMaterializer
+import fastparse.core.Parsed.{Failure, Success}
+
+import scala.io.StdIn
+import ast._
 import com.typesafe.config.ConfigFactory
-import fastparse.core.Result.{Failure, Success}
-import uk.co.turingatemyhamster.shortbol._
-import uk.co.turingatemyhamster.shortbol.ast.InstanceExp
-import uk.co.turingatemyhamster.shortbol.ops.{EvalContext, PrettyPrinter, ShortbolParser}
-
-import scala.concurrent.duration._
-
-object ShortbolServer extends App{
-
-  lazy val config = ConfigFactory.load()
+import ops._
 
 
-  implicit val system = ActorSystem("actor-system", config)
-  implicit val materializer = ActorFlowMaterializer()
-  implicit val executor = system.dispatcher
-  implicit val timeout: Timeout = Timeout(5 seconds)
+/**
+ *
+ *
+ * @author Matthew Pocock
+ */
+object ShortbolServer {
 
-  import server._
-  import model._
-  import Directives._
+  def main(args: Array[String]): Unit = {
+    lazy val config = ConfigFactory.load()
 
-  val routes: Route = {
-    pathPrefix("shortbol") {
-      path("expand") {
-        post {
-          entity(as[String]) { text =>
-            complete {
-              ShortbolParser.parser.File.parse(text) match {
-                case Success(tls, _) =>
-                  val out = new java.lang.StringBuilder
-                  val pp = PrettyPrinter(out)
-                  //val cstrs = Ops.constructors(tls)
-                  val inds = tls collect { case i : InstanceExp => i }
-                  val ex = EvalContext(cstrs, Bindings(Map()))
+    implicit val system = ActorSystem("actor-system", config)
+    implicit val materializer = ActorMaterializer()
+    implicit val executionContext = system.dispatcher
 
-                  import uk.co.turingatemyhamster.shortbol.ops.Eval.ops._
-
-                  for {
-                    i <- inds
-                    ie <- i expandWith ex
-                  } {
-                    pp.append(ie)
-                  }
-
-                  out.toString()
-                case f : Failure =>
-                  f.verboseTrace
+    val routes: Route = {
+      pathPrefix("shortbol") {
+        path("expand") {
+          post {
+            entity(as[String]) { text =>
+              complete {
+                ShortbolParser.SBFile.parse(text) match {
+                  case s: Success[SBFile] =>
+                    val out = new java.lang.StringBuilder
+                    val pp = PrettyPrinter(out)
+                    pp(s.value)
+                      out.toString()
+                  case f: Failure =>
+                    f.extra.traced.trace
+                }
               }
             }
           }

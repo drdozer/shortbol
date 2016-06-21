@@ -6,13 +6,15 @@ import fastparse.core.Parsed.{Failure, Success}
 import uk.co.turingatemyhamster.shortbol.ast.{SBFile, Url}
 import uk.co.turingatemyhamster.shortbol.ops.{ResolverBase, ShortbolParser}
 
-import scala.io.Source
 import scalaz._
 import Scalaz._
+import scala.io.Source
 
 /**
- * Created by nmrp3 on 08/09/15.
- */
+  *
+  *
+  * @author Matthew Pocock
+  */
 trait ResolverProvider extends ResolverBase {
   override def resolve(baseUrl: Option[Url], url: Url): Throwable \/ SBFile = {
     val resUri = baseUrl match {
@@ -30,3 +32,4 @@ trait ResolverProvider extends ResolverBase {
     }
   }
 }
+

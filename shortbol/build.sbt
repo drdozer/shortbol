@@ -16,6 +16,7 @@ lazy val astJVM = ast.jvm
 lazy val core = crossProject.settings(
   name := "shortbol-core",
   libraryDependencies += "com.github.mpilquist" %% "simulacrum" % "0.7.0",
+  libraryDependencies += "com.chuusai" %%% "shapeless" % "2.3.0",
   libraryDependencies += "com.lihaoyi" %%% "fastparse" % "0.3.7",
   libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.3",
   libraryDependencies += "uk.co.turingatemyhamster" %%% "datatree-core" % "develop-0.2.1",
@@ -24,14 +25,13 @@ lazy val core = crossProject.settings(
   ).settings(sharedSettings : _*).dependsOn(ast)
   
 lazy val coreJs = core.js.settings(
-  libraryDependencies += "com.github.japgolly.fork.scalaz" %%% "scalaz-core" % "7.1.3"
+  libraryDependencies += "com.github.japgolly.fork.scalaz" %%% "scalaz-core" % "7.2.0"
 )
 
 lazy val coreJVM = core.jvm.settings(packAutoSettings : _*).settings(
   resolvers += Resolver.sonatypeRepo("public"),
   libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.0",
-  libraryDependencies += "com.github.scopt" %% "scopt" % "3.4.0",
-  libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.0"
+  libraryDependencies += "com.github.scopt" %% "scopt" % "3.4.0"
 )
 
 lazy val server = crossProject.settings(
@@ -40,10 +40,35 @@ lazy val server = crossProject.settings(
 
 lazy val serverJs = server.js
 
-lazy val serverJvm = server.jvm.settings(
-  libraryDependencies ++= Seq(
-    "com.typesafe.akka" %% "akka-http-experimental" % "1.0-RC3"
-  )
+lazy val serverJvm = server.jvm
+  .enablePlugins(SbtWeb, sbtdocker.DockerPlugin, JavaAppPackaging)
+  .dependsOn(serverJs).settings(
+  libraryDependencies += "com.typesafe.akka" %% "akka-http-experimental" % "2.4.7",
+  (resources in Assets) += {
+    (fastOptJS in (serverJs, Compile)).value
+    (artifactPath in (serverJs, Compile, fastOptJS)).value
+  },
+  (resources in Assets) += {
+    (fastOptJS in (serverJs, Compile)).value
+    (artifactPath in (serverJs, Compile, packageScalaJSLauncher)).value
+  },
+  (resources in Assets) += {
+    (fastOptJS in (serverJs, Compile)).value
+    (artifactPath in (serverJs, Compile, packageJSDependencies)).value
+  },
+  (managedClasspath in Runtime) += (packageBin in Assets).value,
+
+  dockerfile in docker := {
+    val appDir: File = stage.value
+    val targetDir = "/app"
+
+    new Dockerfile {
+      from("java:8-jre")
+      entryPoint(s"$targetDir/bin/${executableScriptName.value}")
+      copy(appDir, targetDir)
+      expose(10080)
+    }
+  }
 )
 
 lazy val root = Project(
