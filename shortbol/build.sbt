@@ -31,7 +31,9 @@ lazy val coreJs = core.js.settings(
 lazy val coreJVM = core.jvm.settings(packAutoSettings : _*).settings(
   resolvers += Resolver.sonatypeRepo("public"),
   libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.0",
-  libraryDependencies += "com.github.scopt" %% "scopt" % "3.4.0"
+  libraryDependencies += "com.github.scopt" %% "scopt" % "3.4.0",
+  libraryDependencies += "com.lihaoyi" % "ammonite-repl" % "0.6.2" % "test" cross CrossVersion.full,
+  initialCommands in (Test, console) := """ammonite.repl.Main().run()"""
 )
 
 lazy val server = crossProject.settings(
