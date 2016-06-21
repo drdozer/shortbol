@@ -1,51 +1,57 @@
 package uk.co.turingatemyhamster
 package shortbol.ops
 
-import shapeless.{:+:, ::, CNil, Coproduct, Generic, HList, HNil, Inl, Inr}
 import shortbol.ast._
-import shortbol.shapeless._
-
-import scalaz.Scalaz._
-import scalaz._
 
 case class EvalContext(rslvr: Resolver,
                        rctxt: ResolutionContext = ResolutionContext(None, PrefixBindingsImpl(None, Map.empty)),
-                       cstrs: Map[Identifier, ConstructorDef] = Map.empty,
-                       bndgs: Map[Identifier, ValueExp] = Map.empty,
-                       insts: Map[Identifier, InstanceExp] = Map.empty,
+                       cstrs: Map[Identifier, List[ConstructorDef]] = Map.empty,
+                       bndgs: Map[Identifier, List[ValueExp]] = Map.empty,
+                       insts: Map[Identifier, List[InstanceExp]] = Map.empty,
                        thrwn: Seq[Throwable] = Seq.empty)
 {
 
   def withConstructors(cs: ConstructorDef*) =
-    copy(cstrs = cstrs ++ cs.map(c => c.id -> c))
+    copy(cstrs = cstrs ++ cs.map(c => c.id -> (c :: cstrs.getOrElse(c.id, Nil))))
 
   def withAssignments(as: Assignment*) =
-    copy(bndgs = bndgs ++ as.map(a => a.property -> a.value))
+    copy(bndgs = bndgs ++ as.map(a => a.property -> (a.value :: bndgs.getOrElse(a.property, Nil))))
 
   def withResolver(rslvr: Resolver) =
     copy(rslvr = rslvr)
 
   def withInstances(is: InstanceExp*) =
-    copy(insts  = insts ++ is.map(i => i.id -> i))
+    copy(insts  = insts ++ is.map(i => i.id -> (i :: insts.getOrElse(i.id, Nil))))
 
   def resolveBinding(id: Identifier): Option[ValueExp] =
-    bndgs get id orElse {
+    bndgs get id map (_.head) orElse {
       id match {
         case LocalName(name) =>
           (for {
-            (QName(_, LocalName(qln)), ve) <- bndgs if qln == name
+            (QName(_, LocalName(qln)), ve::_) <- bndgs if qln == name
           } yield ve).headOption // fixme: should report clashes
         case _ => None
       }
     }
 
   def resolveCstr(id: Identifier): Option[ConstructorDef] =
-    cstrs get id orElse {
+    cstrs get id map (_.head) orElse {
       id match {
         case LocalName(name) =>
           (for {
-            (QName(_, LocalName(qln)), ve) <- cstrs if qln == name
+            (QName(_, LocalName(qln)), ve::_) <- cstrs if qln == name
           } yield ve).headOption // fixme: should report clashes
+        case _ => None
+      }
+    }
+
+  def resolveInst(id: Identifier): Option[InstanceExp] =
+    insts get id map (_.head) orElse {
+      id match {
+        case LocalName(name) =>
+          (for {
+            (QName(_, LocalName(qln)), ie::_) <- insts if qln == name
+          } yield ie).headOption // fixme: should report clashes
         case _ => None
       }
     }
@@ -60,6 +66,12 @@ object EvalEval {
   type Aux[T, R] = Eval[T] { type Result = R }
 }
 
+
+import shapeless.{:+:, ::, CNil, Coproduct, Generic, HList, HNil, Inl, Inr}
+import shortbol.shapeless._
+
+import scalaz.Scalaz._
+import scalaz._
 
 object Eval extends TypeClassCompanion2[EvalEval.Aux] {
   import EvalEval.Aux

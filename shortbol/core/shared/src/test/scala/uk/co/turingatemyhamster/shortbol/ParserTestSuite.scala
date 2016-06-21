@@ -595,6 +595,27 @@ object ParserTestSuite extends TestSuite{
             )
           )
         )
+
+        * - shouldParse(
+          """a : b
+            |c : d""".stripMargin,
+          ShortbolParser.TopLevels,
+          Seq(
+            TopLevel.InstanceExp(
+              InstanceExp("a", ConstructorApp(
+                TpeConstructor1("b", Seq()),
+                Seq()
+              ))
+            ),
+            TopLevel.InstanceExp(
+              InstanceExp("c", ConstructorApp(
+                TpeConstructor1("d", Seq()),
+                Seq()
+              ))
+            )
+          )
+        )
+
       }
 
       'rejects - {

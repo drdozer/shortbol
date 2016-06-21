@@ -582,5 +582,15 @@ object EvalTestSuite extends TestSuite {
                   |  <foaf:knows> = "caroline"
                   |""".stripMargin).map { i => i.instanceExp} :_*)
     }
+
+    'instance_reassignment - {
+      val (ctxt, res) = parse(
+        """a : x
+          |a : y
+          |a : z""".stripMargin).eval.run(Ø)
+      val aRes = ctxt.resolveInst("a")
+      assert(aRes == Some(InstanceExp("a", ConstructorApp(TpeConstructor1("z", Seq()), Seq()))))
+      assert(ctxt.insts("a").length == 3)
+    }
   }
 }
