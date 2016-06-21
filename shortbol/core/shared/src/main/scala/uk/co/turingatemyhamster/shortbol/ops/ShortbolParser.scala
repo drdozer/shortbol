@@ -120,6 +120,12 @@ object ShortbolParsers {
 
   lazy val BlankLine: Parser[ast.BlankLine.type] = P(Space.rep) map
     (_ => ast.BlankLine)
+
+  lazy val TpeConstructorStar: Parser[ast.TpeConstructorStar.type] = P(Star) map
+    (_ => ast.TpeConstructorStar)
+  lazy val TpeConstructor1: Parser[ast.TpeConstructor1] = P(Identifier ~ Space.rep ~ ValueListO) map
+    (ast.TpeConstructor1.apply _ tupled)
+  lazy val TpeConstructor: Parser[ast.TpeConstructor] = P(TpeConstructor1 | TpeConstructorStar)
 }
 
 /**
@@ -129,23 +135,6 @@ sealed class ShortbolParser(indent: Int) {
   self =>
 
   import ShortbolParsers._
-
-  object topLevel {
-    val Assignment = ShortbolParsers.Assignment map ast.TopLevel.Assignment
-    val BlankLine = ShortbolParsers.BlankLine map ast.TopLevel.BlankLine
-    val Import = P("import" ~ Space.rep(1) ~ Identifier) map ast.TopLevel.Import
-    val Comment = ShortbolParsers.Comment map ast.TopLevel.Comment
-    val InstanceExp = self.InstanceExp map ast.TopLevel.InstanceExp
-    val ConstructorDef = self.ConstructorDef map ast.TopLevel.ConstructorDef
-  }
-
-  lazy val TopLevel = P(
-    topLevel.Import |
-      topLevel.Comment |
-      topLevel.InstanceExp |
-      topLevel.ConstructorDef |
-      topLevel.Assignment |
-      topLevel.BlankLine)
 
   object bodyStmt {
     val Assignment = ShortbolParsers.Assignment map ast.BodyStmt.Assignment
@@ -179,12 +168,6 @@ sealed class ShortbolParser(indent: Int) {
 
   lazy val ConstructorApp: Parser[ast.ConstructorApp] = P(InfixConstructorApp | PrefixConstructorApp)
 
-  lazy val TpeConstructorStar: Parser[ast.TpeConstructorStar.type] = P(Star) map
-    (_ => ast.TpeConstructorStar)
-  lazy val TpeConstructor1: Parser[ast.TpeConstructor1] = P(Identifier ~ Space.rep ~ ValueListO) map
-    (ast.TpeConstructor1.apply _ tupled)
-  lazy val TpeConstructor: Parser[ast.TpeConstructor] = P(TpeConstructor1 | TpeConstructorStar)
-
   lazy val InstanceExp: Parser[ast.InstanceExp] =
     P(Identifier ~ Space.rep ~ Colon ~/ Space.rep ~ PrefixConstructorApp) map
       (ast.InstanceExp.apply _ tupled)
@@ -194,7 +177,26 @@ sealed class ShortbolParser(indent: Int) {
 }
 
 object ShortbolParser extends ShortbolParser(0) {
+  self =>
+
   import ShortbolParsers._
+
+  object topLevel {
+    val Assignment = ShortbolParsers.Assignment map ast.TopLevel.Assignment
+    val BlankLine = ShortbolParsers.BlankLine map ast.TopLevel.BlankLine
+    val Import = P("import" ~ Space.rep(1) ~ Identifier) map ast.TopLevel.Import
+    val Comment = ShortbolParsers.Comment map ast.TopLevel.Comment
+    val InstanceExp = self.InstanceExp map ast.TopLevel.InstanceExp
+    val ConstructorDef = self.ConstructorDef map ast.TopLevel.ConstructorDef
+  }
+
+  lazy val TopLevel = P(
+    topLevel.Import |
+      topLevel.Comment |
+      topLevel.InstanceExp |
+      topLevel.ConstructorDef |
+      topLevel.Assignment |
+      topLevel.BlankLine)
 
   lazy val TopLevels: Parser[Seq[ast.TopLevel]] = P(TopLevel.rep(sep = SpNl))
 
