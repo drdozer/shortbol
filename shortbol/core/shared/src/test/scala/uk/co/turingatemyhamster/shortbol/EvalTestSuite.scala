@@ -76,11 +76,13 @@ object EvalTestSuite extends TestSuite {
     }
 
     'stringLiteral - {
-      * - { StringLiteral("abc", false) evaluatesTo StringLiteral("abc", false) in Ø }
+      * - { StringLiteral(StringLiteral.SingleLine("abc", false)) evaluatesTo
+        StringLiteral(StringLiteral.SingleLine("abc", false)) in Ø }
     }
 
     'multiLineLiteral - {
-      * - { MultiLineLiteral(Seq("abc", "def"), 4) evaluatesTo MultiLineLiteral(Seq("abc", "def"), 4) in Ø }
+      * - { StringLiteral(StringLiteral.MultiLine(Seq("abc", "def"), 4)) evaluatesTo
+        StringLiteral(StringLiteral.MultiLine(Seq("abc", "def"), 4)) in Ø }
     }
 
     'integerLiteral - {
@@ -88,8 +90,8 @@ object EvalTestSuite extends TestSuite {
     }
 
     'literal - {
-      * - { (StringLiteral("abc", false) : Literal) evaluatesTo (StringLiteral("abc", false) : Literal) in Ø }
-      * - { (MultiLineLiteral(Seq("abc", "def"), 4) : Literal) evaluatesTo (MultiLineLiteral(Seq("abc", "def"), 4) : Literal) in Ø }
+      * - { (StringLiteral.SingleLine("abc", false) : Literal) evaluatesTo (StringLiteral.SingleLine("abc", false) : Literal) in Ø }
+      * - { (StringLiteral.MultiLine(Seq("abc", "def"), 4) : Literal) evaluatesTo (StringLiteral.MultiLine(Seq("abc", "def"), 4) : Literal) in Ø }
       * - { (IntegerLiteral(42) : Literal) evaluatesTo (IntegerLiteral(42) : Literal) in Ø }
     }
 
@@ -117,24 +119,24 @@ object EvalTestSuite extends TestSuite {
     }
 
     'valueExp - {
-      * - { (StringLiteral("abc", false) : ValueExp) evaluatesTo (StringLiteral("abc", false) : ValueExp) in Ø }
+      * - { (StringLiteral.SingleLine("abc", false) : ValueExp) evaluatesTo (StringLiteral.SingleLine("abc", false) : ValueExp) in Ø }
       * - { (LocalName("a") : ValueExp) in Ø.withAssignments("a" -> "x") evaluatesTo ("x" : ValueExp) in Ø.withAssignments ("a" -> "x") }
       * - { (LocalName("a") : ValueExp) in Ø.withAssignments("a" -> 42) evaluatesTo (42 : ValueExp) in Ø.withAssignments ("a" -> 42) }
       * - { (Url("a") : ValueExp) evaluatesTo (Url("a") : ValueExp) in Ø }
       * - { (QName("pfx", "ln") : ValueExp) evaluatesTo (QName("pfx", "ln") : ValueExp) in Ø }
-      * - { (StringLiteral("abc", false) : ValueExp) evaluatesTo (StringLiteral("abc", false) : ValueExp) in Ø }
-      * - { (MultiLineLiteral(Seq("abc", "def"), 4) : ValueExp) evaluatesTo (MultiLineLiteral(Seq("abc", "def"), 4) : ValueExp) in Ø }
+      * - { (StringLiteral.SingleLine("abc", false) : ValueExp) evaluatesTo (StringLiteral.SingleLine("abc", false) : ValueExp) in Ø }
+      * - { (StringLiteral.MultiLine(Seq("abc", "def"), 4) : ValueExp) evaluatesTo (StringLiteral.MultiLine(Seq("abc", "def"), 4) : ValueExp) in Ø }
       * - { (42 : ValueExp) evaluatesTo (42 : ValueExp) in Ø }
     }
 
     'valueExps - {
       * - {
         Seq[ValueExp](
-          StringLiteral("abc", false),
+          StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42
         ) evaluatesTo Seq[ValueExp](
-          StringLiteral("abc", false),
+          StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42
         ) in Ø
@@ -142,13 +144,13 @@ object EvalTestSuite extends TestSuite {
 
       * - {
         Seq[ValueExp](
-          StringLiteral("abc", false),
+          StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42
         ) in Ø.withAssignments(
           "a" -> "x"
           ) evaluatesTo Seq[ValueExp](
-          StringLiteral("abc", false),
+          StringLiteral.SingleLine("abc", false),
           LocalName("x"),
           42
         ) in Ø.withAssignments (
@@ -227,12 +229,12 @@ object EvalTestSuite extends TestSuite {
       'expand_body - {
         * - {
           TpeConstructor1("X", Seq(
-            StringLiteral("abc", false),
+            StringLiteral.SingleLine("abc", false),
             LocalName("a"),
             42)
           ) evaluatesTo (
             (TpeConstructor1("X", Seq(
-              StringLiteral("abc", false),
+              StringLiteral.SingleLine("abc", false),
               LocalName("a"),
               42)) : TpeConstructor) ->
             Seq[BodyStmt]()
@@ -240,13 +242,13 @@ object EvalTestSuite extends TestSuite {
         }
         * - {
           TpeConstructor1("X", Seq(
-            StringLiteral("abc", false),
+            StringLiteral.SingleLine("abc", false),
             LocalName("a"),
             42)
           ) in Ø.withAssignments (
             "a" -> "x"
             ) evaluatesTo TpeConstructor1("X", Seq(
-            StringLiteral("abc", false),
+            StringLiteral.SingleLine("abc", false),
             LocalName("x"),
             42)
             ) in Ø.withAssignments (
@@ -257,7 +259,7 @@ object EvalTestSuite extends TestSuite {
 
       'rename_and_expand - {
         TpeConstructor1("Foo", Seq(
-          StringLiteral("abc", false),
+          StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42)
         ) in Ø.withAssignments (
@@ -265,7 +267,7 @@ object EvalTestSuite extends TestSuite {
           "Foo" -> "Bar"
           ) evaluatesTo (
           (TpeConstructor1("Foo", Seq(
-          StringLiteral("abc", false),
+          StringLiteral.SingleLine("abc", false),
           LocalName("x"),
           42)) : TpeConstructor) ->
           Seq[BodyStmt]()
@@ -285,14 +287,14 @@ object EvalTestSuite extends TestSuite {
 
       * - {
         (TpeConstructor1("X", Seq(
-          StringLiteral("abc", false),
+          StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42)
         ) : TpeConstructor) in Ø.withAssignments(
           "a" -> "x",
           "X" -> "Y"
           ) evaluatesTo (TpeConstructor1("Y", Seq(
-          StringLiteral("abc", false),
+          StringLiteral.SingleLine("abc", false),
           LocalName("x"),
           42)
         ) : TpeConstructor) in Ø.withAssignments (

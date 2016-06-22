@@ -42,14 +42,24 @@ case class QName(prefix: NSPrefix, localName: LocalName) extends Identifier
 case class Url(url: String) extends Identifier
 
 // literals
-// should support string, string with language code, string with xs type
-case class StringLiteral(s: String, escaped: Boolean = false) extends Literal {
-  def isEscaped = escaped || s.contains("\"")
+
+// see: https://www.w3.org/TR/rdf11-concepts/#section-Graph-Literal
+case class StringLiteral(string: StringLiteral.Style, datatype: Option[Datatype] = None, language: Option[Language] = None) extends Literal
+
+object StringLiteral {
+  sealed trait Style
+
+  case class SingleLine(s: String, escaped: Boolean = false) extends Style {
+    def isEscaped = escaped || s.contains("\"")
+  }
+
+  case class MultiLine(ss: Seq[String], indent: Int) extends Style
 }
 
-case class MultiLineLiteral(ss: Seq[String], indent: Int) extends Literal
-
 case class IntegerLiteral(i: Int) extends Literal
+
+case class Datatype(iri: String)
+case class Language(tag: String)
 
 // type constructors
 case class TpeConstructor1(id: Identifier, args: Seq[ValueExp]) extends TpeConstructor
@@ -92,6 +102,9 @@ object sugar {
   implicit def veLiteral[L](l: L)(implicit e: L => ast.Literal): ValueExp.Literal = ValueExp.Literal(l)
 
   implicit def ass[A, B](ab: (A, B))(implicit ai: A => Identifier, bv: B => ValueExp): Assignment = Assignment(ab._1, ab._2)
+
+  implicit def strLit[S](s: S)(implicit e: S => StringLiteral.Style): StringLiteral = StringLiteral(s, None, None)
+//  implicit def strL(s: String): StringLiteral.SingleLine = StringLiteral.SingleLine(s)
 
   implicit def strLN(s: String): LocalName = LocalName(s)
   implicit def strNP(s: String): NSPrefix = NSPrefix(s)

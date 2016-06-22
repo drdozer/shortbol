@@ -152,6 +152,12 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   }
 
   implicit lazy val stringLiteral: PrintApp[StringLiteral] = PrintApp.using { str =>
+    str.string.append
+    str.datatype.foreach(_.append)
+    str.language.foreach(_.append)
+  }
+
+  implicit lazy val singleLine: PrintApp[StringLiteral.SingleLine] = PrintApp.using { str =>
     if(str.isEscaped) {
       "{".append
       str.s.append
@@ -163,7 +169,7 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     }
   }
 
-  implicit lazy val mutliLineLiteral: PrintApp[MultiLineLiteral] = PrintApp.using { str =>
+  implicit lazy val mutliLine: PrintApp[StringLiteral.MultiLine] = PrintApp.using { str =>
     val indentStr = " " * str.indent
     "{".append
     indentStr.append
@@ -172,6 +178,16 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
       indentStr.append
     }
     "}".append
+  }
+
+  implicit lazy val datatype: PrintApp[Datatype] = PrintApp.using { dt =>
+    "^^".append
+    dt.iri.append
+  }
+
+  implicit lazy val language: PrintApp[Language] = PrintApp.using { l =>
+    "@@".append
+    l.tag.append
   }
 
   implicit lazy val integerLiteral: PrintApp[IntegerLiteral] = PrintApp.using {

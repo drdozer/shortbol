@@ -118,35 +118,35 @@ object ParserTestSuite extends TestSuite{
         'accepts - {
           shouldParse(
             "\"I am a string with some special chars ~#¢∞^&*()£@!.\"",
-            ShortbolParsers.StringLiteral,
-            StringLiteral("I am a string with some special chars ~#¢∞^&*()£@!."))
+            ShortbolParsers.QuotedStringLiteral,
+            StringLiteral.SingleLine("I am a string with some special chars ~#¢∞^&*()£@!."))
         }
 
         'rejects - {
-          * - shouldNotParse("\"I am a \"string\" with some special chars ~#¢∞^&*()£@!.\"", ShortbolParsers.StringLiteral)
-          * - shouldNotParse("I am not a string", ShortbolParsers.StringLiteral)
-          * - shouldNotParse("\"I am half a string", ShortbolParsers.StringLiteral)
-          * - shouldNotParse("\"I am not\nastring\"", ShortbolParsers.StringLiteral)
+          * - shouldNotParse("\"I am a \"string\" with some special chars ~#¢∞^&*()£@!.\"", ShortbolParsers.QuotedStringLiteral)
+          * - shouldNotParse("I am not a string", ShortbolParsers.QuotedStringLiteral)
+          * - shouldNotParse("\"I am half a string", ShortbolParsers.QuotedStringLiteral)
+          * - shouldNotParse("\"I am not\nastring\"", ShortbolParsers.QuotedStringLiteral)
         }
       }
 
       'using_ValueExp - {
         shouldParse(
           "\"I am a string with some special chars ~#¢∞^&*()£@!.\"",
-          ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral("I am a string with some special chars ~#¢∞^&*()£@!.")))
+          ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral.SingleLine("I am a string with some special chars ~#¢∞^&*()£@!.")))
       }
     }
 
     'CurlyLiteral - {
       'rejects - {
-        * - shouldNotParse("{I am a multiline \nstring}", ShortbolParsers.StringLiteral)
-        * - shouldNotParse("{\nI am a string\n}", ShortbolParsers.StringLiteral)
-        * - shouldNotParse("{\nI am\na string\n}", ShortbolParsers.StringLiteral)
+        * - shouldNotParse("{I am a multiline \nstring}", ShortbolParsers.CurlyStringLiteral)
+        * - shouldNotParse("{\nI am a string\n}", ShortbolParsers.CurlyStringLiteral)
+        * - shouldNotParse("{\nI am\na string\n}", ShortbolParsers.CurlyStringLiteral)
       }
 
       'accepts - {
-        * - shouldParse("{I am also a string}", ShortbolParsers.StringLiteral, StringLiteral("I am also a string", escaped = true))
-        * - shouldParse("{ I am also a string }", ShortbolParsers.StringLiteral, StringLiteral(" I am also a string ", escaped = true))
+        * - shouldParse("{I am also a string}", ShortbolParsers.CurlyStringLiteral, StringLiteral.SingleLine("I am also a string", escaped = true))
+        * - shouldParse("{ I am also a string }", ShortbolParsers.CurlyStringLiteral, StringLiteral.SingleLine(" I am also a string ", escaped = true))
       }
     }
 
@@ -158,18 +158,18 @@ object ParserTestSuite extends TestSuite{
         }
 
         'accepts - {
-          * - shouldParse("{\nI am a string\n}", ShortbolParsers.MultiLineLiteral, MultiLineLiteral("I am a string\n"::Nil, 0))
-          * - shouldParse("{\n  I am a string\n  }", ShortbolParsers.MultiLineLiteral, MultiLineLiteral("I am a string\n"::Nil, 2))
-          * - shouldParse("{\n  I am a string\n }", ShortbolParsers.MultiLineLiteral, MultiLineLiteral(" I am a string\n"::Nil, 1))
-          * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParsers.MultiLineLiteral, MultiLineLiteral("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1))
+          * - shouldParse("{\nI am a string\n}", ShortbolParsers.MultiLineLiteral, StringLiteral.MultiLine("I am a string\n"::Nil, 0))
+          * - shouldParse("{\n  I am a string\n  }", ShortbolParsers.MultiLineLiteral, StringLiteral.MultiLine("I am a string\n"::Nil, 2))
+          * - shouldParse("{\n  I am a string\n }", ShortbolParsers.MultiLineLiteral, StringLiteral.MultiLine(" I am a string\n"::Nil, 1))
+          * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParsers.MultiLineLiteral, StringLiteral.MultiLine("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1))
         }
       }
 
       'using_valueExp - {
-        * - shouldParse("{\nI am a string\n}", ShortbolParsers.ValueExp, ValueExp.Literal(MultiLineLiteral("I am a string\n"::Nil, 0)))
-        * - shouldParse("{\n  I am a string\n  }", ShortbolParsers.ValueExp, ValueExp.Literal(MultiLineLiteral("I am a string\n"::Nil, 2)))
-        * - shouldParse("{\n  I am a string\n }", ShortbolParsers.ValueExp, ValueExp.Literal(MultiLineLiteral(" I am a string\n"::Nil, 1)))
-        * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParsers.ValueExp, ValueExp.Literal(MultiLineLiteral("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1)))
+        * - shouldParse("{\nI am a string\n}", ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral.MultiLine("I am a string\n"::Nil, 0)))
+        * - shouldParse("{\n  I am a string\n  }", ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral.MultiLine("I am a string\n"::Nil, 2)))
+        * - shouldParse("{\n  I am a string\n }", ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral.MultiLine(" I am a string\n"::Nil, 1)))
+        * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral.MultiLine("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1)))
       }
     }
 
@@ -192,14 +192,14 @@ object ParserTestSuite extends TestSuite{
     'Assignment - {
       'accepts - {
         * - shouldParse("x = y", ShortbolParsers.Assignment, Assignment(LocalName("x"), LocalName("y")))
-        * - shouldParse("sequence = \"aactaggactaatg\"", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), StringLiteral("aactaggactaatg")))
-        * - shouldParse("sequence    =        \"aactaggactaatg\"", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), StringLiteral("aactaggactaatg")))
+        * - shouldParse("sequence = \"aactaggactaatg\"", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), StringLiteral.SingleLine("aactaggactaatg")))
+        * - shouldParse("sequence    =        \"aactaggactaatg\"", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), StringLiteral.SingleLine("aactaggactaatg")))
         * - shouldParse("encoding = SBOL:DNA", ShortbolParsers.Assignment, Assignment(LocalName("encoding"), QName(NSPrefix("SBOL"), LocalName("DNA"))))
         * - shouldParse("type = <http://www.biopax.org/release/biopax-level3.owl#DnaRegion>", ShortbolParsers.Assignment, Assignment(LocalName("type"), Url("http://www.biopax.org/release/biopax-level3.owl#DnaRegion")))
         * - shouldParse("SBOL:DNA = <http://www.biopax.org/release/biopax-level3.owl#DnaRegion>", ShortbolParsers.Assignment, Assignment(QName(NSPrefix("SBOL"), LocalName("DNA")), Url("http://www.biopax.org/release/biopax-level3.owl#DnaRegion")))
         * - shouldParse("start =   22", ShortbolParsers.Assignment, Assignment(LocalName("start"), IntegerLiteral(22)))
         * - shouldParse("component = DNAComponent", ShortbolParsers.Assignment, Assignment(LocalName("component"), LocalName("DNAComponent")))
-        * - shouldParse("sequence = {\naacc\naacc\n}", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), MultiLineLiteral("aacc\n"::"aacc\n"::Nil, 0)))
+        * - shouldParse("sequence = {\naacc\naacc\n}", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), StringLiteral.MultiLine("aacc\n"::"aacc\n"::Nil, 0)))
       }
 
       'rejects - {
@@ -470,7 +470,7 @@ object ParserTestSuite extends TestSuite{
           InstanceExp(
             LocalName("dna_sequence"), ConstructorApp(
               TpeConstructor1(
-                LocalName("DNASequence"),Seq(StringLiteral("AAAAGTAAAACA"))
+                LocalName("DNASequence"),Seq(StringLiteral.SingleLine("AAAAGTAAAACA"))
               ),Nil
             )
           )
@@ -482,7 +482,7 @@ object ParserTestSuite extends TestSuite{
           InstanceExp(
             LocalName("dna_sequence"), ConstructorApp(
               TpeConstructor1(
-                LocalName("DNASequence"),Seq(StringLiteral("AAAAGTAAAACA"))
+                LocalName("DNASequence"),Seq(StringLiteral.SingleLine("AAAAGTAAAACA"))
               ),Nil
             )
           )
@@ -655,7 +655,7 @@ object ParserTestSuite extends TestSuite{
         "\"a\" drives \"b\"",ShortbolParsers.InfixConstructorApp,
         ConstructorApp(
           TpeConstructor1(
-            LocalName("drives"), Seq(StringLiteral("a"), StringLiteral("b"))
+            LocalName("drives"), Seq(StringLiteral.SingleLine("a"), StringLiteral.SingleLine("b"))
           ), Nil
         ))
 

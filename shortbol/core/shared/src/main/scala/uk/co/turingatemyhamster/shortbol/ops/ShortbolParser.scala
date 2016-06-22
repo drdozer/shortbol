@@ -71,24 +71,30 @@ object ShortbolParsers {
   lazy val QuotedIdentifier = P(Lt ~/ Url ~/ Gt)
   lazy val Identifier: Parser[ast.Identifier] = P( QuotedIdentifier | QName | LocalName)
 
-  lazy val QuotedStringLiteral = P(DQuote ~/ (!DQuote ~ !Nl ~ AnyChar).rep.! ~ DQuote) map
-    (s => ast.StringLiteral(s))
+  lazy val quotedString = DQuote ~/ (!DQuote ~ !Nl ~ AnyChar).rep.! ~ DQuote
+  lazy val QuotedStringLiteral = P(quotedString) map
+    (s => ast.StringLiteral.SingleLine(s))
 
-  lazy val CurlyStringLiteral = P(LBrace ~/ (!RBrace ~ !Nl ~ AnyChar).rep.! ~ RBrace) map
-    (s => ast.StringLiteral(s, escaped = true))
+  lazy val CurlyStringLiteral = P(LBrace ~ (!RBrace ~ !Nl ~ AnyChar).rep.! ~ RBrace) map
+    (s => ast.StringLiteral.SingleLine(s, escaped = true))
 
-  lazy val StringLiteral = P(QuotedStringLiteral | CurlyStringLiteral)
+  lazy val StringLiteral = P( (QuotedStringLiteral | CurlyStringLiteral | MultiLineLiteral) ~ Datatype.? ~ Language.? ) map
+    (ast.StringLiteral.apply _ tupled)
+
+  lazy val Datatype = P( "^^" ~ quotedString) map ast.Datatype
+
+  lazy val Language = P( "@" ~ quotedString) map ast.Language
 
   lazy val MultiLineLiteralStart = P(LBrace ~/ Space.rep ~ Nl)
   lazy val MultiLineLiteralLine = P(!MultiLineLiteralEnd ~ ((!Nl ~ AnyChar).rep ~ Nl).!)
   lazy val MultiLineLiteralEnd = P(Space.rep.! ~ RBrace) map
     (_.length)
   lazy val MultiLineLiteral = P(MultiLineLiteralStart ~/ MultiLineLiteralLine.rep ~ MultiLineLiteralEnd) map
-    { case (ss, i) => ast.MultiLineLiteral(ss map (_ substring i), i) }
+    { case (ss, i) => ast.StringLiteral.MultiLine(ss map (_ substring i), i) }
 
   lazy val DigitSign = P(Plus | Hyphen)
   lazy val IntegerLiteral = P((DigitSign.? ~ Digit.rep(1)).!).map(_.toInt).map(ast.IntegerLiteral)
-  lazy val Literal = P(StringLiteral.noCut | MultiLineLiteral | IntegerLiteral)
+  lazy val Literal = P(StringLiteral.noCut | IntegerLiteral)
 
   lazy val Assignment: Parser[ast.Assignment] = P(Identifier ~ Space.rep ~ Eq ~/ Space.rep ~ ValueExp) map
     (ast.Assignment.apply _ tupled)

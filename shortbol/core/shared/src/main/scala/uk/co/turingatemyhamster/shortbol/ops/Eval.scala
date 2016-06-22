@@ -352,7 +352,6 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     typeClass.project[T, U, U, U](e, to, identity)
 
   implicit val stringLiteral: Aux[StringLiteral, StringLiteral] = identityEval
-  implicit val multiLineLiteral: Aux[MultiLineLiteral, MultiLineLiteral] = identityEval
   implicit val integerLiteral: Aux[IntegerLiteral, IntegerLiteral] = identityEval
   implicit val localName: Aux[LocalName, Identifier] = as[LocalName, Identifier]
   implicit val qname: Aux[QName, Identifier] = as[QName, Identifier]
