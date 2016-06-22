@@ -223,18 +223,6 @@ object ParserTestSuite extends TestSuite{
       }
     }
 
-    'Import - {
-      'accepts - {
-        * - shouldParse("import template_libary", ShortbolParser.topLevel.Import, TopLevel.Import(LocalName("template_libary")))
-        * - shouldParse("import <var/foo/libary/template_libary>", ShortbolParser.topLevel.Import, TopLevel.Import(Url("var/foo/libary/template_libary")))
-      }
-
-      'rejects - {
-        * - shouldNotParse("importtemplate_libary", ShortbolParser.topLevel.Import)
-        * - shouldNotParse("import template\n_libary", ShortbolParser.topLevel.Import)
-      }
-    }
-
     'Indent - {
       * - shouldParse(" ", ShortbolParser.Indent, 1)
     }
@@ -813,11 +801,6 @@ object ParserTestSuite extends TestSuite{
             Nil,
             ConstructorApp(TpeConstructor1(LocalName("bar"), Nil), Nil))
         )
-      )
-
-      * - shouldParse(
-        "import blablabla", ShortbolParser.TopLevel,
-        TopLevel.Import(LocalName("blablabla"))
       )
 
       * - shouldParse(

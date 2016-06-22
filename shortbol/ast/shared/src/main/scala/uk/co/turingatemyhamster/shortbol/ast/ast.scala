@@ -14,7 +14,6 @@ object TopLevel {
   case class Assignment(assignment: ast.Assignment) extends TopLevel
   case class BlankLine(blankLine: ast.BlankLine.type) extends TopLevel
   case class Comment(comment: ast.Comment) extends TopLevel
-  case class Import(path: Identifier) extends TopLevel
   case class InstanceExp(instanceExp: ast.InstanceExp) extends TopLevel
   case class ConstructorDef(constructorDef: ast.ConstructorDef) extends TopLevel
 }

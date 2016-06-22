@@ -135,7 +135,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
   // Smelly! Find a way to compute this
   implicit lazy val topLevel: Aux[TopLevel, Option[TopLevel.InstanceExp]] = {
-    type U = Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil
+    type U = Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil
     val g = Generic[TopLevel]
     val e = Eval[g.Repr, U]
     typeClass.project[TopLevel, g.Repr, Option[TopLevel.InstanceExp], U](e, g.to, _.unify)
@@ -174,26 +174,26 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
       } yield None
     }
 
-  implicit val `import`: Aux[TopLevel.Import, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.Import] {
-    override type Result = Option[TopLevel.InstanceExp]
-    override def apply(t: TopLevel.Import) = t match {
-      case TopLevel.Import(path) =>
-        for {
-          resolver <- gets ((_: EvalContext).rslvr)
-          ctxt <- gets ((_: EvalContext).rctxt)
-          i <- resolver.resolve(ctxt, path) match {
-            case \/-(imported) =>
-              for {
-                ex <- imported.eval
-              } yield None
-            case -\/(err) =>
-              for {
-                _ <- modify((ec: EvalContext) => ec.copy(thrwn = ec.thrwn :+ err))
-              } yield None
-          }
-        } yield i
-    }
-  }
+//  implicit val `import`: Aux[TopLevel.Import, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.Import] {
+//    override type Result = Option[TopLevel.InstanceExp]
+//    override def apply(t: TopLevel.Import) = t match {
+//      case TopLevel.Import(path) =>
+//        for {
+//          resolver <- gets ((_: EvalContext).rslvr)
+//          ctxt <- gets ((_: EvalContext).rctxt)
+//          i <- resolver.resolve(ctxt, path) match {
+//            case \/-(imported) =>
+//              for {
+//                ex <- imported.eval
+//              } yield None
+//            case -\/(err) =>
+//              for {
+//                _ <- modify((ec: EvalContext) => ec.copy(thrwn = ec.thrwn :+ err))
+//              } yield None
+//          }
+//        } yield i
+//    }
+//  }
 
   implicit val assignment: Aux[Assignment, Assignment] = new Eval[Assignment] {
     override type Result = Assignment

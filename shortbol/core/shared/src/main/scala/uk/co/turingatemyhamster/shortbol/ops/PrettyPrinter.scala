@@ -104,12 +104,6 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     // fixme: should we have a newline here?
   }
 
-  implicit lazy val `import`: PrintApp[TopLevel.Import] = PrintApp.using { i =>
-      "import ".append
-      i.path.append
-  }
-
-
   implicit lazy val constructorApp: PrintApp[ConstructorApp] = PrintApp.using { app =>
     app.cstr.append
     if(app.body.nonEmpty) {

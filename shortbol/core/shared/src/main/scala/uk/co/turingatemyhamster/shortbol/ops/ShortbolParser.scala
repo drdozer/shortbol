@@ -190,15 +190,13 @@ object ShortbolParser extends ShortbolParser(0) {
   object topLevel {
     val Assignment = ShortbolParsers.Assignment map ast.TopLevel.Assignment
     val BlankLine = ShortbolParsers.BlankLine map ast.TopLevel.BlankLine
-    val Import = P("import" ~ Space.rep(1) ~ Identifier) map ast.TopLevel.Import
     val Comment = ShortbolParsers.Comment map ast.TopLevel.Comment
     val InstanceExp = self.InstanceExp map ast.TopLevel.InstanceExp
     val ConstructorDef = self.ConstructorDef map ast.TopLevel.ConstructorDef
   }
 
   lazy val TopLevel = P(
-    topLevel.Import |
-      topLevel.Comment |
+    topLevel.Comment |
       topLevel.InstanceExp |
       topLevel.ConstructorDef |
       topLevel.Assignment |
