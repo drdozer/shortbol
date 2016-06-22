@@ -43,7 +43,6 @@ case class Url(url: String) extends Identifier
 
 // literals
 
-// see: https://www.w3.org/TR/rdf11-concepts/#section-Graph-Literal
 case class StringLiteral(string: StringLiteral.Style, datatype: Option[Datatype] = None, language: Option[Language] = None) extends Literal
 
 object StringLiteral {
