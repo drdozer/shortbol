@@ -35,12 +35,14 @@ object ValueExp {
 }
 
 // identifiers
+// but consider: https://www.w3.org/TR/REC-xml-names/#ns-qualnames
 case class LocalName(name: String) extends Identifier
 case class NSPrefix(pfx: String)
 case class QName(prefix: NSPrefix, localName: LocalName) extends Identifier
 case class Url(url: String) extends Identifier
 
 // literals
+// should support string, string with language code, string with xs type
 case class StringLiteral(s: String, escaped: Boolean = false) extends Literal {
   def isEscaped = escaped || s.contains("\"")
 }
