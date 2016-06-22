@@ -1,12 +1,14 @@
 package uk.co.turingatemyhamster
 package shortbol
 
+
 import datatree._
 import relations._
-import uk.co.turingatemyhamster.shortbol.ast.{SBFile, TopLevel}
-import uk.co.turingatemyhamster.shortbol.ops.{EvalContext, PrettyPrinter, Resolver, ShortbolParser}
 import web._
 
+import ast.{SBFile, TopLevel}
+import ops.{EvalContext, PrettyPrinter, ShortbolParser}
+import pragma._
 
 object Fixture {
 
@@ -22,7 +24,9 @@ object Fixture {
 
   lazy val emptyContext: EvalContext = EvalContext()
 
-  def parser: ShortbolParser.type = ShortbolParser
+  lazy val configuredContext: EvalContext = emptyContext.withPHooks(
+    Import(Resolver.fromWeb).hook)
+
 //
 //  def toDatatree[DT <: Datatree](file: SBFile)(implicit  ee: ExporterEnv[DT]): DT#DocumentRoot
 }

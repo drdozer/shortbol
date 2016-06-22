@@ -7,6 +7,7 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
                        cstrs: Map[Identifier, List[ConstructorDef]] = Map.empty,
                        vlxps: Map[Identifier, List[ValueExp]] = Map.empty,
                        insts: Map[Identifier, List[InstanceExp]] = Map.empty,
+                       phook: Vector[Pragma => Eval.EvalState[Unit]] = Vector.empty,
                        thrwn: Seq[Throwable] = Seq.empty)
 {
 
@@ -21,6 +22,9 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
 
   def withInstances(is: InstanceExp*) =
     copy(insts  = insts ++ is.map(i => i.id -> (i :: insts.getOrElse(i.id, Nil))))
+
+  def withPHooks(ps: (Pragma => Eval.EvalState[Unit])*) =
+    copy(phook = phook ++ ps)
 
   def resolveValue(id: Identifier): Option[ValueExp] =
     vlxps get id map (_.head) orElse {
@@ -178,29 +182,10 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
     override def apply(t: TopLevel.Pragma) = for {
       _ <- modify((_: EvalContext).withPragmas(t.pragma))
+      phook <- gets((_: EvalContext).phook)
+      _ <- phook.map(_ apply t.pragma).sequence[EvalState, Unit]
     } yield None
   }
-
-//  implicit val `import`: Aux[TopLevel.Import, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.Import] {
-//    override type Result = Option[TopLevel.InstanceExp]
-//    override def apply(t: TopLevel.Import) = t match {
-//      case TopLevel.Import(path) =>
-//        for {
-//          resolver <- gets ((_: EvalContext).rslvr)
-//          ctxt <- gets ((_: EvalContext).rctxt)
-//          i <- resolver.resolve(ctxt, path) match {
-//            case \/-(imported) =>
-//              for {
-//                ex <- imported.eval
-//              } yield None
-//            case -\/(err) =>
-//              for {
-//                _ <- modify((ec: EvalContext) => ec.copy(thrwn = ec.thrwn :+ err))
-//              } yield None
-//          }
-//        } yield i
-//    }
-//  }
 
   implicit val assignment: Aux[Assignment, Assignment] = new Eval[Assignment] {
     override type Result = Assignment

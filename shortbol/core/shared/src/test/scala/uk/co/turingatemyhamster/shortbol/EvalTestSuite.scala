@@ -10,6 +10,7 @@ import uk.co.turingatemyhamster.shortbol.ast._
 import uk.co.turingatemyhamster.shortbol.ops._
 import Eval.EvalOps
 import ast.sugar._
+import uk.co.turingatemyhamster.shortbol.pragma.{Import, Resolver}
 
 
 /**
@@ -532,44 +533,46 @@ object EvalTestSuite extends TestSuite {
             |""".stripMargin).map { i => i.instanceExp} :_*)
     }
 
-//    'import - {
-//      val startCtxt = Ø.withResolver(Resolver.fromValues(
-//        Url("http://xmlns.com/foaf/0.1/") -> parse(
-//          """WithNameAge(name, age) => WithAge(age)
-//            |  foaf:name = name
-//            |
-//            |WithAge(age) => foaf:person
-//            |  foaf:age = age
-//            |""".stripMargin
-//        )
-//      ))
-//
-//      parse(
-//        """import <http://xmlns.com/foaf/0.1/>
-//          |me : WithNameAge("matthew", 40)
-//          |  foaf:knows = "caroline"
-//          |""".stripMargin) in startCtxt evaluatesTo parse_instances(
-//        """me : foaf:person
-//          |  foaf:age = 40
-//          |  foaf:name = "matthew"
-//          |  foaf:knows = "caroline"
-//          |""".stripMargin) in startCtxt.withConstructors (
-//        parse_constructorDef(
-//          """WithNameAge(name, age) => WithAge(age)
-//            |  foaf:name = name
-//            |""".stripMargin),
-//        parse_constructorDef(
-//          """WithAge(age) => foaf:person
-//            |  foaf:age = age
-//            |""".stripMargin)
-//      ).withInstances(
-//              parse_instances(
-//                """me : foaf:person
-//                  |  foaf:age = 40
-//                  |  foaf:name = "matthew"
-//                  |  foaf:knows = "caroline"
-//                  |""".stripMargin).map { i => i.instanceExp} :_*)
-//    }
+    'import - {
+      val startCtxt = Ø.withPHooks(Import(Resolver.fromValues(
+        Url("http://xmlns.com/foaf/0.1/") -> parse(
+          """WithNameAge(name, age) => WithAge(age)
+            |  foaf:name = name
+            |
+            |WithAge(age) => foaf:person
+            |  foaf:age = age
+            |""".stripMargin
+        )
+      )).hook)
+
+      parse(
+        """@import <http://xmlns.com/foaf/0.1/>
+          |me : WithNameAge("matthew", 40)
+          |  foaf:knows = "caroline"
+          |""".stripMargin) in startCtxt evaluatesTo parse_instances(
+        """me : foaf:person
+          |  foaf:age = 40
+          |  foaf:name = "matthew"
+          |  foaf:knows = "caroline"
+          |""".stripMargin) in startCtxt.withConstructors (
+        parse_constructorDef(
+          """WithNameAge(name, age) => WithAge(age)
+            |  foaf:name = name
+            |""".stripMargin),
+        parse_constructorDef(
+          """WithAge(age) => foaf:person
+            |  foaf:age = age
+            |""".stripMargin)
+      ).withInstances(
+              parse_instances(
+                """me : foaf:person
+                  |  foaf:age = 40
+                  |  foaf:name = "matthew"
+                  |  foaf:knows = "caroline"
+                  |""".stripMargin).map { i => i.instanceExp} :_*).withPragmas(
+        Pragma("import", Seq(Url("http://xmlns.com/foaf/0.1/")))
+      )
+    }
 
     'instance_reassignment - {
       val (ctxt, res) = parse(
