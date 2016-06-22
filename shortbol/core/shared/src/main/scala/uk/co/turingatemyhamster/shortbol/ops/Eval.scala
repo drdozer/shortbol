@@ -143,7 +143,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
   implicit val bodyStmt = Eval[BodyStmt, BodyStmt]
 
-  implicit val literal = Eval[Literal, Literal]
+  implicit val literal: Aux[Literal, Literal] = identityEval
 
   // fixme: see if this is redundant
   implicit val sbFile: Aux[SBFile, Seq[TopLevel.InstanceExp]] = new Eval[SBFile] {
@@ -351,8 +351,6 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
   def as[T, U](implicit e: Aux[U, U], to: T <:< U): Aux[T, U] =
     typeClass.project[T, U, U, U](e, to, identity)
 
-  implicit val stringLiteral: Aux[StringLiteral, StringLiteral] = identityEval
-  implicit val integerLiteral: Aux[IntegerLiteral, IntegerLiteral] = identityEval
   implicit val localName: Aux[LocalName, Identifier] = as[LocalName, Identifier]
   implicit val qname: Aux[QName, Identifier] = as[QName, Identifier]
   implicit val url: Aux[Url, Identifier] = as[Url, Identifier]

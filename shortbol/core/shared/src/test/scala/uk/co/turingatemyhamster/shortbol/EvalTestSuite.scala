@@ -75,20 +75,6 @@ object EvalTestSuite extends TestSuite {
       * - { (Comment("a comment") : BodyStmt) evaluatesTo (Comment("a comment") : BodyStmt) in Ø }
     }
 
-    'stringLiteral - {
-      * - { StringLiteral(StringLiteral.SingleLine("abc", false)) evaluatesTo
-        StringLiteral(StringLiteral.SingleLine("abc", false)) in Ø }
-    }
-
-    'multiLineLiteral - {
-      * - { StringLiteral(StringLiteral.MultiLine(Seq("abc", "def"), 4)) evaluatesTo
-        StringLiteral(StringLiteral.MultiLine(Seq("abc", "def"), 4)) in Ø }
-    }
-
-    'integerLiteral - {
-      * - { IntegerLiteral(42) evaluatesTo IntegerLiteral(42) in Ø }
-    }
-
     'literal - {
       * - { (StringLiteral.SingleLine("abc", false) : Literal) evaluatesTo (StringLiteral.SingleLine("abc", false) : Literal) in Ø }
       * - { (StringLiteral.MultiLine(Seq("abc", "def"), 4) : Literal) evaluatesTo (StringLiteral.MultiLine(Seq("abc", "def"), 4) : Literal) in Ø }
