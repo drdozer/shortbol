@@ -252,7 +252,7 @@ ECK120033736_terminator : Terminator
     name = &#34;ECK120033736&#34;
     sequence = ECK120033736_seq
 
-BBa_R0040_promotor : Promoter
+BBa_R0040_promoter : Promoter
     description = &#34;pTet promoter&#34;
     name = &#34;pTetR&#34;
     sequence = BBa_R0040_seq
@@ -285,7 +285,7 @@ BBa_J61101_RBS : RBS
     name = &#34;BBa_J61101 RBS&#34;
     sequence = BBa_J61101_seq
 
-BBa_R0010_promotor : Promoter
+BBa_R0010_promoter : Promoter
     description = &#34;pLacI promoter&#34;
     name = &#34;pLacI&#34;
     sequence = BBa_R0010_seq
@@ -311,7 +311,7 @@ pIKELeftCassette_1 : DNAComponent
         ECK120029600_terminator
             at InlinePosition(1198..1288)
     component : public  #You can also explicity extend from the public access template which give the value &#34;public&#34; to the access property.
-        BBa_R0040_promotor
+        BBa_R0040_promoter
             at InlinePosition(1..55)
     component : public
         BBa_C0012_CDS
@@ -325,7 +325,7 @@ pIKERightCassette_1 : DNAComponent
     name=&#34;LacI Inverter&#34;
     description = &#34;LacI Inverter&#34;
     component : public
-        BBa_R0010_promotor
+        BBa_R0010_promoter
             at InlinePosition(1..55)
     component : public
         BBa_C0040_CDS
@@ -361,7 +361,7 @@ laci_inverter : InverterModule
         P03023_protein as TF
 
     functionalComponent #By not extending from a access/direction template, the access defaults to &#34;public&#34; and the direction defaults to &#34;inout&#34;
-        BBa_R0010_promotor as promoter
+        BBa_R0010_promoter as promoter
 
     TF inhibits promoter  #Interaction defined in import.
 
@@ -370,7 +370,7 @@ tetr_inverter : InverterModule
         Q6QR72_protein as TF
 
     functionalComponent : public_io
-        BBa_R0040_promotor as promoter
+        BBa_R0040_promoter as promoter
 
     TF inhibits promoter  #Interaction defined in import.
 
