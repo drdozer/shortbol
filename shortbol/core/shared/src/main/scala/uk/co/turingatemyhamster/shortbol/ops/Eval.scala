@@ -3,10 +3,9 @@ package shortbol.ops
 
 import shortbol.ast._
 
-case class EvalContext(rslvr: Resolver,
-                       rctxt: ResolutionContext = ResolutionContext(None, PrefixBindingsImpl(None, Map.empty)),
+case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
                        cstrs: Map[Identifier, List[ConstructorDef]] = Map.empty,
-                       bndgs: Map[Identifier, List[ValueExp]] = Map.empty,
+                       vlxps: Map[Identifier, List[ValueExp]] = Map.empty,
                        insts: Map[Identifier, List[InstanceExp]] = Map.empty,
                        thrwn: Seq[Throwable] = Seq.empty)
 {
@@ -15,20 +14,20 @@ case class EvalContext(rslvr: Resolver,
     copy(cstrs = cstrs ++ cs.map(c => c.id -> (c :: cstrs.getOrElse(c.id, Nil))))
 
   def withAssignments(as: Assignment*) =
-    copy(bndgs = bndgs ++ as.map(a => a.property -> (a.value :: bndgs.getOrElse(a.property, Nil))))
+    copy(vlxps = vlxps ++ as.map(a => a.property -> (a.value :: vlxps.getOrElse(a.property, Nil))))
 
-  def withResolver(rslvr: Resolver) =
-    copy(rslvr = rslvr)
+  def withPragmas(ps: Pragma*) =
+    copy(prgms = prgms ++ ps.map(p => p.id -> (p :: prgms.getOrElse(p.id, Nil))))
 
   def withInstances(is: InstanceExp*) =
     copy(insts  = insts ++ is.map(i => i.id -> (i :: insts.getOrElse(i.id, Nil))))
 
-  def resolveBinding(id: Identifier): Option[ValueExp] =
-    bndgs get id map (_.head) orElse {
+  def resolveValue(id: Identifier): Option[ValueExp] =
+    vlxps get id map (_.head) orElse {
       id match {
         case LocalName(name) =>
           (for {
-            (QName(_, LocalName(qln)), ve::_) <- bndgs if qln == name
+            (QName(_, LocalName(qln)), ve::_) <- vlxps if qln == name
           } yield ve).headOption // fixme: should report clashes
         case _ => None
       }
@@ -135,7 +134,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
   // Smelly! Find a way to compute this
   implicit lazy val topLevel: Aux[TopLevel, Option[TopLevel.InstanceExp]] = {
-    type U = Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil
+    type U = Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil
     val g = Generic[TopLevel]
     val e = Eval[g.Repr, U]
     typeClass.project[TopLevel, g.Repr, Option[TopLevel.InstanceExp], U](e, g.to, _.unify)
@@ -173,6 +172,14 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
         te <- t.comment.eval
       } yield None
     }
+
+  implicit val topLevel_pragma: Aux[TopLevel.Pragma, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.Pragma] {
+    override type Result = Option[TopLevel.InstanceExp]
+
+    override def apply(t: TopLevel.Pragma) = for {
+      _ <- modify((_: EvalContext).withPragmas(t.pragma))
+    } yield None
+  }
 
 //  implicit val `import`: Aux[TopLevel.Import, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.Import] {
 //    override type Result = Option[TopLevel.InstanceExp]
@@ -359,6 +366,6 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     gets ((_: EvalContext).resolveCstr(id))
 
   def resolveBinding(id: Identifier): State[EvalContext, Option[ValueExp]] =
-    gets ((_: EvalContext).resolveBinding(id))
+    gets ((_: EvalContext).resolveValue(id))
 
 }

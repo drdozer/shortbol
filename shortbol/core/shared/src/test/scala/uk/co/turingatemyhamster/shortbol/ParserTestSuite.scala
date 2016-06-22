@@ -19,11 +19,12 @@ object ParserTestSuite extends TestSuite{
   }
 
 
-  def shouldParse[T](txt: String, p: Parser[T], value: T): Unit = {
+  def shouldParse[T](txt: String, p: Parser[T], expected: T): Unit = {
     //println(escape(txt))
     (Start ~ p ~ End).parse(txt) match {
       case s : Success[T] =>
-        assert(s.value == value)
+        val observed = s.value
+        assert(observed == expected)
     }
   }
 
@@ -819,6 +820,14 @@ object ParserTestSuite extends TestSuite{
       * - shouldParse(
         "x = y", ShortbolParser.TopLevel,
         TopLevel.Assignment(Assignment(LocalName("x"), LocalName("y"))))
+    }
+
+    'Pragma - {
+      * - shouldParse(
+        "@import <http://foo.bar.com/myLibrary>",
+        ShortbolParsers.Pragma,
+        Pragma(id = "import", values = Seq(Url("http://foo.bar.com/myLibrary")))
+      )
     }
 
     'TopLevels - {

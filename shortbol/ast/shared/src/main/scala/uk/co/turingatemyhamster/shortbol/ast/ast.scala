@@ -14,8 +14,9 @@ object TopLevel {
   case class Assignment(assignment: ast.Assignment) extends TopLevel
   case class BlankLine(blankLine: ast.BlankLine.type) extends TopLevel
   case class Comment(comment: ast.Comment) extends TopLevel
-  case class InstanceExp(instanceExp: ast.InstanceExp) extends TopLevel
   case class ConstructorDef(constructorDef: ast.ConstructorDef) extends TopLevel
+  case class InstanceExp(instanceExp: ast.InstanceExp) extends TopLevel
+  case class Pragma(pragma: ast.Pragma) extends TopLevel
 }
 
 // body statements
@@ -70,15 +71,17 @@ case object BlankLine
 
 case class Comment(commentText: String)
 
-case class InstanceExp(id: Identifier,
-                       cstrApp: ConstructorApp)
-
 case class ConstructorApp(cstr: TpeConstructor,
                           body: Seq[BodyStmt])
 
 case class ConstructorDef(id: Identifier,
                             args: Seq[LocalName],
                             cstrApp: ConstructorApp)
+
+case class InstanceExp(id: Identifier,
+                       cstrApp: ConstructorApp)
+
+case class Pragma(id: Identifier, values: Seq[ast.ValueExp])
 
 // the whole thing
 case class SBFile(tops: Seq[TopLevel] = Seq.empty, rdfAbout: Option[Url] = None, source: Option[Url] = None)

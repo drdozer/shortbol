@@ -127,6 +127,9 @@ object ShortbolParsers {
   lazy val BlankLine: Parser[ast.BlankLine.type] = P(Space.rep) map
     (_ => ast.BlankLine)
 
+  lazy val Pragma: Parser[ast.Pragma] = P(At ~/ Identifier ~ Space.rep ~ ValueExp.rep(0, Space.rep)) map
+    (ast.Pragma.apply _ tupled)
+
   lazy val TpeConstructorStar: Parser[ast.TpeConstructorStar.type] = P(Star) map
     (_ => ast.TpeConstructorStar)
   lazy val TpeConstructor1: Parser[ast.TpeConstructor1] = P(Identifier ~ Space.rep ~ ValueListO) map
@@ -191,12 +194,14 @@ object ShortbolParser extends ShortbolParser(0) {
     val Assignment = ShortbolParsers.Assignment map ast.TopLevel.Assignment
     val BlankLine = ShortbolParsers.BlankLine map ast.TopLevel.BlankLine
     val Comment = ShortbolParsers.Comment map ast.TopLevel.Comment
-    val InstanceExp = self.InstanceExp map ast.TopLevel.InstanceExp
     val ConstructorDef = self.ConstructorDef map ast.TopLevel.ConstructorDef
+    val InstanceExp = self.InstanceExp map ast.TopLevel.InstanceExp
+    val Pragma = ShortbolParsers.Pragma map ast.TopLevel.Pragma
   }
 
   lazy val TopLevel = P(
-    topLevel.Comment |
+    topLevel.Pragma |
+      topLevel.Comment |
       topLevel.InstanceExp |
       topLevel.ConstructorDef |
       topLevel.Assignment |

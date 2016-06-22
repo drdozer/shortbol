@@ -20,11 +20,9 @@ object Fixture {
 
   def prettyPrinter(out: Appendable): PrettyPrinter = PrettyPrinter(out)
 
-  lazy val emptyContext: EvalContext = EvalContext(rslvr = resolver)
+  lazy val emptyContext: EvalContext = EvalContext()
 
   def parser: ShortbolParser.type = ShortbolParser
-
-  object resolver extends ResolverProvider
 //
 //  def toDatatree[DT <: Datatree](file: SBFile)(implicit  ee: ExporterEnv[DT]): DT#DocumentRoot
 }
