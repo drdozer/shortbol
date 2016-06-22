@@ -68,8 +68,8 @@ object ShortbolParsers {
 
   lazy val Url = P( (UrlUnreserved | UrlReserved).rep.! ).map(ast.Url)
 
-  lazy val QuotedIdentifier = P(Lt ~/ (QName | Url) ~/ Gt)
-  lazy val Identifier: Parser[ast.Identifier] = P( QuotedIdentifier | LocalName)
+  lazy val QuotedIdentifier = P(Lt ~/ Url ~/ Gt)
+  lazy val Identifier: Parser[ast.Identifier] = P( QuotedIdentifier | QName | LocalName)
 
   lazy val QuotedStringLiteral = P(DQuote ~/ (!DQuote ~ !Nl ~ AnyChar).rep.! ~ DQuote) map
     (s => ast.StringLiteral(s))

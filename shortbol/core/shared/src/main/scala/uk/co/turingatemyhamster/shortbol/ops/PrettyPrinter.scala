@@ -119,11 +119,9 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   }
 
   implicit lazy val qname: PrintApp[QName] = PrintApp.using { q =>
-    "<".append
     q.prefix.append
     ":".append
     q.localName.append
-    ">".append
   }
 
   implicit lazy val url: PrintApp[Url] = PrintApp.using { u =>

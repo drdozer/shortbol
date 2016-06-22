@@ -514,33 +514,33 @@ object EvalTestSuite extends TestSuite {
     'sbfile - {
       parse(
         """WithNameAge(name, age) => WithAge(age)
-          |  <foaf:name> = name
+          |  foaf:name = name
           |
-          |WithAge(age) => <foaf:person>
-          |  <foaf:age> = age
+          |WithAge(age) => foaf:person
+          |  foaf:age = age
           |
           |me : WithNameAge("matthew", 40)
-          |  <foaf:knows> = "caroline"
+          |  foaf:knows = "caroline"
           |""".stripMargin) in Ø evaluatesTo parse_instances(
-        """me : <foaf:person>
-          |  <foaf:age> = 40
-          |  <foaf:name> = "matthew"
-          |  <foaf:knows> = "caroline"
+        """me : foaf:person
+          |  foaf:age = 40
+          |  foaf:name = "matthew"
+          |  foaf:knows = "caroline"
           |""".stripMargin) in Ø.withConstructors (
         parse_constructorDef(
           """WithNameAge(name, age) => WithAge(age)
-            |  <foaf:name> = name
+            |  foaf:name = name
             |""".stripMargin),
         parse_constructorDef(
-          """WithAge(age) => <foaf:person>
-            |  <foaf:age> = age
+          """WithAge(age) => foaf:person
+            |  foaf:age = age
             |""".stripMargin)
       ).withInstances(
         parse_instances(
-          """me : <foaf:person>
-            |  <foaf:age> = 40
-            |  <foaf:name> = "matthew"
-            |  <foaf:knows> = "caroline"
+          """me : foaf:person
+            |  foaf:age = 40
+            |  foaf:name = "matthew"
+            |  foaf:knows = "caroline"
             |""".stripMargin).map { i => i.instanceExp} :_*)
     }
 
@@ -548,10 +548,10 @@ object EvalTestSuite extends TestSuite {
       val startCtxt = Ø.withResolver(Resolver.fromValues(
         Url("http://xmlns.com/foaf/0.1/") -> parse(
           """WithNameAge(name, age) => WithAge(age)
-            |  <foaf:name> = name
+            |  foaf:name = name
             |
-            |WithAge(age) => <foaf:person>
-            |  <foaf:age> = age
+            |WithAge(age) => foaf:person
+            |  foaf:age = age
             |""".stripMargin
         )
       ))
@@ -559,27 +559,27 @@ object EvalTestSuite extends TestSuite {
       parse(
         """import <http://xmlns.com/foaf/0.1/>
           |me : WithNameAge("matthew", 40)
-          |  <foaf:knows> = "caroline"
+          |  foaf:knows = "caroline"
           |""".stripMargin) in startCtxt evaluatesTo parse_instances(
-        """me : <foaf:person>
-          |  <foaf:age> = 40
-          |  <foaf:name> = "matthew"
-          |  <foaf:knows> = "caroline"
+        """me : foaf:person
+          |  foaf:age = 40
+          |  foaf:name = "matthew"
+          |  foaf:knows = "caroline"
           |""".stripMargin) in startCtxt.withConstructors (
         parse_constructorDef(
           """WithNameAge(name, age) => WithAge(age)
-            |  <foaf:name> = name
+            |  foaf:name = name
             |""".stripMargin),
         parse_constructorDef(
-          """WithAge(age) => <foaf:person>
-            |  <foaf:age> = age
+          """WithAge(age) => foaf:person
+            |  foaf:age = age
             |""".stripMargin)
       ).withInstances(
               parse_instances(
-                """me : <foaf:person>
-                  |  <foaf:age> = 40
-                  |  <foaf:name> = "matthew"
-                  |  <foaf:knows> = "caroline"
+                """me : foaf:person
+                  |  foaf:age = 40
+                  |  foaf:name = "matthew"
+                  |  foaf:knows = "caroline"
                   |""".stripMargin).map { i => i.instanceExp} :_*)
     }
 

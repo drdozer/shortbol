@@ -194,9 +194,9 @@ object ParserTestSuite extends TestSuite{
         * - shouldParse("x = y", ShortbolParsers.Assignment, Assignment(LocalName("x"), LocalName("y")))
         * - shouldParse("sequence = \"aactaggactaatg\"", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), StringLiteral("aactaggactaatg")))
         * - shouldParse("sequence    =        \"aactaggactaatg\"", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), StringLiteral("aactaggactaatg")))
-        * - shouldParse("encoding = <SBOL:DNA>", ShortbolParsers.Assignment, Assignment(LocalName("encoding"), QName(NSPrefix("SBOL"), LocalName("DNA"))))
+        * - shouldParse("encoding = SBOL:DNA", ShortbolParsers.Assignment, Assignment(LocalName("encoding"), QName(NSPrefix("SBOL"), LocalName("DNA"))))
         * - shouldParse("type = <http://www.biopax.org/release/biopax-level3.owl#DnaRegion>", ShortbolParsers.Assignment, Assignment(LocalName("type"), Url("http://www.biopax.org/release/biopax-level3.owl#DnaRegion")))
-        * - shouldParse("<SBOL:DNA> = <http://www.biopax.org/release/biopax-level3.owl#DnaRegion>", ShortbolParsers.Assignment, Assignment(QName(NSPrefix("SBOL"), LocalName("DNA")), Url("http://www.biopax.org/release/biopax-level3.owl#DnaRegion")))
+        * - shouldParse("SBOL:DNA = <http://www.biopax.org/release/biopax-level3.owl#DnaRegion>", ShortbolParsers.Assignment, Assignment(QName(NSPrefix("SBOL"), LocalName("DNA")), Url("http://www.biopax.org/release/biopax-level3.owl#DnaRegion")))
         * - shouldParse("start =   22", ShortbolParsers.Assignment, Assignment(LocalName("start"), IntegerLiteral(22)))
         * - shouldParse("component = DNAComponent", ShortbolParsers.Assignment, Assignment(LocalName("component"), LocalName("DNAComponent")))
         * - shouldParse("sequence = {\naacc\naacc\n}", ShortbolParsers.Assignment, Assignment(LocalName("sequence"), MultiLineLiteral("aacc\n"::"aacc\n"::Nil, 0)))
@@ -297,15 +297,7 @@ object ParserTestSuite extends TestSuite{
           )
         )
 
-        * - shouldParse("cds:DNAComponent", ShortbolParser.InstanceExp,
-          InstanceExp(
-            LocalName("cds"), ConstructorApp(
-              TpeConstructor1(
-                LocalName("DNAComponent"), Nil
-              ), Nil
-            )
-          )
-        )
+        * - shouldNotParse("cds:DNAComponent", ShortbolParser.InstanceExp)
 
         * - shouldParse(
           """cds : DNAComponent
@@ -331,7 +323,7 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "cds : DNAComponent\n   \n   \n   role = <SBOL:CDS>\n   \n   foo = bar\n   \n   ", ShortbolParser.InstanceExp,
+          "cds : DNAComponent\n   \n   \n   role = SBOL:CDS\n   \n   foo = bar\n   \n   ", ShortbolParser.InstanceExp,
           InstanceExp(
             LocalName("cds"), ConstructorApp(
               TpeConstructor1(
@@ -356,7 +348,7 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "cds : DNAComponent\n   role = <SBOL:CDS>\n   \n   foo = bar\n   component : public",
+          "cds : DNAComponent\n   role = SBOL:CDS\n   \n   foo = bar\n   component : public",
           ShortbolParser.InstanceExp,
           InstanceExp(
             LocalName("cds"), ConstructorApp(
@@ -385,7 +377,7 @@ object ParserTestSuite extends TestSuite{
 
         * - shouldParse(
           """cds : DNAComponent
-            |   role = <SBOL:CDS>
+            |   role = SBOL:CDS
             |   foo = bar
             |   component : public
             |      foo = bar
@@ -426,7 +418,7 @@ object ParserTestSuite extends TestSuite{
         )
         * - shouldParse(
           """cds : DNAComponent
-            |  role = <SBOL:CDS>""".stripMargin,ShortbolParser.InstanceExp,
+            |  role = SBOL:CDS""".stripMargin,ShortbolParser.InstanceExp,
           InstanceExp(
             LocalName("cds"), ConstructorApp(
               TpeConstructor1(
@@ -443,7 +435,7 @@ object ParserTestSuite extends TestSuite{
         * - shouldParse(
           """cds : DNAComponent
             |  type = DNA
-            |  role = <SBOL:CDS>""".stripMargin,
+            |  role = SBOL:CDS""".stripMargin,
           ShortbolParser.InstanceExp,
           InstanceExp(
             LocalName("cds"), ConstructorApp(
@@ -509,7 +501,7 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "pass_qname : Test(<SBOL:DNA>)",
+          "pass_qname : Test(SBOL:DNA)",
           ShortbolParser.InstanceExp,
           InstanceExp(
             LocalName("pass_qname"), ConstructorApp(
@@ -544,7 +536,7 @@ object ParserTestSuite extends TestSuite{
         )
 
         * - shouldParse(
-          "<SBOL:google> : <www.google.co.uk>",
+          "SBOL:google : <www.google.co.uk>",
           ShortbolParser.InstanceExp,
           InstanceExp(
             QName(NSPrefix("SBOL"),LocalName("google")), ConstructorApp(
@@ -567,7 +559,7 @@ object ParserTestSuite extends TestSuite{
 
         * - shouldParse(
           """cds : DNAComponent
-            |   role = <SBOL:CDS>
+            |   role = SBOL:CDS
             |   foo = bar
             |   component : public
             |        foo = bar
@@ -622,14 +614,14 @@ object ParserTestSuite extends TestSuite{
         // template inside an instance constructor
         * - shouldNotParse(
           """cds : DNAComponent
-            |  role = <SBOL:CDS>
+            |  role = SBOL:CDS
             |  component => DNA""".stripMargin,
           ShortbolParser.InstanceExp)
 
         //At a different nest.
         * - shouldNotParse(
           """cds : DNAComponent
-            |   role = <SBOL:CDS>
+            |   role = SBOL:CDS
             |      foo = bar
           """.stripMargin.trim,
           ShortbolParser.InstanceExp
@@ -668,7 +660,7 @@ object ParserTestSuite extends TestSuite{
         ))
 
       * - shouldParse(
-        "<SBOL:google> maps_to <www.google.co.uk>",ShortbolParsers.InfixConstructorApp,
+        "SBOL:google maps_to <www.google.co.uk>",ShortbolParsers.InfixConstructorApp,
         ConstructorApp(
           TpeConstructor1(
             LocalName("maps_to"),Seq(QName(NSPrefix("SBOL"),LocalName("google")),Url("www.google.co.uk"))
@@ -790,12 +782,12 @@ object ParserTestSuite extends TestSuite{
 
       * - shouldParse(
         """WithNameAge(name, age) => WithAge(age)
-          |  <foaf:name> = name
+          |  foaf:name = name
         """.stripMargin.trim, ShortbolParser.ConstructorDef)
 
       * - shouldParse(
         """WithNameAge(name, age) => WithAge(age)
-          |  <foaf:name> = name
+          |  foaf:name = name
         """.stripMargin.trim, ShortbolParser.topLevel.ConstructorDef)
 
 
@@ -901,20 +893,20 @@ object ParserTestSuite extends TestSuite{
     'SBFile - {
       * - shouldParse(
         """WithNameAge(name, age) => WithAge(age)
-          |  <foaf:name> = name
+          |  foaf:name = name
           |
-          |WithAge(age) => <foaf:person>
-          |  <foaf:age> = age
+          |WithAge(age) => foaf:person
+          |  foaf:age = age
           |
           |me : WithNameAge("matthew", 40)
-          |  <foaf:knows> = "caroline"
+          |  foaf:knows = "caroline"
           |""".stripMargin, ShortbolParser.SBFile)
 
       * - shouldParse(
-        """me : <foaf:person>
-           |  <foaf:age> = 40
-           |  <foaf:name> = "matthew"
-           |  <foaf:knows> = "caroline"
+        """me : foaf:person
+           |  foaf:age = 40
+           |  foaf:name = "matthew"
+           |  foaf:knows = "caroline"
            |""".stripMargin, ShortbolParser.SBFile)
     }
 
