@@ -25,7 +25,7 @@ object Fixture {
   lazy val emptyContext: EvalContext = EvalContext()
 
   lazy val configuredContext: EvalContext = emptyContext.withPHooks(
-    Import(Resolver.fromWeb).hook)
+    Import(Resolver.fromWeb).pHook)
 
 //
 //  def toDatatree[DT <: Datatree](file: SBFile)(implicit  ee: ExporterEnv[DT]): DT#DocumentRoot

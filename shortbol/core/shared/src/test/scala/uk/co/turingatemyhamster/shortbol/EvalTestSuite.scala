@@ -543,7 +543,7 @@ object EvalTestSuite extends TestSuite {
             |  foaf:age = age
             |""".stripMargin
         )
-      )).hook)
+      )).pHook)
 
       parse(
         """@import <http://xmlns.com/foaf/0.1/>

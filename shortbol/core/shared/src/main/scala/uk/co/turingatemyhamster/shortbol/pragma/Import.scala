@@ -17,7 +17,7 @@ import scalaz._
   */
 object Import {
   def apply(resolver: Resolver): PragmaHook = new PragmaHook {
-    override def hook(p: Pragma): EvalState[Unit] = p match {
+    override def pHook(p: Pragma): EvalState[Unit] = p match {
       case Pragma(LocalName("import"), Seq(ValueExp.Identifier(url))) =>
         resolver.resolve(url) match {
           case \/-(imported) =>
