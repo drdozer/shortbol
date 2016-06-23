@@ -120,6 +120,8 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
   type EvalState[R] = State[EvalContext, R]
 
+  def log(logMessage: LogMessage) = modify((_: EvalContext).withLog(logMessage))
+
   def constant[T](t: T): State[EvalContext, T] = t.point[EvalState]
 
   def constantEval[T, U](u: U) = new Eval[T] {

@@ -25,16 +25,17 @@ object Import {
       case Pragma(LocalName("import"), Seq(ValueExp.Identifier(url))) =>
         resolver.resolve(url) match {
           case \/-(imported) => for {
+            _ <- log(LogMessage.info(s"Importing $url"))
             _ <- imported.eval
           } yield List(p)
           case -\/(err) =>
             for {
-              _ <- modify((_: EvalContext).withThrown(err))
+              _ <- log(LogMessage.error(s"Import failed for $url", Some(err)))
             } yield Nil
         }
       case _ =>
         for {
-          _ <- modify((_: EvalContext).withThrown(new IllegalArgumentException(s"Malformed @import declaration")))
+          _ <- log(LogMessage.error(s"Malformed @import declaration"))
         } yield Nil
     }
   }

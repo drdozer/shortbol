@@ -1,9 +1,9 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import ops.EvalContext
-import ops.Eval.EvalState
-import ast.{Pragma, LocalName}
+import ops.{EvalContext, LogMessage}
+import ops.Eval.{EvalState, log, constant}
+import ast.{LocalName, Pragma}
 
 import scalaz._
 import scalaz.Scalaz._
@@ -25,17 +25,18 @@ object MetaPragma {
           case ast.ValueExp.Identifier(ast.LocalName(name)) =>
             hooks get name match {
               case Some(h) =>
-                h.register(p)
+                for {
+                  _ <- log(LogMessage.info(s"Registering pragma hook for $name"))
+                  pp <- h.register(p)
+                } yield pp
               case None =>
                 for {
-                  _ <- modify((_: EvalContext).withThrown(new NoSuchElementException(s"Could not find pragma hook for $name")))
+                  _ <- log(LogMessage.error(s"Could not find pragma hook for $name. Ignoring it."))
                 } yield Nil
             }
         }
       case _ =>
-        for {
-          _ <- modify((_: EvalContext).withThrown(new IllegalArgumentException(s"Malformed pragma $p")))
-        } yield Nil
+        constant(List(p))
     }
   }
 }

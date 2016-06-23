@@ -55,7 +55,7 @@ object EvalTestSuite extends TestSuite {
         assert(eval != null)
         val (observedContext, observedResult) = eval(t).run(c0)
 
-        if(expectedContext != ⊥) assert(observedContext == expectedContext)
+        if(expectedContext != ⊥) assert(observedContext.copy(logms = Seq()) == expectedContext.copy(logms = Seq()))
 
         assert(observedResult == expectedResult)
       }
