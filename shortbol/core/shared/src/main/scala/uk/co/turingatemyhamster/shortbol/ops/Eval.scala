@@ -81,7 +81,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
   type EvalState[R] = State[EvalContext, R]
 
-  def constant[T](t: T): State[EvalContext, T] = t.point[({type l[a] = State[EvalContext, a]})#l]
+  def constant[T](t: T): State[EvalContext, T] = t.point[EvalState]
 
   def constantEval[T, U](u: U) = new Eval[T] {
     override type Result = U
