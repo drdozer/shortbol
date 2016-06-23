@@ -16,18 +16,19 @@ import scalaz._
   * Created by nmrp3 on 22/06/16.
   */
 object Import {
-  def apply(resolver: Resolver): PragmaHook = new PragmaHook {
-    override def pHook(p: Pragma): EvalState[Unit] = p match {
-      case Pragma(LocalName("import"), Seq(ValueExp.Identifier(url))) =>
+  def apply(resolver: Resolver): Hook = new Hook {
+
+    override def register(p: Pragma) =
+      modify((_: EvalContext).withPHooks(resolveImport))
+
+    def resolveImport(p: Pragma): EvalState[Unit] = p match {
+      case ast.Pragma(LocalName("import"), Seq(ValueExp.Identifier(url))) =>
         resolver.resolve(url) match {
-          case \/-(imported) =>
-            for {
-              ex <- imported.eval
-            } yield None
+          case \/-(imported) => for {
+            _ <- imported.eval
+          } yield ()
           case -\/(err) =>
-            for {
-              _ <- modify((ec: EvalContext) => ec.copy(thrwn = ec.thrwn :+ err))
-            } yield None
+            modify((_: EvalContext).withThrown(err))
         }
       case _ =>
         constant(())

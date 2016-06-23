@@ -3,12 +3,25 @@ package shortbol.ops
 
 import shortbol.ast._
 
+case class Hooks(phook: Vector[Pragma => Eval.EvalState[Unit]] = Vector.empty,
+                 ihook: Vector[InstanceExp => Eval.EvalState[List[InstanceExp]]] = Vector.empty,
+                 chook: Vector[ConstructorDef => Eval.EvalState[ConstructorDef]] = Vector.empty)
+{
+  def withPHooks(ps: (Pragma => Eval.EvalState[Unit])*) =
+    copy(phook = phook ++ ps)
+
+  def withIHooks(is: (InstanceExp => Eval.EvalState[List[InstanceExp]])*) =
+    copy(ihook = ihook ++ is)
+
+  def withCHooks(cs: (ConstructorDef => Eval.EvalState[ConstructorDef])*) =
+    copy(chook = chook ++ cs)
+}
+
 case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
                        cstrs: Map[Identifier, List[ConstructorDef]] = Map.empty,
                        vlxps: Map[Identifier, List[ValueExp]] = Map.empty,
                        insts: Map[Identifier, List[InstanceExp]] = Map.empty,
-                       phook: Vector[Pragma => Eval.EvalState[Unit]] = Vector.empty,
-                       ihook: Vector[InstanceExp => Eval.EvalState[List[InstanceExp]]] = Vector.empty,
+                       hooks: Hooks = Hooks(),
                        thrwn: Seq[Throwable] = Seq.empty)
 {
 
@@ -22,13 +35,10 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
     copy(prgms = prgms ++ ps.map(p => p.id -> (p :: prgms.getOrElse(p.id, Nil))))
 
   def withInstances(is: InstanceExp*) =
-    copy(insts  = insts ++ is.map(i => i.id -> (i :: insts.getOrElse(i.id, Nil))))
+    copy(insts = insts ++ is.map(i => i.id -> (i :: insts.getOrElse(i.id, Nil))))
 
-  def withPHooks(ps: (Pragma => Eval.EvalState[Unit])*) =
-    copy(phook = phook ++ ps)
-
-  def withIHooks(is: (InstanceExp => Eval.EvalState[List[InstanceExp]])*) =
-    copy(ihook = ihook ++ is)
+  def withThrown(ts: Throwable*) =
+    copy(thrwn = thrwn ++ ts)
 
   def resolveValue(id: Identifier): Option[ValueExp] =
     vlxps get id map (_.head) orElse {
@@ -62,6 +72,15 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
         case _ => None
       }
     }
+
+  def withPHooks(ps: (Pragma => Eval.EvalState[Unit])*) =
+    copy(hooks = hooks.withPHooks(ps :_*))
+
+  def withIHooks(is: (InstanceExp => Eval.EvalState[List[InstanceExp]])*) =
+    copy(hooks = hooks.withIHooks(is :_*))
+
+  def withCHooks(cs: (ConstructorDef => Eval.EvalState[ConstructorDef])*) =
+    copy(hooks = hooks.withCHooks(cs :_*))
 }
 
 sealed trait Eval[T] {
@@ -74,9 +93,9 @@ object EvalEval {
 }
 
 
-import shapeless.{:+:, ::, CNil, Coproduct, Generic, HList, HNil, Inl, Inr}
-import shortbol.shapeless._
 
+import shapeless.{:+:, ::, CNil, Coproduct, Generic, HList, HNil, Inl, Inr, lens}
+import shortbol.shapeless._
 import scalaz.Scalaz._
 import scalaz._
 
@@ -186,7 +205,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
     override def apply(t: TopLevel.Pragma) = for {
       _ <- modify((_: EvalContext).withPragmas(t.pragma))
-      phook <- gets((_: EvalContext).phook)
+      phook <- gets((_: EvalContext).hooks.phook)
       _ <- phook.map(_ apply t.pragma).sequence[EvalState, Unit]
     } yield Nil
   }
@@ -213,7 +232,15 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     override type Result = List[TopLevel.InstanceExp]
 
     override def apply(t: TopLevel.ConstructorDef) = for {
-      _ <- modify((_: EvalContext) withConstructors t.constructorDef)
+      chook <- gets ((_: EvalContext).hooks.chook)
+      hook = chook.foldl((c: ConstructorDef) => constant(c))(
+        h1 => h2 => (c0: ConstructorDef) => for
+        {
+          c1 <- h1(c0)
+          c2 <- h2(c1)
+        } yield c2)
+       cd <- hook(t.constructorDef)
+      _ <- modify((_: EvalContext) withConstructors cd)
     } yield Nil
   }
 
@@ -233,11 +260,13 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
     override def apply(i: InstanceExp) = for {
       ce <- i.cstrApp.eval
-      ihook <- gets((_: EvalContext).ihook)
-      hook = ihook.foldl((i: InstanceExp) => constant(List(i)))(h1 => h2 => (i0: InstanceExp) => for {
-        i1 <- h1(i0)
-        i2 <- (i1 map h2).sequence
-      } yield i2.flatten)
+      ihook <- gets((_: EvalContext).hooks.ihook)
+      hook = ihook.foldl((i: InstanceExp) => constant(List(i)))(
+        h1 => h2 => (i0: InstanceExp) => for
+        {
+          i1 <- h1(i0)
+          i2 <- (i1 map h2).sequence
+        } yield i2.flatten)
       is <- hook(InstanceExp(i.id, ce))
     } yield is
   }

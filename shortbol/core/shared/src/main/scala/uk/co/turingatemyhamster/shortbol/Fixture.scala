@@ -5,10 +5,14 @@ package shortbol
 import datatree._
 import relations._
 import web._
-
-import ast.{SBFile, TopLevel}
-import ops.{EvalContext, PrettyPrinter, ShortbolParser}
+import ast.{SBFile, TopLevel, InstanceExp}
+import ast.sugar._
+import ops.{EvalContext, ShortbolParser}
 import pragma._
+
+import scalaz.Scalaz._
+import scalaz._
+
 
 object Fixture {
 
@@ -22,8 +26,21 @@ object Fixture {
 
   lazy val emptyContext: EvalContext = EvalContext()
 
-  lazy val configuredContext: EvalContext = emptyContext.withPHooks(
-    Import(Resolver.fromWeb).pHook)
+  lazy val configuredContext: EvalContext = (
+    for {
+      _ <- bootstrapPragmas
+      _ <- bootstrapScript
+    } yield ()).exec(emptyContext)
+
+  lazy val bootstrapPragmas = Pragma(
+    Map(
+      "import" -> Import(Resolver.fromWeb))
+  ).register(ast.Pragma("pragma", Nil))
+
+  lazy val bootstrapScript = ShortbolParser.SBFile.parse(
+    """# register the import pragma
+      |@pragma import url
+    """.stripMargin).get.value.eval
 
 //
 //  def toDatatree[DT <: Datatree](file: SBFile)(implicit  ee: ExporterEnv[DT]): DT#DocumentRoot
