@@ -20,8 +20,6 @@ object Fixture {
   def eval(file: SBFile, ctxt: EvalContext): (EvalContext, Seq[TopLevel.InstanceExp]) =
     file.eval.run(ctxt)
 
-  def prettyPrinter(out: Appendable): PrettyPrinter = PrettyPrinter(out)
-
   lazy val emptyContext: EvalContext = EvalContext()
 
   lazy val configuredContext: EvalContext = emptyContext.withPHooks(
