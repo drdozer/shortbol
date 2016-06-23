@@ -2,7 +2,6 @@ package uk.co.turingatemyhamster.shortbol
 package pragma
 
 import ast._
-import ast.sugar._
 import ops._
 import ops.Eval._
 
@@ -18,20 +17,25 @@ import scalaz._
 object Import {
   def apply(resolver: Resolver): Hook = new Hook {
 
-    override def register(p: Pragma) =
-      modify((_: EvalContext).withPHooks(resolveImport))
+    override def register(p: Pragma) = for {
+      _ <- modify((_: EvalContext).withPHooks(resolveImport))
+    } yield List(p)
 
-    def resolveImport(p: Pragma): EvalState[Unit] = p match {
-      case ast.Pragma(LocalName("import"), Seq(ValueExp.Identifier(url))) =>
+    def resolveImport(p: Pragma): EvalState[List[Pragma]] = p match {
+      case Pragma(LocalName("import"), Seq(ValueExp.Identifier(url))) =>
         resolver.resolve(url) match {
           case \/-(imported) => for {
             _ <- imported.eval
-          } yield ()
+          } yield List(p)
           case -\/(err) =>
-            modify((_: EvalContext).withThrown(err))
+            for {
+              _ <- modify((_: EvalContext).withThrown(err))
+            } yield Nil
         }
       case _ =>
-        constant(())
+        for {
+          _ <- modify((_: EvalContext).withThrown(new IllegalArgumentException(s"Malformed @import declaration")))
+        } yield Nil
     }
   }
 }

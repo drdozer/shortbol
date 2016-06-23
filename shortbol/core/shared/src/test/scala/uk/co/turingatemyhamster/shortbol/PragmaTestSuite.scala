@@ -5,7 +5,7 @@ import ast._
 import ast.{Pragma => _}
 import ast.sugar._
 import pragma._
-import pragma.{Pragma => _}
+import pragma.{MetaPragma => _}
 
 import utest._
 
@@ -30,7 +30,7 @@ object PragmaTestSuite extends TestSuite {
             """me : WithNameAge("matthew", 40)
               |  foaf:knows = "caroline"
               |""".stripMargin).map { i => i.instanceExp} :_*).withPragmas(
-          ast.Pragma("import", Seq(Url("http://xmlns.com/foaf/0.1/")))
+          Pragma("import", Seq(Url("http://xmlns.com/foaf/0.1/")))
         )
       }
 
@@ -44,7 +44,7 @@ object PragmaTestSuite extends TestSuite {
                       |  foaf:age = age
                       |""".stripMargin
                   )
-                )).register(ast.Pragma("pragma", Seq("import", "url"))).exec(Ø)
+                )).register(Pragma("pragma", Seq("import", "url"))).exec(Ø)
 
         parse(
           """@import <http://xmlns.com/foaf/0.1/>
@@ -71,7 +71,7 @@ object PragmaTestSuite extends TestSuite {
                     |  foaf:name = "matthew"
                     |  foaf:knows = "caroline"
                     |""".stripMargin).map { i => i.instanceExp} :_*).withPragmas(
-          ast.Pragma("import", Seq(Url("http://xmlns.com/foaf/0.1/")))
+          Pragma("import", Seq(Url("http://xmlns.com/foaf/0.1/")))
         )
       }
     }

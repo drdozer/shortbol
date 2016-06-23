@@ -3,17 +3,17 @@ package shortbol.ops
 
 import shortbol.ast._
 
-case class Hooks(phook: Vector[Pragma => Eval.EvalState[Unit]] = Vector.empty,
+case class Hooks(phook: Vector[Pragma => Eval.EvalState[List[Pragma]]] = Vector.empty,
                  ihook: Vector[InstanceExp => Eval.EvalState[List[InstanceExp]]] = Vector.empty,
-                 chook: Vector[ConstructorDef => Eval.EvalState[ConstructorDef]] = Vector.empty)
+                 chook: Vector[ConstructorDef => Eval.EvalState[List[ConstructorDef]]] = Vector.empty)
 {
-  def withPHooks(ps: (Pragma => Eval.EvalState[Unit])*) =
+  def withPHooks(ps: (Pragma => Eval.EvalState[List[Pragma]])*) =
     copy(phook = phook ++ ps)
 
   def withIHooks(is: (InstanceExp => Eval.EvalState[List[InstanceExp]])*) =
     copy(ihook = ihook ++ is)
 
-  def withCHooks(cs: (ConstructorDef => Eval.EvalState[ConstructorDef])*) =
+  def withCHooks(cs: (ConstructorDef => Eval.EvalState[List[ConstructorDef]])*) =
     copy(chook = chook ++ cs)
 }
 
@@ -73,13 +73,13 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
       }
     }
 
-  def withPHooks(ps: (Pragma => Eval.EvalState[Unit])*) =
+  def withPHooks(ps: (Pragma => Eval.EvalState[List[Pragma]])*) =
     copy(hooks = hooks.withPHooks(ps :_*))
 
   def withIHooks(is: (InstanceExp => Eval.EvalState[List[InstanceExp]])*) =
     copy(hooks = hooks.withIHooks(is :_*))
 
-  def withCHooks(cs: (ConstructorDef => Eval.EvalState[ConstructorDef])*) =
+  def withCHooks(cs: (ConstructorDef => Eval.EvalState[List[ConstructorDef]])*) =
     copy(hooks = hooks.withCHooks(cs :_*))
 }
 
@@ -204,10 +204,23 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     override type Result = List[TopLevel.InstanceExp]
 
     override def apply(t: TopLevel.Pragma) = for {
-      _ <- modify((_: EvalContext).withPragmas(t.pragma))
-      phook <- gets((_: EvalContext).hooks.phook)
-      _ <- phook.map(_ apply t.pragma).sequence[EvalState, Unit]
+      p <- t.pragma.eval
+      _ <- modify((_: EvalContext).withPragmas(p :_*))
     } yield Nil
+  }
+
+  implicit val pragama: Aux[Pragma, List[Pragma]] = new Eval[Pragma] {
+    override type Result = List[Pragma]
+
+    override def apply(t: Pragma) = for {
+      phook <- gets((_: EvalContext).hooks.phook)
+      hook = phook.foldl((p: Pragma) => constant(List(p)))(
+        h1 => h2 => (p0: Pragma) => for {
+          p1 <- h1(p0)
+          p2 <- (p1 map h2).sequence
+        } yield p2.flatten)
+      cd <- hook(t)
+    } yield cd
   }
 
   implicit val assignment: Aux[Assignment, Assignment] = new Eval[Assignment] {
@@ -232,16 +245,23 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     override type Result = List[TopLevel.InstanceExp]
 
     override def apply(t: TopLevel.ConstructorDef) = for {
-      chook <- gets ((_: EvalContext).hooks.chook)
-      hook = chook.foldl((c: ConstructorDef) => constant(c))(
-        h1 => h2 => (c0: ConstructorDef) => for
-        {
-          c1 <- h1(c0)
-          c2 <- h2(c1)
-        } yield c2)
-       cd <- hook(t.constructorDef)
-      _ <- modify((_: EvalContext) withConstructors cd)
+      cd <- t.constructorDef.eval
+      _ <- modify((_: EvalContext).withConstructors(cd :_*))
     } yield Nil
+  }
+
+  implicit val constructorDef: Aux[ConstructorDef, List[ConstructorDef]] = new Eval[ConstructorDef] {
+    override type Result = List[ConstructorDef]
+
+    override def apply(t: ConstructorDef) = for {
+      chook <- gets((_: EvalContext).hooks.chook)
+      hook = chook.foldl((c: ConstructorDef) => constant(List(c)))(
+        h1 => h2 => (c0: ConstructorDef) => for {
+          c1 <- h1(c0)
+          c2 <- (c1 map h2).sequence
+        } yield c2.flatten)
+      cd <- hook(t)
+    } yield cd
   }
 
   implicit val constructorApp: Aux[ConstructorApp, ConstructorApp] = new Eval[ConstructorApp] {
@@ -280,7 +300,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     } yield is map TopLevel.InstanceExp
   }
 
-  implicit val constructorDef: Aux[(Seq[ValueExp], ConstructorDef), (TpeConstructor, Seq[BodyStmt])] = new Eval[(Seq[ValueExp], ConstructorDef)] {
+  implicit val constructorDefApp: Aux[(Seq[ValueExp], ConstructorDef), (TpeConstructor, Seq[BodyStmt])] = new Eval[(Seq[ValueExp], ConstructorDef)] {
     override type Result = (TpeConstructor, Seq[BodyStmt])
 
     override def apply(vscd: (Seq[ValueExp], ConstructorDef)) = for {

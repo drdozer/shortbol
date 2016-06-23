@@ -1,7 +1,8 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
+import ast.Pragma
+import ops.Eval.EvalState
 
 /**
   * Created by nmrp3 on 22/06/16.
@@ -13,5 +14,5 @@ trait Hook {
     * @param p the meta-pragma that registers the pragma
     * @return unit run for side-effects
     */
-  def register(p: ast.Pragma): EvalState[Unit]
+  def register(p: Pragma): EvalState[List[Pragma]]
 }

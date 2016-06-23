@@ -5,7 +5,7 @@ package shortbol
 import datatree._
 import relations._
 import web._
-import ast.{SBFile, TopLevel, InstanceExp}
+import ast.{SBFile, TopLevel, Pragma}
 import ast.sugar._
 import ops.{EvalContext, ShortbolParser}
 import pragma._
@@ -32,10 +32,10 @@ object Fixture {
       _ <- bootstrapScript
     } yield ()).exec(emptyContext)
 
-  lazy val bootstrapPragmas = Pragma(
+  lazy val bootstrapPragmas = MetaPragma(
     Map(
       "import" -> Import(Resolver.fromWeb))
-  ).register(ast.Pragma("pragma", Nil))
+  ).register(Pragma("pragma", Nil))
 
   lazy val bootstrapScript = ShortbolParser.SBFile.parse(
     """# register the import pragma
