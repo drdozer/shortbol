@@ -22,8 +22,8 @@ object DefaultPrefix {
         Eval.constant(List(p))
       case _ =>
         for {
-          _ <- modify((_: EvalContext).withThrown(
-            new IllegalStateException(s"Malformed @defaultPrefix declaration")))
+          _ <- modify((_: EvalContext).withLog(
+            LogMessage.error(s"Malformed @defaultPrefix declaration")))
         } yield Nil
     }
 
@@ -36,17 +36,21 @@ object DefaultPrefix {
             case Some(ps) =>
               ps.values.head match {
                 case ValueExp.Identifier(LocalName(pfx)) =>
-                  Eval.constant(List(i.copy(id = QName(NSPrefix(pfx), ln))))
+                  for {
+                    _ <- Eval.constant(List(i.copy(id = QName(NSPrefix(pfx), ln))))
+                    _ <- modify((_: EvalContext).withLog(
+                      LogMessage.info(s"Applying prefix $pfx to $ln")))
+                  }
                 case _ =>
                   for {
-                    _ <- modify((_: EvalContext).withThrown(
-                      new IllegalStateException(s"Malformed @defaultPrefix declaration")))
+                    _ <- modify((_: EvalContext).withLog(
+                      LogMessage.error(s"Malformed @defaultPrefix declaration")))
                   } yield List(i)
               }
             case None =>
               for {
-                _ <- modify((_: EvalContext).withThrown(
-                  new IllegalStateException(s"Can't resolve local name ${i.id} because no @defaultPrefix declaration is in scope")))
+                _ <- modify((_: EvalContext).withLog(
+                  LogMessage.warning(s"Can't resolve local name ${i.id} because no @defaultPrefix declaration is in scope")))
               } yield List(i)
           }
         } yield is

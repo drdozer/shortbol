@@ -3,6 +3,22 @@ package shortbol.ops
 
 import shortbol.ast._
 
+sealed trait LogLevel
+
+object LogLevel {
+  object Info extends LogLevel
+  object Warning extends LogLevel
+  object Error extends LogLevel
+}
+
+case class LogMessage(msg: String, level: LogLevel, cause: Option[Throwable])
+
+object LogMessage {
+  def info(msg: String, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Info, cause)
+  def warning(msg: String, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Warning, cause)
+  def error(msg: String, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Error, cause)
+}
+
 case class Hooks(phook: Vector[Pragma => Eval.EvalState[List[Pragma]]] = Vector.empty,
                  ihook: Vector[InstanceExp => Eval.EvalState[List[InstanceExp]]] = Vector.empty,
                  chook: Vector[ConstructorDef => Eval.EvalState[List[ConstructorDef]]] = Vector.empty)
@@ -22,7 +38,7 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
                        vlxps: Map[Identifier, List[ValueExp]] = Map.empty,
                        insts: Map[Identifier, List[InstanceExp]] = Map.empty,
                        hooks: Hooks = Hooks(),
-                       thrwn: Seq[Throwable] = Seq.empty)
+                       logms: Seq[LogMessage] = Seq.empty)
 {
 
   def withConstructors(cs: ConstructorDef*) =
@@ -37,8 +53,8 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
   def withInstances(is: InstanceExp*) =
     copy(insts = insts ++ is.map(i => i.id -> (i :: insts.getOrElse(i.id, Nil))))
 
-  def withThrown(ts: Throwable*) =
-    copy(thrwn = thrwn ++ ts)
+  def withLog(lm: LogMessage*) =
+    copy(logms = logms ++ lm)
 
   def resolveValue(id: Identifier): Option[ValueExp] =
     vlxps get id map (_.head) orElse {
