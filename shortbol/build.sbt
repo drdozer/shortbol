@@ -15,7 +15,6 @@ lazy val astJVM = ast.jvm
 
 lazy val core = crossProject.settings(
   name := "shortbol-core",
-  libraryDependencies += "com.github.mpilquist" %% "simulacrum" % "0.7.0",
   libraryDependencies += "com.chuusai" %%% "shapeless" % "2.3.0",
   libraryDependencies += "com.lihaoyi" %%% "fastparse" % "0.3.7",
   libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.3",
