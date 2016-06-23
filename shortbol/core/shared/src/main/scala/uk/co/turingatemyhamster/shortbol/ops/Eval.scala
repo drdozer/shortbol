@@ -8,6 +8,7 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
                        vlxps: Map[Identifier, List[ValueExp]] = Map.empty,
                        insts: Map[Identifier, List[InstanceExp]] = Map.empty,
                        phook: Vector[Pragma => Eval.EvalState[Unit]] = Vector.empty,
+                       ihook: Vector[InstanceExp => Eval.EvalState[List[InstanceExp]]] = Vector.empty,
                        thrwn: Seq[Throwable] = Seq.empty)
 {
 
@@ -25,6 +26,9 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
 
   def withPHooks(ps: (Pragma => Eval.EvalState[Unit])*) =
     copy(phook = phook ++ ps)
+
+  def withIHooks(is: (InstanceExp => Eval.EvalState[List[InstanceExp]])*) =
+    copy(ihook = ihook ++ is)
 
   def resolveValue(id: Identifier): Option[ValueExp] =
     vlxps get id map (_.head) orElse {
@@ -137,11 +141,11 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
 
   // Smelly! Find a way to compute this
-  implicit lazy val topLevel: Aux[TopLevel, Option[TopLevel.InstanceExp]] = {
-    type U = Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:Option[TopLevel.InstanceExp]:+:CNil
+  implicit lazy val topLevel: Aux[TopLevel, List[TopLevel.InstanceExp]] = {
+    type U = List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:CNil
     val g = Generic[TopLevel]
     val e = Eval[g.Repr, U]
-    typeClass.project[TopLevel, g.Repr, Option[TopLevel.InstanceExp], U](e, g.to, _.unify)
+    typeClass.project[TopLevel, g.Repr, List[TopLevel.InstanceExp], U](e, g.to, _.unify)
   }
 
   implicit val bodyStmt = Eval[BodyStmt, BodyStmt]
@@ -159,32 +163,32 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
   implicit val blankLine: Aux[BlankLine.type, BlankLine.type] = identityEval
 
-  implicit val topLevel_blankLine: Aux[TopLevel.BlankLine, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.BlankLine] {
-    override type Result = Option[TopLevel.InstanceExp]
+  implicit val topLevel_blankLine: Aux[TopLevel.BlankLine, List[TopLevel.InstanceExp]] = new Eval[TopLevel.BlankLine] {
+    override type Result = List[TopLevel.InstanceExp]
 
     override def apply(t: TopLevel.BlankLine) = for {
       te <- t.blankLine.eval
-    } yield None
+    } yield Nil
   }
 
   implicit val comment: Aux[Comment, Comment] = identityEval
 
-  implicit val topLevel_comment: Aux[TopLevel.Comment, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.Comment] {
-      override type Result = Option[TopLevel.InstanceExp]
+  implicit val topLevel_comment: Aux[TopLevel.Comment, List[TopLevel.InstanceExp]] = new Eval[TopLevel.Comment] {
+      override type Result = List[TopLevel.InstanceExp]
 
       override def apply(t: TopLevel.Comment) = for {
         te <- t.comment.eval
-      } yield None
+      } yield Nil
     }
 
-  implicit val topLevel_pragma: Aux[TopLevel.Pragma, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.Pragma] {
-    override type Result = Option[TopLevel.InstanceExp]
+  implicit val topLevel_pragma: Aux[TopLevel.Pragma, List[TopLevel.InstanceExp]] = new Eval[TopLevel.Pragma] {
+    override type Result = List[TopLevel.InstanceExp]
 
     override def apply(t: TopLevel.Pragma) = for {
       _ <- modify((_: EvalContext).withPragmas(t.pragma))
       phook <- gets((_: EvalContext).phook)
       _ <- phook.map(_ apply t.pragma).sequence[EvalState, Unit]
-    } yield None
+    } yield Nil
   }
 
   implicit val assignment: Aux[Assignment, Assignment] = new Eval[Assignment] {
@@ -196,21 +200,21 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     } yield Assignment(p, v)
   }
 
-  implicit val topLevel_assignment: Aux[TopLevel.Assignment, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.Assignment] {
-    override type Result = Option[TopLevel.InstanceExp]
+  implicit val topLevel_assignment: Aux[TopLevel.Assignment, List[TopLevel.InstanceExp]] = new Eval[TopLevel.Assignment] {
+    override type Result = List[TopLevel.InstanceExp]
 
     override def apply(t: TopLevel.Assignment) = for {
       a <- t.assignment.eval
       _ <- modify((_: EvalContext).withAssignments(a))
-    } yield None
+    } yield Nil
   }
 
-  implicit val topLevel_constructorDef: Aux[TopLevel.ConstructorDef, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.ConstructorDef] {
-    override type Result = Option[TopLevel.InstanceExp]
+  implicit val topLevel_constructorDef: Aux[TopLevel.ConstructorDef, List[TopLevel.InstanceExp]] = new Eval[TopLevel.ConstructorDef] {
+    override type Result = List[TopLevel.InstanceExp]
 
     override def apply(t: TopLevel.ConstructorDef) = for {
       _ <- modify((_: EvalContext) withConstructors t.constructorDef)
-    } yield None
+    } yield Nil
   }
 
   implicit val constructorApp: Aux[ConstructorApp, ConstructorApp] = new Eval[ConstructorApp] {
@@ -224,21 +228,27 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
   }
 
 
-  implicit val instanceExp: Aux[InstanceExp, InstanceExp] = new Eval[InstanceExp] {
-    override type Result = InstanceExp
+  implicit val instanceExp: Aux[InstanceExp, List[InstanceExp]] = new Eval[InstanceExp] {
+    override type Result = List[InstanceExp]
 
     override def apply(i: InstanceExp) = for {
       ce <- i.cstrApp.eval
-    } yield InstanceExp(i.id, ce)
+      ihook <- gets((_: EvalContext).ihook)
+      hook = ihook.foldl((i: InstanceExp) => constant(List(i)))(h1 => h2 => (i0: InstanceExp) => for {
+        i1 <- h1(i0)
+        i2 <- (i1 map h2).sequence
+      } yield i2.flatten)
+      is <- hook(InstanceExp(i.id, ce))
+    } yield is
   }
 
-  implicit val topLevel_instanceExp: Aux[TopLevel.InstanceExp, Option[TopLevel.InstanceExp]] = new Eval[TopLevel.InstanceExp] {
-    override type Result = Option[TopLevel.InstanceExp]
+  implicit val topLevel_instanceExp: Aux[TopLevel.InstanceExp, List[TopLevel.InstanceExp]] = new Eval[TopLevel.InstanceExp] {
+    override type Result = List[TopLevel.InstanceExp]
 
     override def apply(t: TopLevel.InstanceExp) = for {
-      i <- t.instanceExp.eval
-      _ <- modify((_: EvalContext).withInstances(i))
-    } yield Some(TopLevel.InstanceExp(i))
+      is <- t.instanceExp.eval
+      _ <- modify((_: EvalContext).withInstances(is :_*))
+    } yield is map TopLevel.InstanceExp
   }
 
   implicit val constructorDef: Aux[(Seq[ValueExp], ConstructorDef), (TpeConstructor, Seq[BodyStmt])] = new Eval[(Seq[ValueExp], ConstructorDef)] {

@@ -66,13 +66,13 @@ object EvalTestSuite extends TestSuite {
 
     'blankline - {
       * - { BlankLine evaluatesTo BlankLine in Ø }
-      * - { (BlankLine : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) in Ø }
+      * - { (BlankLine : TopLevel) evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø }
       * - { (BlankLine : BodyStmt) evaluatesTo (BlankLine : BodyStmt) in Ø }
     }
 
     'comment - {
       * - { Comment("a comment") evaluatesTo Comment("a comment") in Ø }
-      * - { (Comment("a comment") : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) in Ø }
+      * - { (Comment("a comment") : TopLevel) evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø }
       * - { (Comment("a comment") : BodyStmt) evaluatesTo (Comment("a comment") : BodyStmt) in Ø }
     }
 
@@ -164,11 +164,11 @@ object EvalTestSuite extends TestSuite {
       }
 
       'topLevel - {
-        * - { ("a" -> "b" : TopLevel) evaluatesTo (None : Option[TopLevel.InstanceExp]) in Ø.withAssignments ("a" -> "b") }
+        * - { ("a" -> "b" : TopLevel) evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments ("a" -> "b") }
 
-        * - { ("a" -> "b" : TopLevel) in Ø.withAssignments("a" -> "x") evaluatesTo (None : Option[TopLevel.InstanceExp]) in Ø.withAssignments ("a" -> "x", "x" -> "b") }
+        * - { ("a" -> "b" : TopLevel) in Ø.withAssignments("a" -> "x") evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments ("a" -> "x", "x" -> "b") }
 
-        * - { ("a" -> "b" : TopLevel) in Ø.withAssignments("b" -> "y") evaluatesTo (None : Option[TopLevel.InstanceExp]) in Ø.withAssignments ("b" -> "y", "a" -> "y") }
+        * - { ("a" -> "b" : TopLevel) in Ø.withAssignments("b" -> "y") evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments ("b" -> "y", "a" -> "y") }
       }
     }
 
@@ -176,7 +176,7 @@ object EvalTestSuite extends TestSuite {
       * - {
         Seq[TopLevel](
           "b" -> "c",
-          "a" -> "b") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None) in Ø.withAssignments (
+          "a" -> "b") evaluatesTo Seq[List[TopLevel.InstanceExp]](Nil, Nil) in Ø.withAssignments (
           "b" -> "c",
           "a" -> "c")
       }
@@ -185,7 +185,7 @@ object EvalTestSuite extends TestSuite {
         Seq[TopLevel](
           "c" -> "d",
           "b" -> "c",
-          "a" -> "b") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None, None) in Ø.withAssignments (
+          "a" -> "b") evaluatesTo Seq[List[TopLevel.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
           "c" -> "d",
           "b" -> "d",
           "a" -> "d")
@@ -195,7 +195,7 @@ object EvalTestSuite extends TestSuite {
         Seq[TopLevel](
           "bx" -> "cx",
           "cx" -> "dx",
-          "ax" -> "bx") evaluatesTo Seq[Option[TopLevel.InstanceExp]](None, None, None) in Ø.withAssignments (
+          "ax" -> "bx") evaluatesTo Seq[List[TopLevel.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
           "bx" -> "cx",
           "cx" -> "dx",
           "ax" -> "dx")
@@ -299,7 +299,7 @@ object EvalTestSuite extends TestSuite {
             Seq(),
             ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
           )
-        ) evaluatesTo (None: Option[TopLevel.InstanceExp]) in Ø.withConstructors (
+        ) evaluatesTo (Nil: List[TopLevel.InstanceExp]) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
             Seq(),
@@ -317,7 +317,7 @@ object EvalTestSuite extends TestSuite {
           )
         ) in Ø.withAssignments(
           "Foo" -> "Bar"
-        ) evaluatesTo (None: Option[TopLevel.InstanceExp]) in Ø.withConstructors (
+        ) evaluatesTo (Nil: List[TopLevel.InstanceExp]) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
             Seq(),
