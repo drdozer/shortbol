@@ -2,12 +2,19 @@ package uk.co.turingatemyhamster.shortbol.ast
 
 import uk.co.turingatemyhamster.shortbol.ast
 
-sealed trait TopLevel
-sealed trait BodyStmt
-sealed trait ValueExp
-sealed trait TpeConstructor
-sealed trait Identifier
-sealed trait Literal
+case class Pos(offset: Int, line: Int = -1, column: Int = -1)
+case class Region(startsAt: Pos, endsAt: Pos)
+
+trait AstNode {
+  var region: Region = _
+}
+
+sealed trait TopLevel extends AstNode
+sealed trait BodyStmt extends AstNode
+sealed trait ValueExp extends AstNode
+sealed trait TpeConstructor extends AstNode
+sealed trait Identifier extends AstNode
+sealed trait Literal extends AstNode
 
 // top levels
 object TopLevel {
@@ -37,7 +44,7 @@ object ValueExp {
 // identifiers
 // but consider: https://www.w3.org/TR/REC-xml-names/#ns-qualnames
 case class LocalName(name: String) extends Identifier
-case class NSPrefix(pfx: String)
+case class NSPrefix(pfx: String) extends AstNode
 case class QName(prefix: NSPrefix, localName: LocalName) extends Identifier
 case class Url(url: String) extends Identifier
 
@@ -46,7 +53,7 @@ case class Url(url: String) extends Identifier
 case class StringLiteral(string: StringLiteral.Style, datatype: Option[Datatype] = None, language: Option[Language] = None) extends Literal
 
 object StringLiteral {
-  sealed trait Style
+  sealed trait Style extends AstNode
 
   case class SingleLine(s: String, escaped: Boolean = false) extends Style {
     def isEscaped = escaped || s.contains("\"")
@@ -57,34 +64,34 @@ object StringLiteral {
 
 case class IntegerLiteral(i: Int) extends Literal
 
-case class Datatype(iri: String)
-case class Language(tag: String)
+case class Datatype(iri: String) extends AstNode
+case class Language(tag: String) extends AstNode
 
 // type constructors
 case class TpeConstructor1(id: Identifier, args: Seq[ValueExp]) extends TpeConstructor
 case object TpeConstructorStar extends TpeConstructor
 
 // expressions
-case class Assignment(property: Identifier, value: ValueExp)
+case class Assignment(property: Identifier, value: ValueExp) extends AstNode
 
-case object BlankLine
+case object BlankLine extends AstNode
 
-case class Comment(commentText: String)
+case class Comment(commentText: String) extends AstNode
 
 case class ConstructorApp(cstr: TpeConstructor,
-                          body: Seq[BodyStmt])
+                          body: Seq[BodyStmt]) extends AstNode
 
 case class ConstructorDef(id: Identifier,
                             args: Seq[LocalName],
-                            cstrApp: ConstructorApp)
+                            cstrApp: ConstructorApp) extends AstNode
 
 case class InstanceExp(id: Identifier,
-                       cstrApp: ConstructorApp)
+                       cstrApp: ConstructorApp) extends AstNode
 
-case class Pragma(id: Identifier, values: Seq[ast.ValueExp])
+case class Pragma(id: Identifier, values: Seq[ast.ValueExp]) extends AstNode
 
 // the whole thing
-case class SBFile(tops: Seq[TopLevel] = Seq.empty, rdfAbout: Option[Url] = None, source: Option[Url] = None)
+case class SBFile(tops: Seq[TopLevel] = Seq.empty, rdfAbout: Option[Url] = None, source: Option[Url] = None) extends AstNode
 
 object sugar {
   import scala.language.implicitConversions
