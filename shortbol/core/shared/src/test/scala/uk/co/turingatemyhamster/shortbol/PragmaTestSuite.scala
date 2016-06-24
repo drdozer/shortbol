@@ -6,6 +6,7 @@ import ast.{Pragma => _}
 import ast.sugar._
 import pragma._
 import pragma.{PragmaPragma => _}
+import ops.Eval._
 import utest._
 
 object PragmaTestSuite extends TestSuite {
@@ -120,9 +121,54 @@ object PragmaTestSuite extends TestSuite {
     }
 
     'prefix - {
-      parse("@prefix foo <http://some.com/stuff#>") in
-        Fixture.configuredContext evaluatesTo Seq.empty[TopLevel.InstanceExp] in
-        Fixture.configuredContext.withPragmas(Pragma("prefix", Seq("foo", Url("http://some.com/stuff#"))))
+      * - {
+        parse("@prefix foo <http://some.com/stuff#>") in
+          Fixture.configuredContext evaluatesTo Seq.empty[TopLevel.InstanceExp] in
+          Fixture.configuredContext.withPragmas(Pragma("prefix", Seq("foo", Url("http://some.com/stuff#"))))
+      }
+
+      * - {
+        val c = parse(
+          "@prefix foo <http://some.com/stuff#>"
+        ).eval.exec(Fixture.configuredContext)
+        (c.logms, c.prgms)
+      }
+
+      * - {
+        parse("foo:me : foaf:person") in Fixture.configuredContext evaluatesTo parse_instances(
+          "foo:me : foaf:person"
+        ) in Fixture.configuredContext.withInstances(parse_instances(
+          "foo:me : foaf:person"
+        ).map { i => i.instanceExp} :_*)
+      }
+
+      * - {
+        val c = parse(
+          "foo:me : foaf:person"
+        ).eval.exec(Fixture.configuredContext)
+        (c.logms, c.prgms)
+      }
+
+
+      * - {
+        parse(
+          """@prefix foo <http://some.com/stuff#>
+            |foo:me : foaf:person""".stripMargin) in Fixture.configuredContext evaluatesTo parse_instances(
+          "foo:me : foaf:person"
+        ) in Fixture.configuredContext.withInstances(parse_instances(
+          "foo:me : foaf:person"
+        ).map { i => i.instanceExp} :_*).withPragmas(
+          Pragma("prefix", Seq("foo", Url("http://some.com/stuff#")))
+        )
+      }
+
+      * - {
+        parse(
+          """@prefix foo <http://some.com/stuff#>
+            |foo:me : foaf:person
+          """.stripMargin).eval.exec(Fixture.configuredContext).logms
+      }
+
     }
   }
 

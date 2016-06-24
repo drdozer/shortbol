@@ -15,6 +15,7 @@ import scalaz._
 object PrefixPragma {
   def apply: Hook = new Hook {
     var logLevel: LogLevel = LogLevel.Warning
+    val findAllIdentifiers = FindAll[Identifier]
 
     override def register(p: Pragma) = for {
       _ <- withPHooks(pHook)
@@ -46,8 +47,8 @@ object PrefixPragma {
       _ <- checkIdentifiers(c)
     } yield List(c)
 
-    def checkIdentifiers[T](t: T)(implicit fi: FindAll[T, Identifier]): EvalState[List[Unit]] =
-      (fi(t, Nil) map {
+    def checkIdentifiers[T](t: T): EvalState[List[Unit]] =
+      (findAllIdentifiers(t) map {
         case QName(NSPrefix(pfx), _) =>
           for {
             found <- gets((_: EvalContext).prgms.get("prefix").to[List].flatten collect {

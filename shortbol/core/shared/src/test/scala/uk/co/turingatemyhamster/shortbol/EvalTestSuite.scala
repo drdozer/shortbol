@@ -55,14 +55,14 @@ object EvalTestSuite extends TestSuite {
         assert(eval != null)
         val (observedContext, observedResult) = eval(t).run(c0)
 
-//        try {
+        //        try {
           if(expectedContext != ⊥) {
             val obsCtxt = observedContext.copy(logms = Seq())
             val expCtxt = expectedContext.copy(logms = Seq())
-            assert(obsCtxt == expCtxt)
+            assert(observedResult == expectedResult, obsCtxt == expCtxt)
+          } else {
+            assert(observedResult == expectedResult)
           }
-
-          assert(observedResult == expectedResult)
 //        } catch {
 //          case t : Throwable =>
 //            throw new AssertionError(s"Logs: ${observedContext.logms}", Seq(), t)
