@@ -65,5 +65,9 @@ object PrefixPragma {
         case _ =>
           constant(())
       }).sequenceU
+
+    override val ID: LocalName = "prefix"
+
+    override val bootstrap: String = "@pragma prefix pfx url"
   }
 }

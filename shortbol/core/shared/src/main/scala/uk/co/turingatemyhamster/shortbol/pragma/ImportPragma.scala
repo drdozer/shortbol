@@ -2,6 +2,7 @@ package uk.co.turingatemyhamster.shortbol
 package pragma
 
 import ast._
+import ast.sugar._
 import ops._
 import ops.Eval._
 
@@ -43,6 +44,10 @@ object ImportPragma {
       case _ =>
         constant(List(p))
     }
+
+    override val ID: LocalName = "import"
+
+    override val bootstrap: String = "@pragma import url"
   }
 }
 

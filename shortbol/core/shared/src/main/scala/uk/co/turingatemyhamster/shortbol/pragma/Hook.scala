@@ -1,7 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import ast.Pragma
+import ast.{LocalName, Pragma}
 import ops.Eval.EvalState
 
 /**
@@ -15,4 +15,8 @@ trait Hook {
     * @return unit run for side-effects
     */
   def register(p: Pragma): EvalState[List[Pragma]]
+
+  def ID: LocalName
+
+  def bootstrap: String
 }

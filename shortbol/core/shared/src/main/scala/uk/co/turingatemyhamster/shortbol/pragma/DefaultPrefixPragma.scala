@@ -2,6 +2,7 @@ package uk.co.turingatemyhamster.shortbol
 package pragma
 
 import ast._
+import sugar._
 import ops._
 import ops.Eval._
 
@@ -88,5 +89,9 @@ object DefaultPrefixPragma {
         case _ =>
           Eval.constant(List(c))
       }
+
+    override val ID: LocalName = "defaultPrefix"
+
+    override val bootstrap: String = "@pragma defaultPrefix pfx"
   }
 }

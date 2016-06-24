@@ -15,7 +15,19 @@ object PragmaTestSuite extends TestSuite {
   val tests = TestSuite {
     import EvalTestSuite.{parse, parse_instances, parse_constructorDef, Ø, TestOps}
 
+    'pragma - {
+      (Fixture.configuredContext.prgms,
+        Fixture.configuredContext.logms)
+    }
+
     'import - {
+      * - {
+        val pragmaP = PragmaPragma()
+        val importPID = ValueExp.Identifier(ImportPragma(null).ID)
+        val is = Fixture.configuredContext.prgms(pragmaP.ID) filter (_.values.head == importPID)
+        assert(is.nonEmpty)
+      }
+
       * - {
         val startCtxt = Ø
 

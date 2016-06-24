@@ -7,7 +7,7 @@ import relations._
 import web._
 import ast.{SBFile, TopLevel, Pragma}
 import ast.sugar._
-import ops.{EvalContext, ShortbolParser}
+import ops.{EvalContext, ShortbolParser, Eval}
 import pragma._
 
 import scalaz.Scalaz._
@@ -26,26 +26,19 @@ object Fixture {
 
   lazy val emptyContext: EvalContext = EvalContext()
 
-  lazy val configuredContext: EvalContext = (
-    for {
-      _ <- bootstrapPragmas
-      _ <- bootstrapScript
-    } yield ()).exec(emptyContext)
+  lazy val configuredContext: EvalContext =
+    bootstrap.exec(emptyContext)
 
   lazy val bootstrapPragmas = PragmaPragma(
-    Map(
-      "import" -> ImportPragma(Resolver.fromWeb),
-      "defaultPrefix" -> DefaultPrefixPragma.apply,
-      "prefix" -> PrefixPragma.apply
-    )
-  ).register(Pragma("pragma", Nil))
+      ImportPragma(Resolver.fromWeb),
+      DefaultPrefixPragma.apply,
+      PrefixPragma.apply
+  )
 
-  lazy val bootstrapScript = ShortbolParser.SBFile.parse(
-    """# register the import pragma
-      |@pragma import url
-      |@pragma defaultPrefix prefixName
-      |@pragma prefix prefixName url
-    """.stripMargin).get.value.eval
+  lazy val bootstrap = for {
+    _ <- bootstrapPragmas.register(Pragma("pragma", Seq("pragma")))
+    _ <- ShortbolParser.SBFile.parse(bootstrapPragmas.bootstrap).get.value.eval
+  } yield ()
 
 //
 //  def toDatatree[DT <: Datatree](file: SBFile)(implicit  ee: ExporterEnv[DT]): DT#DocumentRoot
