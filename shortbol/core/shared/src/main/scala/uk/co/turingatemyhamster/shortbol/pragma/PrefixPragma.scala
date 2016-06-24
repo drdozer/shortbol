@@ -4,7 +4,7 @@ package pragma
 import ast._
 import ast.sugar._
 import ops.Eval.{EvalState, constant, log, withPHooks, withIHooks, withCHooks}
-import ops.{EvalContext, FindAll, LogLevel, LogMessage}
+import ops.{EvalContext, AllIdentifiers, LogLevel, LogMessage}
 
 import scalaz.Scalaz._
 import scalaz._
@@ -15,7 +15,6 @@ import scalaz._
 object PrefixPragma {
   def apply: Hook = new Hook {
     var logLevel: LogLevel = LogLevel.Warning
-    val findAllIdentifiers = FindAll[Identifier]
 
     override def register(p: Pragma) = for {
       _ <- withPHooks(pHook)
@@ -39,19 +38,22 @@ object PrefixPragma {
         constant(List(p))
     }
 
+    val instanceIDs = AllIdentifiers[InstanceExp]
+    val constructorIDs = AllIdentifiers[ConstructorDef]
+
     def iHook(i: InstanceExp): EvalState[List[InstanceExp]] = for {
-      _ <- checkIdentifiers(i)
+      _ <- checkIdentifiers(instanceIDs(i))
     } yield List(i)
 
     def cHook(c: ConstructorDef): EvalState[List[ConstructorDef]] = for {
-      _ <- checkIdentifiers(c)
+      _ <- checkIdentifiers(constructorIDs(c))
     } yield List(c)
 
-    def checkIdentifiers[T](t: T): EvalState[List[Unit]] =
-      (findAllIdentifiers(t) map {
+    def checkIdentifiers[T](is: Seq[Identifier]): EvalState[List[Unit]] =
+      (is.to[List] map {
         case QName(NSPrefix(pfx), _) =>
           for {
-            found <- gets((_: EvalContext).prgms.get("prefix").to[List].flatten collect {
+            found <- gets((_: EvalContext).prgms.get("prefix").to[Vector].flatten collect {
               case Pragma(_, Seq(ValueExp.Identifier(LocalName(p)), url)) if p == pfx => url
             })
             _ <- if (found.isEmpty) {

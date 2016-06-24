@@ -7,6 +7,7 @@ import ast.sugar._
 import pragma._
 import pragma.{PragmaPragma => _}
 import ops.Eval._
+import uk.co.turingatemyhamster.shortbol.ops.LogMessage
 import utest._
 
 object PragmaTestSuite extends TestSuite {
@@ -163,10 +164,63 @@ object PragmaTestSuite extends TestSuite {
       }
 
       * - {
-        parse(
+        val log = parse(
+          """foo:me : foaf:person
+          """.stripMargin).eval.exec(Fixture.configuredContext).logms
+
+        val pb = log.collect { case LogMessage(msg, _, _) if msg startsWith "No prefix binding for" => msg }
+
+        val foo = pb filter (_ contains "foo")
+        val foaf = pb filter (_ contains "foaf")
+
+        assert(foo.nonEmpty)
+        assert(foaf.nonEmpty)
+      }
+
+      * - {
+        val log = parse(
           """@prefix foo <http://some.com/stuff#>
             |foo:me : foaf:person
           """.stripMargin).eval.exec(Fixture.configuredContext).logms
+
+        val pb = log.collect { case LogMessage(msg, _, _) if msg startsWith "No prefix binding for" => msg }
+
+        val foo = pb filter (_ contains "foo")
+        val foaf = pb filter (_ contains "foaf")
+
+        assert(foo.isEmpty)
+        assert(foaf.nonEmpty)
+      }
+
+      * - {
+        val log = parse(
+          """@prefix foaf <http://xmlns.com/foaf/0.1/>
+            |foo:me : foaf:person
+          """.stripMargin).eval.exec(Fixture.configuredContext).logms
+
+        val pb = log.collect { case LogMessage(msg, _, _) if msg startsWith "No prefix binding for" => msg }
+
+        val foo = pb filter (_ contains "foo")
+        val foaf = pb filter (_ contains "foaf")
+
+        assert(foo.nonEmpty)
+        assert(foaf.isEmpty)
+      }
+
+      * - {
+        val log = parse(
+          """@prefix foo <http://some.com/stuff#>
+            |@prefix foaf <http://xmlns.com/foaf/0.1/>
+            |foo:me : foaf:person
+          """.stripMargin).eval.exec(Fixture.configuredContext).logms
+
+        val pb = log.collect { case LogMessage(msg, _, _) if msg startsWith "No prefix binding for" => msg }
+
+        val foo = pb filter (_ contains "foo")
+        val foaf = pb filter (_ contains "foaf")
+
+        assert(foo.isEmpty)
+        assert(foaf.isEmpty)
       }
 
     }
