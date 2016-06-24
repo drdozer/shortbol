@@ -13,7 +13,7 @@ import scalaz.Scalaz._
   *
   * @author Matthew Pocock
   */
-object MetaPragma {
+object PragmaPragma {
   def apply(hooks: Map[String, Hook]): Hook = new Hook {
     override def register(p: Pragma) = for {
       _ <- modify((_: EvalContext).withPHooks(registerHooks))

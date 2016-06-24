@@ -5,8 +5,7 @@ import ast._
 import ast.{Pragma => _}
 import ast.sugar._
 import pragma._
-import pragma.{MetaPragma => _}
-
+import pragma.{PragmaPragma => _}
 import utest._
 
 object PragmaTestSuite extends TestSuite {
@@ -35,7 +34,7 @@ object PragmaTestSuite extends TestSuite {
       }
 
       * - {
-        val startCtxt = Import(Resolver.fromValues(
+        val startCtxt = ImportPragma(Resolver.fromValues(
                   Url("http://xmlns.com/foaf/0.1/") -> parse(
                     """WithNameAge(name, age) => WithAge(age)
                       |  foaf:name = name
@@ -76,6 +75,49 @@ object PragmaTestSuite extends TestSuite {
       }
     }
 
+
+    'defaultPrefix - {
+      * - {
+        parse(
+          """@defaultPrefix pfx
+            |
+            |me : foaf:person""".stripMargin) in Ø evaluatesTo parse_instances(
+          """me : foaf:person"""
+        ) in Ø.withInstances(parse_instances(
+          """me : foaf:person"""
+        ).map { i => i.instanceExp} :_*).withPragmas(
+          Pragma("defaultPrefix", Seq("pfx"))
+        )
+      }
+
+      * - {
+        val startCtxt = DefaultPrefixPragma.apply.register(Pragma("pragma", Seq("defaultPrefix", "prefixName"))).exec(Ø)
+
+        parse(
+          """@defaultPrefix pfx
+            |
+            |me : foaf:person""".stripMargin) in startCtxt evaluatesTo parse_instances(
+          """pfx:me : foaf:person"""
+        ) in startCtxt.withInstances(parse_instances(
+          """pfx:me : foaf:person"""
+        ).map { i => i.instanceExp} :_*).withPragmas(
+          Pragma("defaultPrefix", Seq("pfx"))
+        )
+      }
+
+      * - {
+        parse(
+          """@defaultPrefix pfx
+            |
+            |me : foaf:person""".stripMargin) in Fixture.configuredContext evaluatesTo parse_instances(
+          """pfx:me : foaf:person"""
+        ) in Fixture.configuredContext.withInstances(parse_instances(
+          """pfx:me : foaf:person"""
+        ).map { i => i.instanceExp} :_*).withPragmas(
+          Pragma("defaultPrefix", Seq("pfx"))
+        )
+      }
+    }
   }
 
 }

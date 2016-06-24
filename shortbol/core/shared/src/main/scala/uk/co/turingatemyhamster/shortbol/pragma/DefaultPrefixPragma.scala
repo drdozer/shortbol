@@ -8,7 +8,7 @@ import ops.Eval._
 import scalaz.Scalaz._
 import scalaz._
 
-object DefaultPrefix {
+object DefaultPrefixPragma {
 
   def apply: Hook = new Hook {
     override def register(p: Pragma) = for {

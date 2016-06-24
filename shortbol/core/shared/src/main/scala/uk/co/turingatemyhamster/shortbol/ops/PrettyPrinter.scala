@@ -76,7 +76,7 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   implicit lazy val instanceExp: PrintApp[InstanceExp] = PrintApp.using { ie =>
     indentStr.append
     ie.id.append
-    ": ".append
+    " : ".append
     ie.cstrApp.append
   }
 

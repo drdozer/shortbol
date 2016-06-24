@@ -32,14 +32,17 @@ object Fixture {
       _ <- bootstrapScript
     } yield ()).exec(emptyContext)
 
-  lazy val bootstrapPragmas = MetaPragma(
+  lazy val bootstrapPragmas = PragmaPragma(
     Map(
-      "import" -> Import(Resolver.fromWeb))
+      "import" -> ImportPragma(Resolver.fromWeb),
+      "defaultPrefix" -> DefaultPrefixPragma.apply
+    )
   ).register(Pragma("pragma", Nil))
 
   lazy val bootstrapScript = ShortbolParser.SBFile.parse(
     """# register the import pragma
       |@pragma import url
+      |@pragma defaultPrefix prefixName
     """.stripMargin).get.value.eval
 
 //

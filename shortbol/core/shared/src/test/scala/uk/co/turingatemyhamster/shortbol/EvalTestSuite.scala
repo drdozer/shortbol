@@ -10,7 +10,7 @@ import uk.co.turingatemyhamster.shortbol.ast._
 import uk.co.turingatemyhamster.shortbol.ops._
 import Eval.EvalOps
 import ast.sugar._
-import uk.co.turingatemyhamster.shortbol.pragma.{Import, Resolver}
+import uk.co.turingatemyhamster.shortbol.pragma.{ImportPragma, Resolver}
 
 
 /**
@@ -55,7 +55,11 @@ object EvalTestSuite extends TestSuite {
         assert(eval != null)
         val (observedContext, observedResult) = eval(t).run(c0)
 
-        if(expectedContext != ⊥) assert(observedContext.copy(logms = Seq()) == expectedContext.copy(logms = Seq()))
+        if(expectedContext != ⊥) {
+          val obsCtxt = observedContext.copy(logms = Seq())
+          val expCtxt = expectedContext.copy(logms = Seq())
+          assert(obsCtxt == expCtxt)
+        }
 
         assert(observedResult == expectedResult)
       }
