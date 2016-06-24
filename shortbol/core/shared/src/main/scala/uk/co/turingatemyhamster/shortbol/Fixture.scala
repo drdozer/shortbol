@@ -35,7 +35,8 @@ object Fixture {
   lazy val bootstrapPragmas = PragmaPragma(
     Map(
       "import" -> ImportPragma(Resolver.fromWeb),
-      "defaultPrefix" -> DefaultPrefixPragma.apply
+      "defaultPrefix" -> DefaultPrefixPragma.apply,
+      "prefix" -> PrefixPragma.apply
     )
   ).register(Pragma("pragma", Nil))
 
@@ -43,6 +44,7 @@ object Fixture {
     """# register the import pragma
       |@pragma import url
       |@pragma defaultPrefix prefixName
+      |@pragma prefix prefixName url
     """.stripMargin).get.value.eval
 
 //

@@ -12,19 +12,25 @@ object DefaultPrefixPragma {
 
   def apply: Hook = new Hook {
     override def register(p: Pragma) = for {
-      _ <- modify((_: EvalContext).withPHooks(pHook))
-      _ <- modify((_: EvalContext).withCHooks(cHook))
-      _ <- modify((_: EvalContext).withIHooks(iHook))
+      _ <- withPHooks(pHook)
+      _ <- withCHooks(cHook)
+      _ <- withIHooks(iHook)
     } yield List(p)
 
     def pHook(p: Pragma): EvalState[List[Pragma]] = p match {
-      case Pragma(LocalName("defaultPrefix"), Seq(ValueExp.Identifier(_))) =>
-        Eval.constant(List(p))
+      case Pragma(LocalName("defaultPrefix"), args) =>
+        args match {
+          case Seq(ValueExp.Identifier(pfx)) =>
+            for {
+              _ <- log(LogMessage.info(s"Registering default prefix $pfx"))
+            } yield List(p)
+          case _ =>
+            for {
+              _ <- log(LogMessage.error(s"Malformed @defaultPrefix declaration"))
+            } yield Nil
+        }
       case _ =>
-        for {
-          _ <- modify((_: EvalContext).withLog(
-            LogMessage.error(s"Malformed @defaultPrefix declaration")))
-        } yield Nil
+        Eval.constant(List(p))
     }
 
     def iHook(i: InstanceExp): EvalState[List[InstanceExp]] =

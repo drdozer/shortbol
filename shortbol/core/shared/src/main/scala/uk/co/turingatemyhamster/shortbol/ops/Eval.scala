@@ -121,6 +121,9 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
   type EvalState[R] = State[EvalContext, R]
 
   def log(logMessage: LogMessage) = modify((_: EvalContext).withLog(logMessage))
+  def withPHooks(pHook: Pragma => Eval.EvalState[List[Pragma]]) = modify((_: EvalContext).withPHooks(pHook))
+  def withIHooks(iHook: InstanceExp => Eval.EvalState[List[InstanceExp]]) = modify((_: EvalContext).withIHooks(iHook))
+  def withCHooks(cHook: ConstructorDef => Eval.EvalState[List[ConstructorDef]]) = modify((_: EvalContext).withCHooks(cHook))
 
   def constant[T](t: T): State[EvalContext, T] = t.point[EvalState]
 

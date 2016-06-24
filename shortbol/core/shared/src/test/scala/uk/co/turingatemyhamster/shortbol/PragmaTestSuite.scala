@@ -118,6 +118,12 @@ object PragmaTestSuite extends TestSuite {
         )
       }
     }
+
+    'prefix - {
+      parse("@prefix foo <http://some.com/stuff#>") in
+        Fixture.configuredContext evaluatesTo Seq.empty[TopLevel.InstanceExp] in
+        Fixture.configuredContext.withPragmas(Pragma("prefix", Seq("foo", Url("http://some.com/stuff#"))))
+    }
   }
 
 }

@@ -18,7 +18,7 @@ object ImportPragma {
   def apply(resolver: Resolver): Hook = new Hook {
 
     override def register(p: Pragma) = for {
-      _ <- modify((_: EvalContext).withPHooks(resolveImport))
+      _ <- withPHooks(resolveImport)
     } yield List(p)
 
     def resolveImport(p: Pragma): EvalState[List[Pragma]] = p match {
