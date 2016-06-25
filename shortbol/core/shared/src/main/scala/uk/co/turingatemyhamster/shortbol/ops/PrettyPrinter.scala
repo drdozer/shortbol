@@ -141,7 +141,7 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     }
   }
 
-  implicit lazy val tpeConstrcutorStar: PrintApp[TpeConstructorStar.type] = PrintApp.using { _ =>
+  implicit lazy val tpeConstrcutorStar: PrintApp[TpeConstructorStar] = PrintApp.using { _ =>
     "*".append
   }
 

@@ -3,15 +3,15 @@ package uk.co.turingatemyhamster.shortbol.ast
 import uk.co.turingatemyhamster.shortbol.ast
 
 case class Pos(offset: Int, line: Int = -1, column: Int = -1)
-case class Region(startsAt: Pos, endsAt: Pos)
+case class Region(startsAt: Pos, endsAt: Pos, in: Identifier)
 
 trait AstNode {
   var region: Region = _
 }
 
-sealed trait TopLevel extends AstNode
-sealed trait BodyStmt extends AstNode
-sealed trait ValueExp extends AstNode
+sealed trait TopLevel
+sealed trait BodyStmt
+sealed trait ValueExp
 sealed trait TpeConstructor extends AstNode
 sealed trait Identifier extends AstNode
 sealed trait Literal extends AstNode
@@ -19,7 +19,7 @@ sealed trait Literal extends AstNode
 // top levels
 object TopLevel {
   case class Assignment(assignment: ast.Assignment) extends TopLevel
-  case class BlankLine(blankLine: ast.BlankLine.type) extends TopLevel
+  case class BlankLine(blankLine: ast.BlankLine) extends TopLevel
   case class Comment(comment: ast.Comment) extends TopLevel
   case class ConstructorDef(constructorDef: ast.ConstructorDef) extends TopLevel
   case class InstanceExp(instanceExp: ast.InstanceExp) extends TopLevel
@@ -29,7 +29,7 @@ object TopLevel {
 // body statements
 object BodyStmt {
   case class Assignment(assignment: ast.Assignment) extends BodyStmt
-  case class BlankLine(blankLine: ast.BlankLine.type) extends BodyStmt
+  case class BlankLine(blankLine: ast.BlankLine) extends BodyStmt
   case class Comment(comment: ast.Comment) extends BodyStmt
   case class InstanceExp(instanceExp: ast.InstanceExp) extends BodyStmt
   case class ConstructorApp(constructorApp: ast.ConstructorApp) extends BodyStmt
@@ -69,12 +69,12 @@ case class Language(tag: String) extends AstNode
 
 // type constructors
 case class TpeConstructor1(id: Identifier, args: Seq[ValueExp]) extends TpeConstructor
-case object TpeConstructorStar extends TpeConstructor
+case class TpeConstructorStar() extends TpeConstructor
 
 // expressions
 case class Assignment(property: Identifier, value: ValueExp) extends AstNode
 
-case object BlankLine extends AstNode
+case class BlankLine() extends AstNode
 
 case class Comment(commentText: String) extends AstNode
 
@@ -97,12 +97,12 @@ object sugar {
   import scala.language.implicitConversions
 
   implicit def tlAssignment[A](a: A)(implicit e: A => ast.Assignment): TopLevel.Assignment = TopLevel.Assignment(a)
-  implicit def tlBlankLine(bl: BlankLine.type): TopLevel.BlankLine = TopLevel.BlankLine(bl)
+  implicit def tlBlankLine(bl: BlankLine): TopLevel.BlankLine = TopLevel.BlankLine(bl)
   implicit def tlComment(c: Comment): TopLevel.Comment = TopLevel.Comment(c)
   implicit def tlConstructorDef(c: ConstructorDef): TopLevel.ConstructorDef = TopLevel.ConstructorDef(c)
 
   implicit def bsAssignment[A](a: A)(implicit e: A => ast.Assignment): BodyStmt.Assignment = BodyStmt.Assignment(a)
-  implicit def bsBlankLine(bl: BlankLine.type): BodyStmt.BlankLine = BodyStmt.BlankLine(bl)
+  implicit def bsBlankLine(bl: BlankLine): BodyStmt.BlankLine = BodyStmt.BlankLine(bl)
   implicit def bsComment(c: Comment): BodyStmt.Comment = BodyStmt.Comment(c)
   implicit def bsInstanceExp(ie: InstanceExp): BodyStmt.InstanceExp = BodyStmt.InstanceExp(ie)
 
@@ -112,7 +112,6 @@ object sugar {
   implicit def ass[A, B](ab: (A, B))(implicit ai: A => Identifier, bv: B => ValueExp): Assignment = Assignment(ab._1, ab._2)
 
   implicit def strLit[S](s: S)(implicit e: S => StringLiteral.Style): StringLiteral = StringLiteral(s, None, None)
-//  implicit def strL(s: String): StringLiteral.SingleLine = StringLiteral.SingleLine(s)
 
   implicit def strLN(s: String): LocalName = LocalName(s)
   implicit def strNP(s: String): NSPrefix = NSPrefix(s)

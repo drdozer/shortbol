@@ -45,11 +45,11 @@ object AllIdentifiers extends TypeClassCompanion[AllIdentifiers] {
   implicit val missString = miss[String]
   implicit val missInt = miss[Int]
   implicit val missBoolean = miss[Boolean]
-  implicit val missStyle = miss[ast.StringLiteral.Style]
 
   implicit val identifier: AllIdentifiers[ast.Identifier] = new AllIdentifiers[ast.Identifier] {
     override def apply(t: ast.Identifier) = Seq(t)
   }
+  implicit val style = AllIdentifiers[ast.StringLiteral.Style]
   implicit val literal = AllIdentifiers[ast.Literal]
   implicit val tpeConstructor = AllIdentifiers[ast.TpeConstructor]
   implicit val valueExp = AllIdentifiers[ast.ValueExp]
@@ -57,7 +57,9 @@ object AllIdentifiers extends TypeClassCompanion[AllIdentifiers] {
   implicit val topLevel = AllIdentifiers[ast.TopLevel]
   implicit val sbFile = AllIdentifiers[ast.SBFile]
 
-  def miss[T]: AllIdentifiers[T] = new AllIdentifiers[T] {
+  def miss[T]: AllIdentifiers[T] = new MissIdentifiers[T]
+
+  class MissIdentifiers[T] extends AllIdentifiers[T] {
     override def apply(t: T) = Seq.empty
   }
 }

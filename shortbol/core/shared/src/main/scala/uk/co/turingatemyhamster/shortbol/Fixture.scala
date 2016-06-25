@@ -8,6 +8,7 @@ import web._
 import ast.{SBFile, TopLevel, Pragma}
 import ast.sugar._
 import ops.{EvalContext, ShortbolParser, Eval}
+import ShortbolParser.POps
 import pragma._
 
 import scalaz.Scalaz._
@@ -37,7 +38,7 @@ object Fixture {
 
   lazy val bootstrap = for {
     _ <- bootstrapPragmas.register(Pragma("pragma", Seq("pragma")))
-    _ <- ShortbolParser.SBFile.parse(bootstrapPragmas.bootstrap).get.value.eval
+    _ <- ShortbolParser.SBFile.withPositions("_bootstrap_", bootstrapPragmas.bootstrap).get.value.eval
   } yield ()
 
 //

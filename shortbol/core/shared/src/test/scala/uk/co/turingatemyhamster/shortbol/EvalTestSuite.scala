@@ -1,16 +1,17 @@
 package uk.co.turingatemyhamster.shortbol
 
 import fastparse.core.Parsed.Success
-import fastparse.parsers.Terminals.{End, Start}
+import fastparse.all._
 import utest._
 
 import scalaz._
 import Scalaz._
-import uk.co.turingatemyhamster.shortbol.ast._
-import uk.co.turingatemyhamster.shortbol.ops._
+import ast._
+import ops._
 import Eval.EvalOps
 import ast.sugar._
-import uk.co.turingatemyhamster.shortbol.pragma.{ImportPragma, Resolver}
+import pragma.{ImportPragma, Resolver}
+import ShortbolParser.POps
 
 
 /**
@@ -25,9 +26,11 @@ object EvalTestSuite extends TestSuite {
 //    Literal(Constant(raw)).toString
 //  }
 //
-  def parse(shortbol: String): SBFile =
-    ShortbolParser.SBFile.parse(shortbol) match {
-      case s : Success[SBFile] =>
+  def parse(shortbol: String): SBFile = parse(shortbol, ShortbolParser.SBFile)
+
+  def parse[T](shortbol: String, p: Parser[T]):T =
+    p.withPositions("_testcase_", shortbol) match {
+      case s : Success[T] =>
         s.value
     }
 
@@ -46,27 +49,41 @@ object EvalTestSuite extends TestSuite {
   implicit class TestOps[T](_t: T) {
 
     def in(c0: EvalContext) = new InContext(_t, c0)
-    def evaluatesTo[U](u: U)(implicit e: EvalEval.Aux[T, U]) = (new InContext(_t, Ø)).evaluatesTo(u)(e)
+    def evaluatesTo[U](u: U)(implicit e: EvalEval.Aux[T, U], an: AllNodes[U]) =
+      (new InContext(_t, Ø)).evaluatesTo(u)
   }
 
   class InContext[T](t: T, c0: EvalContext) {
+    def evaluatesWithRanges[U](expectedResult: U)(implicit eval: EvalEval.Aux[T, U], an: AllNodes[U]) = new Object {
+      def in(expectedContext: EvalContext): Unit = {
+        assert(eval != null)
+        val (observedContext, observedResult) = eval(t).run(c0)
+
+        if(expectedContext != ⊥) {
+          val obsCtxt = observedContext.copy(logms = Seq())
+          val expCtxt = expectedContext.copy(logms = Seq())
+          assert(observedResult == expectedResult, obsCtxt == expCtxt)
+        } else {
+          assert(observedResult == expectedResult)
+        }
+
+        val without = AllNodes.in(observedResult) filter (_.region == null)
+        assert(without.isEmpty)
+      }
+    }
+
     def evaluatesTo[U](expectedResult: U)(implicit eval: EvalEval.Aux[T, U]) = new Object {
       def in(expectedContext: EvalContext): Unit = {
         assert(eval != null)
         val (observedContext, observedResult) = eval(t).run(c0)
 
-        //        try {
-          if(expectedContext != ⊥) {
-            val obsCtxt = observedContext.copy(logms = Seq())
-            val expCtxt = expectedContext.copy(logms = Seq())
-            assert(observedResult == expectedResult, obsCtxt == expCtxt)
-          } else {
-            assert(observedResult == expectedResult)
-          }
-//        } catch {
-//          case t : Throwable =>
-//            throw new AssertionError(s"Logs: ${observedContext.logms}", Seq(), t)
-//        }
+        if(expectedContext != ⊥) {
+          val obsCtxt = observedContext.copy(logms = Seq())
+          val expCtxt = expectedContext.copy(logms = Seq())
+          assert(observedResult == expectedResult, obsCtxt == expCtxt)
+        } else {
+          assert(observedResult == expectedResult)
+        }
       }
     }
   }
@@ -74,54 +91,162 @@ object EvalTestSuite extends TestSuite {
   val tests = TestSuite {
 
     'blankline - {
-      * - { BlankLine evaluatesTo BlankLine in Ø }
-      * - { (BlankLine : TopLevel) evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø }
-      * - { (BlankLine : BodyStmt) evaluatesTo (BlankLine : BodyStmt) in Ø }
+      * - { BlankLine() evaluatesTo BlankLine() in Ø }
+      * - { (BlankLine() : BodyStmt) evaluatesTo (BlankLine() : BodyStmt) in Ø }
+      * - { (BlankLine() : TopLevel) evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø }
+      * - { parse("", ShortbolParsers.BlankLine) evaluatesTo BlankLine() in Ø }
+      * - { parse("", ShortbolParser.bodyStmt.BlankLine) evaluatesTo (BlankLine() : BodyStmt.BlankLine) in Ø }
     }
 
     'comment - {
-      * - { Comment("a comment") evaluatesTo Comment("a comment") in Ø }
-      * - { (Comment("a comment") : TopLevel) evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø }
-      * - { (Comment("a comment") : BodyStmt) evaluatesTo (Comment("a comment") : BodyStmt) in Ø }
+      * - { Comment("a comment") evaluatesTo
+        Comment("a comment") in Ø }
+      * - { (Comment("a comment") : BodyStmt) evaluatesTo
+        (Comment("a comment") : BodyStmt) in Ø }
+      * - { (Comment("a comment") : TopLevel) evaluatesTo
+        (Nil : List[TopLevel.InstanceExp]) in Ø }
+      * - { parse("#a comment", ShortbolParsers.Comment) in Ø evaluatesWithRanges
+        Comment("a comment") in Ø }
+      * - { parse("#a comment", ShortbolParser.bodyStmt.Comment) in Ø evaluatesWithRanges
+        (Comment("a comment") : BodyStmt.Comment) in Ø }
     }
 
     'literal - {
-      * - { (StringLiteral.SingleLine("abc", false) : Literal) evaluatesTo (StringLiteral.SingleLine("abc", false) : Literal) in Ø }
-      * - { (StringLiteral.MultiLine(Seq("abc", "def"), 4) : Literal) evaluatesTo (StringLiteral.MultiLine(Seq("abc", "def"), 4) : Literal) in Ø }
-      * - { (IntegerLiteral(42) : Literal) evaluatesTo (IntegerLiteral(42) : Literal) in Ø }
+      * - { (StringLiteral.SingleLine("abc", false) : Literal) evaluatesTo
+        (StringLiteral.SingleLine("abc", false) : Literal) in Ø }
+      * - { parse("\"abc\"", ShortbolParsers.Literal) in Ø evaluatesWithRanges
+        (StringLiteral.SingleLine("abc", false) : Literal) in Ø }
+      * - { (StringLiteral.MultiLine(Seq("abc", "def"), 4) : Literal) evaluatesTo
+        (StringLiteral.MultiLine(Seq("abc", "def"), 4) : Literal) in Ø }
+      * - { parse("{\n    abc\n    def\n    }", ShortbolParsers.Literal) in Ø evaluatesWithRanges
+        (StringLiteral.MultiLine(Seq("abc\n", "def\n"), 4) : Literal) in Ø }
+      * - { (IntegerLiteral(42) : Literal) evaluatesTo
+        (IntegerLiteral(42) : Literal) in Ø }
+      * - { parse("42", ShortbolParsers.Literal) in Ø evaluatesWithRanges
+        (IntegerLiteral(42) : Literal) in Ø }
+
     }
 
     'localName - {
       * - { LocalName("a") evaluatesTo ("a" : Identifier) in Ø }
-      * - { LocalName("a") in Ø.withAssignments("a" -> "x") evaluatesTo ("x" : Identifier) in Ø.withAssignments ("a" -> "x") }
-      * - { LocalName("a") in Ø.withAssignments("a" -> Url("x")) evaluatesTo (Url("x") : Identifier) in Ø.withAssignments ("a" -> Url("x")) }
-      * - { LocalName("a") in Ø.withAssignments("a" -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) in Ø.withAssignments ("a" -> QName("foo", "bar")) }
-      * - { LocalName("a") in Ø.withAssignments(QName("foo", "a") -> "x") evaluatesTo ("x" : Identifier) in Ø.withAssignments (QName("foo", "a") -> "x") }
-      * - { LocalName("a") in Ø.withAssignments("a" -> 42) evaluatesTo ("a" : Identifier) in Ø.withAssignments ("a" -> 42) }
+      * - { parse("a", ShortbolParsers.Identifier) in Ø evaluatesWithRanges
+        ("a" : Identifier) in Ø }
+
+      * - { LocalName("a") in Ø.withAssignments("a" -> "x") evaluatesTo
+        ("x" : Identifier) in Ø.withAssignments ("a" -> "x") }
+      * - { parse("a", ShortbolParsers.Identifier) in
+        Ø.withAssignments(parse("a = x", ShortbolParsers.Assignment)) evaluatesWithRanges
+        ("x" : Identifier) in Ø.withAssignments ("a" -> "x") }
+
+      * - { LocalName("a") in Ø.withAssignments("a" -> Url("x")) evaluatesTo
+        (Url("x") : Identifier) in Ø.withAssignments ("a" -> Url("x")) }
+      * - { parse("a", ShortbolParsers.Identifier) in
+        Ø.withAssignments(parse("a = <x>", ShortbolParsers.Assignment)) evaluatesWithRanges
+        (Url("x") : Identifier) in Ø.withAssignments ("a" -> Url("x")) }
+
+      * - { LocalName("a") in Ø.withAssignments("a" -> QName("foo", "bar")) evaluatesTo
+        (QName("foo", "bar") : Identifier) in Ø.withAssignments ("a" -> QName("foo", "bar")) }
+      * - { parse("a", ShortbolParsers.Identifier) in
+        Ø.withAssignments(parse("a = foo:bar", ShortbolParsers.Assignment)) evaluatesWithRanges
+        (QName("foo", "bar") : Identifier) in Ø.withAssignments ("a" -> QName("foo", "bar")) }
+
+      * - { LocalName("a") in Ø.withAssignments(QName("foo", "a") -> "x") evaluatesTo
+        ("x" : Identifier) in Ø.withAssignments (QName("foo", "a") -> "x") }
+      * - { parse("a", ShortbolParsers.Identifier) in
+        Ø.withAssignments(parse("foo:a = x", ShortbolParsers.Assignment)) evaluatesWithRanges
+        ("x" : Identifier) in Ø.withAssignments (QName("foo", "a") -> "x") }
+
+      * - { LocalName("a") in Ø.withAssignments("a" -> 42) evaluatesTo
+        ("a" : Identifier) in Ø.withAssignments ("a" -> 42) }
+      * - { parse("a", ShortbolParsers.Identifier) in
+        Ø.withAssignments(parse("a = 42", ShortbolParsers.Assignment)) evaluatesWithRanges
+        ("a" : Identifier) in Ø.withAssignments ("a" -> 42) }
     }
 
     'url - {
       * - { Url("a") evaluatesTo (Url("a") : Identifier) in Ø }
-      * - { Url("a") in Ø.withAssignments(Url("a") -> "x") evaluatesTo ("x" : Identifier) in Ø.withAssignments (Url("a") -> "x") }
-      * - { Url("a") in Ø.withAssignments(Url("a") -> Url("x")) evaluatesTo (Url("x") : Identifier) in Ø.withAssignments (Url("a") -> Url("x")) }
-      * - { Url("a") in Ø.withAssignments(Url("a") -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) in Ø.withAssignments (Url("a") -> QName("foo", "bar")) }
+      * - { parse("<a>", ShortbolParsers.Url) in Ø evaluatesWithRanges (Url("a") : Identifier) in Ø }
+
+      * - { Url("a") in Ø.withAssignments(Url("a") -> "x") evaluatesTo ("x" : Identifier) in
+        Ø.withAssignments (Url("a") -> "x") }
+      * - { parse("<a>", ShortbolParsers.Url) in
+        Ø.withAssignments(parse("<a> = x", ShortbolParsers.Assignment)) evaluatesWithRanges ("x" : Identifier) in
+        Ø.withAssignments (Url("a") -> "x") }
+
+      * - { Url("a") in Ø.withAssignments(Url("a") -> Url("x")) evaluatesTo
+        (Url("x") : Identifier) in Ø.withAssignments (Url("a") -> Url("x")) }
+      * - { parse("<a>", ShortbolParsers.Url) in
+        Ø.withAssignments(parse("<a> = <x>", ShortbolParsers.Assignment)) evaluatesWithRanges
+        (Url("x") : Identifier) in Ø.withAssignments (Url("a") -> Url("x")) }
+
+      * - { Url("a") in Ø.withAssignments(Url("a") -> QName("foo", "bar")) evaluatesTo
+        (QName("foo", "bar") : Identifier) in Ø.withAssignments (Url("a") -> QName("foo", "bar")) }
+      * - { parse("<a>", ShortbolParsers.Url) in
+        Ø.withAssignments(parse("<a> = foo:bar", ShortbolParsers.Assignment)) evaluatesWithRanges
+        (QName("foo", "bar") : Identifier) in Ø.withAssignments (Url("a") -> QName("foo", "bar")) }
     }
 
     'qname - {
       * - { QName("pfx", "ln") evaluatesTo (QName("pfx", "ln") : Identifier) in Ø }
+      * - { parse("pfx:ln", ShortbolParsers.QName) in Ø evaluatesWithRanges
+        (QName("pfx", "ln") : Identifier) in Ø }
+
       * - { QName("pfx", "ln") in Ø.withAssignments(QName("pfx", "ln") -> "x") evaluatesTo ("x" : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> "x") }
-      * - { QName("pfx", "ln") in Ø.withAssignments(QName("pfx", "ln") -> Url("x")) evaluatesTo (Url("x") : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> Url("x")) }
-      * - { QName("pfx", "ln") in Ø.withAssignments(QName("pfx", "ln") -> QName("foo", "bar")) evaluatesTo (QName("foo", "bar") : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> QName("foo", "bar")) }
+      * - { parse("pfx:ln", ShortbolParsers.QName) in
+        Ø.withAssignments(parse("pfx:ln = x", ShortbolParsers.Assignment)) evaluatesWithRanges
+        ("x" : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> "x") }
+
+      * - { QName("pfx", "ln") in
+        Ø.withAssignments(QName("pfx", "ln") -> Url("x")) evaluatesTo
+        (Url("x") : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> Url("x")) }
+      * - { parse("pfx:ln", ShortbolParsers.QName) in
+        Ø.withAssignments(parse("pfx:ln = <x>", ShortbolParsers.Assignment)) evaluatesWithRanges
+        (Url("x") : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> Url("x")) }
+
+      * - { QName("pfx", "ln") in
+        Ø.withAssignments(QName("pfx", "ln") -> QName("foo", "bar")) evaluatesTo
+        (QName("foo", "bar") : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> QName("foo", "bar")) }
+      * - { parse("pfx:ln", ShortbolParsers.QName) in
+        Ø.withAssignments(parse("pfx:ln = foo:bar", ShortbolParsers.Assignment)) evaluatesWithRanges
+        (QName("foo", "bar") : Identifier) in Ø.withAssignments (QName("pfx", "ln") -> QName("foo", "bar")) }
     }
 
     'valueExp - {
-      * - { (StringLiteral.SingleLine("abc", false) : ValueExp) evaluatesTo (StringLiteral.SingleLine("abc", false) : ValueExp) in Ø }
-      * - { (LocalName("a") : ValueExp) in Ø.withAssignments("a" -> "x") evaluatesTo ("x" : ValueExp) in Ø.withAssignments ("a" -> "x") }
-      * - { (LocalName("a") : ValueExp) in Ø.withAssignments("a" -> 42) evaluatesTo (42 : ValueExp) in Ø.withAssignments ("a" -> 42) }
-      * - { (Url("a") : ValueExp) evaluatesTo (Url("a") : ValueExp) in Ø }
-      * - { (QName("pfx", "ln") : ValueExp) evaluatesTo (QName("pfx", "ln") : ValueExp) in Ø }
-      * - { (StringLiteral.SingleLine("abc", false) : ValueExp) evaluatesTo (StringLiteral.SingleLine("abc", false) : ValueExp) in Ø }
-      * - { (StringLiteral.MultiLine(Seq("abc", "def"), 4) : ValueExp) evaluatesTo (StringLiteral.MultiLine(Seq("abc", "def"), 4) : ValueExp) in Ø }
+      * - { (StringLiteral.SingleLine("abc", false) : ValueExp) evaluatesTo
+        (StringLiteral.SingleLine("abc", false) : ValueExp) in Ø }
+      * - { parse("\"abc\"", ShortbolParsers.ValueExp) in Ø evaluatesWithRanges
+        (StringLiteral.SingleLine("abc", false) : ValueExp) in Ø }
+
+      * - { (LocalName("a") : ValueExp) in
+        Ø.withAssignments("a" -> "x") evaluatesTo ("x" : ValueExp) in Ø.withAssignments ("a" -> "x") }
+      * - { parse("a", ShortbolParsers.ValueExp) in
+        Ø.withAssignments(parse("a = x", ShortbolParsers.Assignment)) evaluatesWithRanges
+        ("x" : ValueExp) in Ø.withAssignments ("a" -> "x") }
+
+      * - { (LocalName("a") : ValueExp) in
+        Ø.withAssignments("a" -> 42) evaluatesTo (42 : ValueExp) in Ø.withAssignments ("a" -> 42) }
+      * - { parse("a", ShortbolParsers.ValueExp) in
+        Ø.withAssignments(parse("a = 42", ShortbolParsers.Assignment)) evaluatesWithRanges
+        (42 : ValueExp) in Ø.withAssignments ("a" -> 42) }
+
+      * - { (Url("a") : ValueExp) evaluatesTo
+        (Url("a") : ValueExp) in Ø }
+      * - { parse("<a>", ShortbolParsers.ValueExp) in Ø evaluatesWithRanges
+        (Url("a") : ValueExp) in Ø }
+
+      * - { (QName("pfx", "ln") : ValueExp) evaluatesTo
+        (QName("pfx", "ln") : ValueExp) in Ø }
+      * - { parse("pfx:ln", ShortbolParsers.ValueExp) in Ø evaluatesWithRanges
+        (QName("pfx", "ln") : ValueExp) in Ø }
+
+      * - { (StringLiteral.SingleLine("abc", false) : ValueExp) evaluatesTo
+        (StringLiteral.SingleLine("abc", false) : ValueExp) in Ø }
+      * - { parse("\"abc\"", ShortbolParsers.ValueExp) in Ø evaluatesWithRanges
+        (StringLiteral.SingleLine("abc", false) : ValueExp) in Ø }
+
+      * - { (StringLiteral.MultiLine(Seq("abc", "def"), 4) : ValueExp) evaluatesTo
+        (StringLiteral.MultiLine(Seq("abc", "def"), 4) : ValueExp) in Ø }
+
       * - { (42 : ValueExp) evaluatesTo (42 : ValueExp) in Ø }
     }
 
@@ -158,10 +283,21 @@ object EvalTestSuite extends TestSuite {
     'assignment - {
       'raw - {
         * - { ("a" -> "b": Assignment) evaluatesTo ("a" -> "b": Assignment) in Ø }
+        * - { parse("a = b", ShortbolParsers.Assignment) in Ø evaluatesWithRanges  ("a" -> "b": Assignment) in Ø }
 
-        * - { ("a" -> "b": Assignment) in Ø.withAssignments("a" -> "x") evaluatesTo ("x" -> "b": Assignment) in Ø.withAssignments ("a" -> "x") }
+        * - { ("a" -> "b": Assignment) in
+          Ø.withAssignments("a" -> "x") evaluatesTo
+          ("x" -> "b": Assignment) in Ø.withAssignments ("a" -> "x") }
+        * - { parse("a = b", ShortbolParsers.Assignment) in
+          Ø.withAssignments(parse("a = x", ShortbolParsers.Assignment)) evaluatesWithRanges
+          ("x" -> "b": Assignment) in Ø.withAssignments ("a" -> "x") }
 
-        * - { ("a" -> "b": Assignment) in Ø.withAssignments("b" -> "y") evaluatesTo ("a" -> "y": Assignment) in Ø.withAssignments ("b" -> "y") }
+        * - { ("a" -> "b": Assignment) in
+          Ø.withAssignments("b" -> "y") evaluatesTo
+          ("a" -> "y": Assignment) in Ø.withAssignments ("b" -> "y") }
+        * - { parse("a = b", ShortbolParsers.Assignment) in
+          Ø.withAssignments(parse("b = y", ShortbolParsers.Assignment)) evaluatesWithRanges
+          ("a" -> "y": Assignment) in Ø.withAssignments ("b" -> "y") }
       }
 
       'bodyStmt - {
@@ -275,11 +411,11 @@ object EvalTestSuite extends TestSuite {
     }
 
     'tpeConstructorStar - {
-      TpeConstructorStar evaluatesTo (TpeConstructorStar, Seq.empty[BodyStmt]) in Ø
+      TpeConstructorStar() evaluatesTo (TpeConstructorStar(), Seq.empty[BodyStmt]) in Ø
     }
 
     'tpeConstructor - {
-      * - { (TpeConstructorStar : TpeConstructor) evaluatesTo ((TpeConstructorStar : TpeConstructor, Seq.empty[BodyStmt])) in Ø }
+      * - { (TpeConstructorStar() : TpeConstructor) evaluatesTo ((TpeConstructorStar() : TpeConstructor, Seq.empty[BodyStmt])) in Ø }
 
       * - {
         (TpeConstructor1("X", Seq(
@@ -519,7 +655,7 @@ object EvalTestSuite extends TestSuite {
           |
           |me : WithNameAge("matthew", 40)
           |  foaf:knows = "caroline"
-          |""".stripMargin) in Ø evaluatesTo parse_instances(
+          |""".stripMargin) in Ø evaluatesWithRanges parse_instances(
         """me : foaf:person
           |  foaf:age = 40
           |  foaf:name = "matthew"

@@ -45,7 +45,16 @@ object DefaultPrefixPragma {
                 case ValueExp.Identifier(LocalName(pfx)) =>
                   for {
                     _ <- log(LogMessage.info(s"Applying prefix $pfx to $ln"))
-                  } yield List(i.copy(id = QName(NSPrefix(pfx), ln)))
+                  } yield {
+                    val lnr = ln.region
+                    val nsp = NSPrefix(pfx)
+                    nsp.region = lnr.copy(endsAt = lnr.startsAt)
+                    val qn = QName(nsp, ln)
+                    qn.region = lnr
+                    val ii = i.copy(id = qn)
+                    ii.region = i.region
+                    List(ii)
+                  }
                 case _ =>
                   for {
                     _ <- log(LogMessage.error(s"Malformed @defaultPrefix declaration"))
@@ -73,7 +82,16 @@ object DefaultPrefixPragma {
                 case ValueExp.Identifier(LocalName(pfx)) =>
                   for {
                     _ <- log(LogMessage.info(s"Applying prefix $pfx to $ln"))
-                  } yield List(c.copy(id = QName(NSPrefix(pfx), ln)))
+                  } yield {
+                    val lnr = ln.region
+                    val nsp = NSPrefix(pfx)
+                    nsp.region = lnr.copy(endsAt = lnr.startsAt)
+                    val qn = QName(nsp, ln)
+                    qn.region = lnr
+                    val cc = c.copy(id = qn)
+                    cc.region = c.region
+                    List(cc)
+                  }
                 case _ =>
                   for {
                     _ <- log(LogMessage.error(s"Malformed @defaultPrefix declaration"))

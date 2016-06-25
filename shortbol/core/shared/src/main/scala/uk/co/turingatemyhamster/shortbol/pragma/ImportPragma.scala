@@ -5,6 +5,7 @@ import ast._
 import ast.sugar._
 import ops._
 import ops.Eval._
+import ShortbolParser.POps
 
 import fastparse.core.Parsed.{Failure, Success}
 
@@ -25,15 +26,15 @@ object ImportPragma {
     def resolveImport(p: Pragma): EvalState[List[Pragma]] = p match {
       case Pragma(LocalName("import"), args) =>
         args match {
-          case Seq(ValueExp.Identifier(url)) =>
-            resolver.resolve(url) match {
+          case Seq(ValueExp.Identifier(id)) =>
+            resolver.resolve(id) match {
               case \/-(imported) => for {
-                _ <- log(LogMessage.info(s"Importing $url"))
+                _ <- log(LogMessage.info(s"Importing $id"))
                 _ <- imported.eval
               } yield List(p)
               case -\/(err) =>
                 for {
-                  _ <- log(LogMessage.error(s"Import failed for $url", Some(err)))
+                  _ <- log(LogMessage.error(s"Import failed for $id", Some(err)))
                 } yield Nil
             }
           case _ =>
@@ -69,13 +70,13 @@ object Resolver {
   def fromWeb: Resolver = new Resolver {
     override def resolve(id: Identifier): Throwable \/ SBFile = {
       id match {
-        case Url(url) =>
-          val src = Source.fromURL(url)
-          ShortbolParser.SBFile.parse(src.mkString) match {
+        case Url(u) =>
+          val src = Source.fromURL(u)
+          ShortbolParser.SBFile.withPositions(id, src.mkString) match {
             case Success(s, _) =>
               s.right
             case f: Failure =>
-              new Exception(s"Failed to parse $url at ${f.index}: ${f.extra.traced}").left
+              new Exception(s"Failed to parse $u at ${f.index}: ${f.extra.traced}").left
           }
         case _ =>
           // todo: resolve non-url identifiers using the context

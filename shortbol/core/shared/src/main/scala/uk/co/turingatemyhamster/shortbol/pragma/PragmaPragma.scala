@@ -1,7 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import ops.{EvalContext, LogMessage, ShortbolParser}
+import ops.{EvalContext, LogMessage, IndentingShortbolParser$}
 import ops.Eval._
 import ast.{LocalName, Pragma, TopLevel}
 import ast.sugar._

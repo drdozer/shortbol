@@ -4,9 +4,10 @@ import fastparse.all._
 import fastparse.core.Parsed.{Failure, Success}
 import uk.co.turingatemyhamster.shortbol
 import uk.co.turingatemyhamster.shortbol.ast._
-import uk.co.turingatemyhamster.shortbol.ops.{ShortbolParser, ShortbolParsers}
+import uk.co.turingatemyhamster.shortbol.ops.{AllNodes, ShortbolParser, ShortbolParsers}
 import utest._
 import ast.sugar._
+import ShortbolParser.POps
 
 /**
   * Created by chris on 17/07/15.
@@ -19,18 +20,20 @@ object ParserTestSuite extends TestSuite{
   }
 
 
-  def shouldParse[T](txt: String, p: Parser[T], expected: T): Unit = {
+  def shouldParse[T](txt: String, p: Parser[T], expected: T)(implicit an: AllNodes[T]): Unit = {
     //println(escape(txt))
-    (Start ~ p ~ End).parse(txt) match {
+    (Start ~ p ~ End).withPositions("_shouldParse_", txt) match {
       case s : Success[T] =>
         val observed = s.value
         assert(observed == expected)
+        val without = AllNodes.in(observed) filter (_.region == null)
+        assert(without.isEmpty)
     }
   }
 
   def shouldParse[T](txt: String, p: Parser[T]): Unit = {
     //println(escape(txt))
-    (Start ~ p ~ End).parse(txt) match {
+    (Start ~ p ~ End).withPositions("_shouldParse_", txt) match {
       case s : Success[T] =>
         assert(true)
     }
@@ -65,6 +68,11 @@ object ParserTestSuite extends TestSuite{
           * - shouldNotParse(".abc1", ShortbolParsers.LocalName)
           * - shouldNotParse("-abc1", ShortbolParsers.LocalName)
         }
+
+        'location - {
+          val r = ShortbolParsers.LocalName.withPositions("_test_", "a1234").get.value.region
+          assert(r == Region(startsAt = Pos(0, 1, 1),  endsAt = Pos(5, 1, 6), in = "_test_"))
+        }
       }
 
       'NSPrefix - {
@@ -80,6 +88,11 @@ object ParserTestSuite extends TestSuite{
           * - shouldNotParse(".abc1", ShortbolParsers.NSPrefix)
           * - shouldNotParse("-abc1", ShortbolParsers.NSPrefix)
         }
+
+        'location - {
+          val r = ShortbolParsers.NSPrefix.withPositions("_test_", "LacR").get.value.region
+          assert(r == Region(startsAt = Pos(0, 1, 1),  endsAt = Pos(4, 1, 5), in = "_test_"))
+        }
       }
 
       'QName - {
@@ -93,6 +106,17 @@ object ParserTestSuite extends TestSuite{
           * - shouldNotParse("abc : cba ", ShortbolParsers.QName)
           * - shouldNotParse("abc :cba ", ShortbolParsers.QName)
           * - shouldNotParse("abc: cba ", ShortbolParsers.QName)
+        }
+
+        'location - {
+          val v = ShortbolParsers.QName.withPositions("_test_", "a123:b234").get.value
+          val vr = v.region
+          val vp = v.prefix.region
+          val vl = v.localName.region
+
+          * - assert(vr == Region(Pos(0, 1, 1), Pos(9, 1, 10), "_test_"))
+          * - assert(vp == Region(Pos(0, 1, 1), Pos(4, 1, 5), "_test_"))
+          * - assert(vl == Region(Pos(5, 1, 6), Pos(9, 1, 10), "_test_"))
         }
       }
 
@@ -110,6 +134,11 @@ object ParserTestSuite extends TestSuite{
 
         'rejects - {
           * - shouldNotParse("<www.google.co.uk>", ShortbolParsers.Url)
+        }
+
+        'location - {
+          val v = ShortbolParsers.Url.withPositions("_test_", "http://www.scala-lang.org/documentation/getting-started.html").get.value.region
+          assert(v == Region(Pos(0, 1, 1), Pos(60, 1, 61), "_test_"))
         }
       }
     }
@@ -129,12 +158,27 @@ object ParserTestSuite extends TestSuite{
           * - shouldNotParse("\"I am half a string", ShortbolParsers.QuotedStringLiteral)
           * - shouldNotParse("\"I am not\nastring\"", ShortbolParsers.QuotedStringLiteral)
         }
+
+        'location - {
+          val v = ShortbolParsers.QuotedStringLiteral.withPositions("_test_", "\"I am a string\"").get.value.region
+          assert(v == Region(Pos(0, 1, 1), Pos(15,1,16), "_test_"))
+        }
       }
 
       'using_ValueExp - {
-        shouldParse(
-          "\"I am a string with some special chars ~#¢∞^&*()£@!.\"",
-          ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral.SingleLine("I am a string with some special chars ~#¢∞^&*()£@!.")))
+        * - {
+          shouldParse(
+            "\"I am a string with some special chars ~#¢∞^&*()£@!.\"",
+            ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral.SingleLine("I am a string with some special chars ~#¢∞^&*()£@!.")))
+        }
+
+        * - {
+          val v0 = ShortbolParsers.ValueExp.withPositions("_test_", "\"I am a string\"").get.value
+          val ValueExp.Literal(v1) = v0
+          val v1r = v1.region
+
+          assert(v1r == Region(Pos(0, 1, 1), Pos(15,1,16), "_test_"))
+        }
       }
     }
 
@@ -148,6 +192,11 @@ object ParserTestSuite extends TestSuite{
       'accepts - {
         * - shouldParse("{I am also a string}", ShortbolParsers.CurlyStringLiteral, StringLiteral.SingleLine("I am also a string", escaped = true))
         * - shouldParse("{ I am also a string }", ShortbolParsers.CurlyStringLiteral, StringLiteral.SingleLine(" I am also a string ", escaped = true))
+      }
+
+      'location - {
+        val r = ShortbolParsers.CurlyStringLiteral.withPositions("_test_", "{I am also a string}").get.value.region
+        assert(r == Region(Pos(0, 1, 1), Pos(20, 1, 21), "_test_"))
       }
     }
 
@@ -163,6 +212,11 @@ object ParserTestSuite extends TestSuite{
           * - shouldParse("{\n  I am a string\n  }", ShortbolParsers.MultiLineLiteral, StringLiteral.MultiLine("I am a string\n"::Nil, 2))
           * - shouldParse("{\n  I am a string\n }", ShortbolParsers.MultiLineLiteral, StringLiteral.MultiLine(" I am a string\n"::Nil, 1))
           * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParsers.MultiLineLiteral, StringLiteral.MultiLine("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1))
+        }
+
+        'location - {
+          val r = ShortbolParsers.MultiLineLiteral.withPositions("_test_", "{\nI am a string\n}").get.value.region
+          assert(r == Region(Pos(0, 1, 1), Pos(17, 3, 2), "_test_"))
         }
       }
 
@@ -231,7 +285,7 @@ object ParserTestSuite extends TestSuite{
     'IndentedInstanceBody - {
       * - shouldParse(
         "\n ", ShortbolParser.IndentedInstanceBody,
-        Seq(BodyStmt.BlankLine(BlankLine))
+        Seq(ast.BlankLine() : BodyStmt)
       )
     }
 
@@ -249,7 +303,7 @@ object ParserTestSuite extends TestSuite{
         ConstructorApp(
           TpeConstructor1(
             LocalName("DNAComponent"), Nil
-          ), Seq(ast.BlankLine : BodyStmt)
+          ), Seq(ast.BlankLine() : BodyStmt)
         )
       )
     }
@@ -295,7 +349,7 @@ object ParserTestSuite extends TestSuite{
             LocalName("cds"), ConstructorApp(
               TpeConstructor1(
                 LocalName("DNAComponent"), Nil
-              ), Seq(ast.BlankLine)
+              ), Seq(ast.BlankLine())
             )
           )
         )
@@ -306,7 +360,7 @@ object ParserTestSuite extends TestSuite{
             LocalName("cds"), ConstructorApp(
               TpeConstructor1(
                 LocalName("DNAComponent"), Nil
-              ), Seq(ast.BlankLine, ast.BlankLine)
+              ), Seq(ast.BlankLine(), ast.BlankLine())
             )
           )
         )
@@ -318,19 +372,19 @@ object ParserTestSuite extends TestSuite{
               TpeConstructor1(
                 LocalName("DNAComponent"), Nil
               ), Seq(
-                BlankLine,
-                BlankLine,
+                BlankLine(),
+                BlankLine(),
                 Assignment(
                   LocalName("role"), QName(
                     NSPrefix("SBOL"), LocalName("CDS")
                   )
                 ),
-                BlankLine,
+                BlankLine(),
                 Assignment(
                   LocalName("foo"), LocalName("bar")
                 ),
-                BlankLine,
-                BlankLine
+                BlankLine(),
+                BlankLine()
               )
             )
           )
@@ -352,7 +406,7 @@ object ParserTestSuite extends TestSuite{
                     ("SBOL"), LocalName("CDS")
                   )
                 ),
-                BlankLine,
+                BlankLine(),
                 Assignment(LocalName("foo"),LocalName("bar")
                 ),
                 InstanceExp(
@@ -792,7 +846,7 @@ object ParserTestSuite extends TestSuite{
            ConstructorApp(TpeConstructor1(LocalName("bar"), Nil), Nil)
           )
         )
-      )
+      )(AllNodes.topLevel)
 
       * - shouldParse(
         "foo => bar", ShortbolParser.TopLevel,
@@ -810,7 +864,7 @@ object ParserTestSuite extends TestSuite{
 
       * - shouldParse(
         "", ShortbolParser.TopLevel,
-        TopLevel.BlankLine(BlankLine)
+        TopLevel.BlankLine(BlankLine())
       )
 
       * - shouldParse(
@@ -831,6 +885,19 @@ object ParserTestSuite extends TestSuite{
     }
 
     'TopLevels - {
+
+      * - {
+        shouldParse(
+          """@prefix foo <http://some.com/stuff#>
+            |foo:me : foaf:person""".stripMargin,
+          ShortbolParser.TopLevels)
+      }
+
+      * - {
+        shouldParse(
+          "foo:me : foaf:person",
+          ShortbolParser.TopLevels)
+      }
 
       * - shouldParse(
         """

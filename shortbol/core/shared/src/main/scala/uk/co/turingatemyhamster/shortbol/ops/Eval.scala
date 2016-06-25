@@ -201,7 +201,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     } yield ts.flatten
   }
 
-  implicit val blankLine: Aux[BlankLine.type, BlankLine.type] = identityEval
+  implicit val blankLine: Aux[BlankLine, BlankLine] = identityEval
 
   implicit val topLevel_blankLine: Aux[TopLevel.BlankLine, List[TopLevel.InstanceExp]] = new Eval[TopLevel.BlankLine] {
     override type Result = List[TopLevel.InstanceExp]
@@ -250,7 +250,11 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     override def apply(t: Assignment) = for {
       p <- t.property.eval
       v <- t.value.eval
-    } yield Assignment(p, v)
+    } yield {
+      val a = Assignment(p, v)
+      a.region = t.region
+      a
+    }
   }
 
   implicit val topLevel_assignment: Aux[TopLevel.Assignment, List[TopLevel.InstanceExp]] = new Eval[TopLevel.Assignment] {
@@ -292,7 +296,11 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
       tcTcBody <- ca.cstr.eval
       (tc, tcBody) = tcTcBody
       body <- ca.body.eval
-    } yield ConstructorApp(tc, tcBody ++ body)
+    } yield {
+      val c = ConstructorApp(tc, tcBody ++ body)
+      c.region = ca.region
+      c
+    }
   }
 
 
@@ -308,7 +316,9 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
           i1 <- h1(i0)
           i2 <- (i1 map h2).sequence
         } yield i2.flatten)
-      is <- hook(InstanceExp(i.id, ce))
+      ie = InstanceExp(i.id, ce)
+      _ = ie.region = i.region
+      is <- hook(ie)
     } yield is
   }
 
@@ -346,7 +356,9 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
         case Some(cd) =>
             (args, cd).eval
         case None =>
-          constant(t.copy(args = args), Seq.empty)
+          val t1 = t.copy(args = args)
+          t1.region = t.region
+          constant(t1, Seq.empty)
       }
     } yield ts
 
@@ -369,11 +381,14 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     } yield cc
   }
 
-  implicit val tpeConstructorStar: Aux[TpeConstructorStar.type, (TpeConstructorStar.type, Seq[BodyStmt])] =
-    constantEval(TpeConstructorStar -> Seq.empty[BodyStmt])
+  implicit val tpeConstructorStar: Aux[TpeConstructorStar, (TpeConstructorStar, Seq[BodyStmt])] = new Eval[TpeConstructorStar] {
+    override type Result = (TpeConstructorStar, Seq[BodyStmt])
+
+    override def apply(t: TpeConstructorStar) = constant(t -> Seq.empty[BodyStmt])
+  }
 
   implicit val tpeConstructor: Aux[TpeConstructor, (TpeConstructor, Seq[BodyStmt])] = {
-    type U = (TpeConstructor, Seq[BodyStmt]):+:(TpeConstructorStar.type, Seq[BodyStmt]):+:CNil
+    type U = (TpeConstructor, Seq[BodyStmt]):+:(TpeConstructorStar, Seq[BodyStmt]):+:CNil
     val g = Generic[TpeConstructor]
     val e = Eval[g.Repr, U]
     typeClass.project[TpeConstructor, g.Repr, (TpeConstructor, Seq[BodyStmt]), U](e, g.to, _.unify)
