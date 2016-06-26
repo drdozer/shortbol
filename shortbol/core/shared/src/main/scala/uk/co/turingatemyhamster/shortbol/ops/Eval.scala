@@ -4,19 +4,25 @@ package shortbol.ops
 import shortbol.ast._
 
 sealed trait LogLevel
-
-object LogLevel {
-  object Info extends LogLevel
-  object Warning extends LogLevel
-  object Error extends LogLevel
+{
+  def pretty: String
 }
 
-case class LogMessage(msg: String, level: LogLevel, cause: Option[Throwable])
+object LogLevel {
+  object Info extends LogLevel    { def pretty = "info" }
+  object Warning extends LogLevel { def pretty = "warning" }
+  object Error extends LogLevel   { def pretty = "error" }
+}
+
+case class LogMessage(msg: String, level: LogLevel, region: Region, cause: Option[Throwable])
+{
+  def pretty = s"${level.pretty}: $msg"
+}
 
 object LogMessage {
-  def info(msg: String, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Info, cause)
-  def warning(msg: String, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Warning, cause)
-  def error(msg: String, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Error, cause)
+  def info(msg: String, region: Region, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Info, region, cause)
+  def warning(msg: String, region: Region, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Warning, region, cause)
+  def error(msg: String, region: Region, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Error, region, cause)
 }
 
 case class Hooks(phook: Vector[Pragma => Eval.EvalState[List[Pragma]]] = Vector.empty,

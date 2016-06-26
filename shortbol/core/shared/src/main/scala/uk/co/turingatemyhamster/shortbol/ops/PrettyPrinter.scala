@@ -120,7 +120,7 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
 
   implicit lazy val url: PrintApp[Url] = PrintApp.using { u =>
     "<".append
-    u.append
+    u.url.append
     ">".append
   }
 

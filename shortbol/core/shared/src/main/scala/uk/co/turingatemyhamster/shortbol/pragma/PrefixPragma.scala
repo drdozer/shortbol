@@ -3,8 +3,8 @@ package pragma
 
 import ast._
 import ast.sugar._
-import ops.Eval.{EvalState, constant, log, withPHooks, withIHooks, withCHooks}
-import ops.{EvalContext, AllIdentifiers, LogLevel, LogMessage}
+import ops.Eval.{EvalState, constant, log, withCHooks, withIHooks, withPHooks}
+import ops._
 
 import scalaz.Scalaz._
 import scalaz._
@@ -29,11 +29,11 @@ object PrefixPragma {
         args match {
           case Seq(ValueExp.Identifier(LocalName(pfx)), ValueExp.Identifier(Url(url))) =>
             for {
-              _ <- log(LogMessage.info(s"Registered prefix mapping $pfx to $url"))
+              _ <- log(LogMessage.info(s"Registered prefix mapping $pfx to $url", p.region))
             } yield List(p)
           case _ =>
             for {
-              _ <- log(LogMessage.error(s"Malformed @prefix pragma with $args"))
+              _ <- log(LogMessage.error(s"Malformed @prefix pragma with $args", p.region))
             } yield Nil
         }
       case _ =>
@@ -53,13 +53,13 @@ object PrefixPragma {
 
     def checkIdentifiers[T](is: Seq[Identifier]): EvalState[List[Unit]] =
       (is.to[List] map {
-        case QName(NSPrefix(pfx), _) =>
+        case QName(n@NSPrefix(pfx), _) =>
           for {
-            found <- gets((_: EvalContext).prgms.get("prefix").to[Vector].flatten collect {
+            found <- gets((_: EvalContext).prgms.get(ID).to[Vector].flatten collect {
               case Pragma(_, Seq(ValueExp.Identifier(LocalName(p)), url)) if p == pfx => url
             })
             _ <- if (found.isEmpty) {
-              log(LogMessage(s"No prefix binding for $pfx", logLevel, None))
+              log(LogMessage(s"No prefix binding for $pfx", logLevel, n.region, None))
             } else {
               constant(())
             }

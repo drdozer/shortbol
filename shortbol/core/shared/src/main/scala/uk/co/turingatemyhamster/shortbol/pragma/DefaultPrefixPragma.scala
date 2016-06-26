@@ -19,94 +19,63 @@ object DefaultPrefixPragma {
     } yield List(p)
 
     def pHook(p: Pragma): EvalState[List[Pragma]] = p match {
-      case Pragma(LocalName("defaultPrefix"), args) =>
+      case Pragma(ID, args) =>
         args match {
           case Seq(ValueExp.Identifier(pfx)) =>
             for {
-              _ <- log(LogMessage.info(s"Registering default prefix $pfx"))
+              _ <- log(LogMessage.info(s"Registering default prefix $pfx", p.region))
             } yield List(p)
           case _ =>
             for {
-              _ <- log(LogMessage.error(s"Malformed @defaultPrefix declaration"))
+              _ <- log(LogMessage.error(s"Malformed @defaultPrefix declaration", p.region))
             } yield Nil
         }
       case _ =>
         Eval.constant(List(p))
     }
 
-    def iHook(i: InstanceExp): EvalState[List[InstanceExp]] =
-      i.id match {
-        case ln : LocalName =>
-          for {
-          dns <- gets((_: EvalContext).prgms.get(LocalName("defaultPrefix")).flatMap(_ headOption))
-          is <- dns match {
-            case Some(ps) =>
-              ps.values.head match {
-                case ValueExp.Identifier(LocalName(pfx)) =>
-                  for {
-                    _ <- log(LogMessage.info(s"Applying prefix $pfx to $ln"))
-                  } yield {
-                    val lnr = ln.region
-                    val nsp = NSPrefix(pfx)
-                    nsp.region = lnr.copy(endsAt = lnr.startsAt)
-                    val qn = QName(nsp, ln)
-                    qn.region = lnr
-                    val ii = i.copy(id = qn)
-                    ii.region = i.region
-                    List(ii)
-                  }
-                case _ =>
-                  for {
-                    _ <- log(LogMessage.error(s"Malformed @defaultPrefix declaration"))
-                  } yield List(i)
-              }
-            case None =>
-              for {
-                _ <- log(LogMessage.warning(
-                  s"Can't resolve local name ${i.id} because no @defaultPrefix declaration is in scope"))
-              } yield List(i)
-          }
-        } yield is
-        case _ =>
-          Eval.constant(List(i))
-      }
+    def iHook(i: InstanceExp): EvalState[List[InstanceExp]] = for {
+      ii <- ChangeIdentifiers.at(rewrite).instanceExp(i)
+    } yield ii::Nil
 
-    def cHook(c: ConstructorDef): EvalState[List[ConstructorDef]] =
-      c.id match {
-        case ln : LocalName =>
-          for {
-          dns <- gets((_: EvalContext).prgms.get(LocalName("defaultPrefix")).flatMap(_ headOption))
-          is <- dns match {
+    def cHook(c: ConstructorDef): EvalState[List[ConstructorDef]] = for {
+      cc <- ChangeIdentifiers.at(rewrite).constructorDef(c)
+    } yield cc::Nil
+
+    def rewrite(i: Identifier): EvalState[Identifier] = i match {
+      case ln : LocalName =>
+        for {
+          dns <- gets((_: EvalContext).prgms.get(ID).flatMap(_.headOption))
+          rewritten <- dns match {
             case Some(ps) =>
               ps.values.head match {
                 case ValueExp.Identifier(LocalName(pfx)) =>
                   for {
-                    _ <- log(LogMessage.info(s"Applying prefix $pfx to $ln"))
+                    _ <- log(LogMessage.info(s"Applying prefix $pfx to $ln", ln.region))
                   } yield {
                     val lnr = ln.region
                     val nsp = NSPrefix(pfx)
                     nsp.region = lnr.copy(endsAt = lnr.startsAt)
                     val qn = QName(nsp, ln)
                     qn.region = lnr
-                    val cc = c.copy(id = qn)
-                    cc.region = c.region
-                    List(cc)
+                    (qn : Identifier).point[EvalState]
                   }
                 case _ =>
                   for {
-                    _ <- log(LogMessage.error(s"Malformed @defaultPrefix declaration"))
-                  } yield List(c)
+                    _ <- log(LogMessage.error(s"Malformed @defaultPrefix declaration", ps.region))
+                  } yield i.point[EvalState]
               }
             case None =>
               for {
                 _ <- log(LogMessage.warning(
-                  s"Can't resolve local name ${c.id} because no @defaultPrefix declaration is in scope"))
-              } yield List(c)
+                  s"Can't resolve local name $i because no @defaultPrefix declaration is in scope", i.region))
+              } yield i.point[EvalState]
           }
+          is <- rewritten
         } yield is
-        case _ =>
-          Eval.constant(List(c))
-      }
+      case _ =>
+        i.point[EvalState]
+    }
 
     override val ID: LocalName = "defaultPrefix"
 

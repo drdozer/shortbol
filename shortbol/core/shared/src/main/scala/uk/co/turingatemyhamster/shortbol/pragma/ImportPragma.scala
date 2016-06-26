@@ -29,17 +29,17 @@ object ImportPragma {
           case Seq(ValueExp.Identifier(id)) =>
             resolver.resolve(id) match {
               case \/-(imported) => for {
-                _ <- log(LogMessage.info(s"Importing $id"))
+                _ <- log(LogMessage.info(s"Importing $id", p.region))
                 _ <- imported.eval
               } yield List(p)
               case -\/(err) =>
                 for {
-                  _ <- log(LogMessage.error(s"Import failed for $id", Some(err)))
+                  _ <- log(LogMessage.error(s"Import failed for $id", id.region, Some(err)))
                 } yield Nil
             }
           case _ =>
             for {
-              _ <- log(LogMessage.error(s"Malformed @import declaration"))
+              _ <- log(LogMessage.error(s"Malformed @import declaration", p.region))
             } yield Nil
         }
       case _ =>

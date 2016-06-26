@@ -3,7 +3,14 @@ package uk.co.turingatemyhamster.shortbol.ast
 import uk.co.turingatemyhamster.shortbol.ast
 
 case class Pos(offset: Int, line: Int = -1, column: Int = -1)
+{
+  def pretty = s"line: $line, col: $column"
+}
+
 case class Region(startsAt: Pos, endsAt: Pos, in: Identifier)
+{
+  def pretty = s"${startsAt.pretty} to ${endsAt.pretty} in $in"
+}
 
 trait AstNode {
   var region: Region = _

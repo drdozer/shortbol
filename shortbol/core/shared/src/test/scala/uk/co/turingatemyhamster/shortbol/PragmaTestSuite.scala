@@ -178,18 +178,21 @@ object PragmaTestSuite extends TestSuite {
         )
       }
 
+      val msgPfx = "No prefix binding for "
+
       * - {
         val log = parse(
           """foo:me : foaf:person
           """.stripMargin).eval.exec(Fixture.configuredContext).logms
 
-        val pb = log.collect { case LogMessage(msg, _, _) if msg startsWith "No prefix binding for" => msg }
+        val pb = log.collect { case LogMessage(msg, _, _, _) if msg startsWith msgPfx => msg.substring(msgPfx.length) }
 
-        val foo = pb filter (_ contains "foo")
-        val foaf = pb filter (_ contains "foaf")
+        val foo = pb filter (_.split(" ").head contains "foo")
+        val foaf = pb filter (_.split(" ").head contains "foaf")
 
-        assert(foo.nonEmpty)
-        assert(foaf.nonEmpty)
+        assert(foo != Seq.empty)
+        assert(foaf != Seq.empty)
+        pb
       }
 
       * - {
@@ -198,13 +201,15 @@ object PragmaTestSuite extends TestSuite {
             |foo:me : foaf:person
           """.stripMargin).eval.exec(Fixture.configuredContext).logms
 
-        val pb = log.collect { case LogMessage(msg, _, _) if msg startsWith "No prefix binding for" => msg }
+        val pb = log.collect { case LogMessage(msg, _, _, _) if msg startsWith msgPfx => msg.substring(msgPfx.length) }
 
-        val foo = pb filter (_ contains "foo")
-        val foaf = pb filter (_ contains "foaf")
+        val foo = pb filter (_.split(" ").head contains "foo")
+        val foaf = pb filter (_.split(" ").head contains "foaf")
 
-        assert(foo.isEmpty)
-        assert(foaf.nonEmpty)
+        assert(foo == Seq.empty)
+        assert(foaf != Seq.empty)
+        log.map(_.pretty).mkString("\n")
+        pb map (_.split(" ").head)
       }
 
       * - {
@@ -213,13 +218,15 @@ object PragmaTestSuite extends TestSuite {
             |foo:me : foaf:person
           """.stripMargin).eval.exec(Fixture.configuredContext).logms
 
-        val pb = log.collect { case LogMessage(msg, _, _) if msg startsWith "No prefix binding for" => msg }
+        val pb = log.collect { case LogMessage(msg, _, _, _) if msg startsWith msgPfx => msg.substring(msgPfx.length) }
 
-        val foo = pb filter (_ contains "foo")
-        val foaf = pb filter (_ contains "foaf")
+        val foo = pb filter (_.split(" ").head contains "foo")
+        val foaf = pb filter (_.split(" ").head contains "foaf")
 
-        assert(foo.nonEmpty)
-        assert(foaf.isEmpty)
+        assert(foo != Seq.empty)
+        assert(foaf == Seq.empty)
+        log.map(_.pretty).mkString("\n")
+        pb map (_.split(" ").head)
       }
 
       * - {
@@ -229,13 +236,14 @@ object PragmaTestSuite extends TestSuite {
             |foo:me : foaf:person
           """.stripMargin).eval.exec(Fixture.configuredContext).logms
 
-        val pb = log.collect { case LogMessage(msg, _, _) if msg startsWith "No prefix binding for" => msg }
+        val pb = log.collect { case LogMessage(msg, _, _, _) if msg startsWith msgPfx => msg.substring(msgPfx.length) }
 
-        val foo = pb filter (_ contains "foo")
-        val foaf = pb filter (_ contains "foaf")
+        val foo = pb filter (_.split(" ").head contains "foo")
+        val foaf = pb filter (_.split(" ").head contains "foaf")
 
-        assert(foo.isEmpty)
-        assert(foaf.isEmpty)
+        assert(foo == Seq.empty)
+        assert(foaf == Seq.empty)
+        pb map (_.split(" ").head)
       }
 
     }

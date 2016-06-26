@@ -32,17 +32,17 @@ object PragmaPragma {
             hooks get name match {
               case Some(h) =>
                 for {
-                  _ <- log(LogMessage.info(s"Registering pragma hook for $name"))
+                  _ <- log(LogMessage.info(s"Registering pragma hook for $name", p.region))
                   pp <- h.register(p)
                 } yield pp
               case None =>
                 for {
-                  _ <- log(LogMessage.error(s"Could not find pragma hook for $name. Ignoring it."))
+                  _ <- log(LogMessage.error(s"Could not find pragma hook for $name. Ignoring it.", name.region))
                 } yield Nil
             }
           case bad =>
             for {
-              _ <- log(LogMessage.error(s"@pragma declaration malformed for $bad"))
+              _ <- log(LogMessage.error(s"@pragma declaration malformed for $bad", p.region))
             } yield Nil
         }
       case _ =>
@@ -52,6 +52,6 @@ object PragmaPragma {
     override val ID: LocalName = "pragma"
 
     def _bootstrap: String = "@pragma pragma"
-    override val bootstrap = (_bootstrap +: hook.map(_.bootstrap)).mkString("\n")
+    override val bootstrap = (hook.map(_.bootstrap)).mkString("\n")
   }
 }

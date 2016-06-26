@@ -3,9 +3,11 @@ package shortbol
 package ops
 
 import datatree._
+import datatree.{ast => da}
 import relations._
 import web._
 import shortbol.{ast => sa}
+import uk.co.turingatemyhamster.shortbol.ast.IntegerLiteral
 
 /**
  * Created by nmrp3 on 23/09/15.
@@ -37,6 +39,7 @@ trait ExporterEnv[DT <: Datatree] {
   import relDSL._
 
   import webDSL.Methods._
+  import dtDSL.Members._
 
   import Exporter._
 
@@ -69,16 +72,18 @@ trait ExporterEnv[DT <: Datatree] {
         ZeroMany(),
         ZeroOne(t.instanceExp.id.export[DT#Uri]),
         One(t.instanceExp.cstrApp.cstr.export),
-        ZeroMany(t.instanceExp.cstrApp.body.export :_*))
+        ZeroMany(t.instanceExp.cstrApp.body.export.flatten :_*))
   }
 
-  implicit val instanceUriExpExporter: Exporter[sa.InstanceExp, DT#NestedDocument] =
+  implicit val instanceUriExpExporter: Exporter[sa.InstanceExp, (DT#QName, DT#NestedDocument)] =
     Exporter { (t: sa.InstanceExp) =>
-      NestedDocument(
-        ZeroMany(),
-        ZeroOne(t.id.export[DT#Uri]),
-        One(t.cstrApp.cstr.export),
-        ZeroMany(t.cstrApp.body.export :_*))
+      (t.id.export[DT#QName],
+        NestedDocument(
+          ZeroMany(),
+          ZeroOne(),
+          One(t.cstrApp.cstr.export),
+          ZeroMany(t.cstrApp.body.export.flatten :_*))
+        )
     }
 
   implicit val identifierToUri: Exporter[sa.Identifier, DT#Uri] =
@@ -89,17 +94,19 @@ trait ExporterEnv[DT <: Datatree] {
         case qn : sa.QName =>
           qnameToUri(qn)
         case ln : sa.LocalName =>
-          throw new IllegalStateException(s"Unable to export a local name as an instance URI: ${ln.name} from ${ln.region}")
+          throw new IllegalStateException(
+            s"Unable to export a local name as an instance URI: ${ln.name} at ${ln.region.pretty}")
       }
     }
 
   implicit val identifierToQName: Exporter[sa.Identifier, DT#QName] =
     Exporter { (i: sa.Identifier) =>
       i match {
-        case sa.QName(sa.NSPrefix(pfx), sa.LocalName(ln)) =>
-          QName(null, LocalName(ln), Prefix(pfx))
+        case qn@sa.QName(sa.NSPrefix(pfx), sa.LocalName(ln)) =>
+          QName(qnameToUri(qn), LocalName(ln), Prefix(pfx))
         case _ =>
-          throw new IllegalStateException(s"Unable to export identifier as a type qname: $i from ${i.region}")
+          throw new IllegalStateException(
+            s"Unable to export identifier as a type qname: $i at ${i.region.pretty}")
       }
     }
 
@@ -109,9 +116,61 @@ trait ExporterEnv[DT <: Datatree] {
         case sa.TpeConstructor1(id, _) =>
           id.export[DT#QName]
         case sa.TpeConstructorStar() =>
-          throw new IllegalStateException(s"Unable to export a star constructor: $t from ${t.region}")
+          throw new IllegalStateException(
+            s"Unable to export a star constructor: $t at ${t.region.pretty}")
       }
     }
 
-  implicit val bodyStmtExporter: Exporter[sa.BodyStmt, DT#NamedProperty] = ???
+  implicit val bodyStmtExporter: Exporter[sa.BodyStmt, Option[DT#NamedProperty]] =
+    Exporter { (b: sa.BodyStmt) =>
+      b match {
+        case sa.BodyStmt.Assignment(a) =>
+          Some(a.export)
+        case sa.BodyStmt.InstanceExp(i) =>
+          val (name, value) = i.export
+          Some(NamedProperty(ZeroMany(), name, value))
+        case sa.BodyStmt.ConstructorApp(c) =>
+          throw new IllegalStateException(
+            s"Unable to export constructor application within body statment: $c at ${c.region.pretty}")
+        case _ =>
+          None
+      }
+    }
+
+  implicit val assignmentExporter: Exporter[sa.Assignment, DT#NamedProperty] =
+    Exporter { (a: sa.Assignment) =>
+      NamedProperty(ZeroMany(), a.property.export[DT#QName], a.value.export)
+    }
+
+  implicit val valueExpExporter: Exporter[sa.ValueExp, DT#PropertyValue] =
+    Exporter { (ve: sa.ValueExp) =>
+      ve match {
+        case sa.ValueExp.Identifier(i) =>
+          UriLiteral(i.export[DT#Uri])
+        case sa.ValueExp.Literal(l) =>
+          l.export
+      }
+    }
+
+  implicit val literalExporter: Exporter[sa.Literal, DT#Literal] =
+    Exporter { (l: sa.Literal) =>
+      l match {
+        case sa.IntegerLiteral(i) =>
+          LongLiteral(i)
+        case sa.StringLiteral(s, None, None) =>
+          dtDSL.StringLiteral(s.export)
+        case sa.StringLiteral(s, Some(sa.Datatype(iri)), None) =>
+          dtDSL.TypedLiteral(s.export, iri)
+      }
+    }
+
+  implicit val styleExporter: Exporter[sa.StringLiteral.Style, String] =
+    Exporter { (s: sa.StringLiteral.Style) =>
+      s match {
+        case sa.StringLiteral.SingleLine(txt, _) =>
+          txt
+        case sa.StringLiteral.MultiLine(txts, _) =>
+          txts.mkString
+      }
+    }
 }

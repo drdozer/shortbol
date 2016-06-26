@@ -13,15 +13,27 @@ import utest.framework.{Test, Tree}
   */
 object AllIdentifiersSuite extends TestSuite {
   override def tests = TestSuite {
-    val f = parse(
-      """@prefix foo <http://some.com/stuff#>
-        |foo:me : foaf:person""".stripMargin
-    )
-
     'identifiers - {
-      val is = AllIdentifiers[SBFile].apply(f)
+      * - {
+        val f = parse(
+          """@prefix foo <http://some.com/stuff#>
+            |foo:me : foaf:person""".stripMargin)
+        val is = AllIdentifiers[SBFile].apply(f)
+        assert(is == List[Identifier](
+          "prefix", "foo", Url("http://some.com/stuff#"), ("foo":#"me"), ("foaf":#"person")))
+      }
 
-      assert(is == List[Identifier]("prefix", "foo", Url("http://some.com/stuff#"), ("foo":#"me"), ("foaf":#"person")))
+      * - {
+        val f = parse(
+          """@defaultPrefix df
+            |@prefix df <http://me.name/stuff#>
+            |me : you
+            |""".stripMargin)
+        val is = AllIdentifiers[SBFile].apply(f)
+        assert(is == List[Identifier](
+          "defaultPrefix", "df", "prefix", "df", Url("http://me.name/stuff#"), "me", "you"
+        ))
+      }
     }
   }
 }
