@@ -123,22 +123,22 @@ object ParserTestSuite extends TestSuite{
       'Url - {
         'accepts - {
           * - shouldParse(
-            "a123_.-~",
+            "<a123_.-~>",
             ShortbolParsers.Url,
             Url("a123_.-~"))
           * - shouldParse(
-            "http://www.scala-lang.org/documentation/getting-started.html",
+            "<http://www.scala-lang.org/documentation/getting-started.html>",
             ShortbolParsers.Url,
             Url("http://www.scala-lang.org/documentation/getting-started.html"))
         }
 
         'rejects - {
-          * - shouldNotParse("<www.google.co.uk>", ShortbolParsers.Url)
+          * - shouldNotParse("www.google.co.uk", ShortbolParsers.Url)
         }
 
         'location - {
-          val v = ShortbolParsers.Url.withPositions("_test_", "http://www.scala-lang.org/documentation/getting-started.html").get.value.region
-          assert(v == Region(Pos(0, 1, 1), Pos(60, 1, 61), "_test_"))
+          val v = ShortbolParsers.Url.withPositions("_test_", "<http://www.scala-lang.org/documentation/getting-started.html>").get.value.region
+          assert(v == Region(Pos(0, 1, 1), Pos(62, 1, 63), "_test_"))
         }
       }
     }

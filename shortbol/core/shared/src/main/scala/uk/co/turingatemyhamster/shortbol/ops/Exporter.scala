@@ -13,18 +13,16 @@ import shortbol.{ast => sa}
 case class Exporter[T, E](export: T => E)
 
 object Exporter {
-
-  implicit class ExporterOps[T](val _t: T) extends AnyVal {
-    def export[E](implicit ev: Exporter[T, E]): E = ev.export(_t)
-  }
-
-}
-
-object ExporterEnv {
-  def apply[DT <: Datatree](implicit _dtDSL: DatatreeDSL[DT], _webDSL: WebDSL[DT], _relDSL: RelationsDSL[DT]) = new ExporterEnv[DT] {
+  def apply[DT <: Datatree](c: EvalContext)(implicit _dtDSL: DatatreeDSL[DT], _webDSL: WebDSL[DT], _relDSL: RelationsDSL[DT]) = new ExporterEnv[DT] {
     val dtDSL = _dtDSL
     val webDSL = _webDSL
     val relDSL = _relDSL
+
+    override def ctxt = c
+  }
+
+  implicit class ExporterOps[T](val _t: T) extends AnyVal {
+    def export[E](implicit ev: Exporter[T, E]): E = ev.export(_t)
   }
 }
 
@@ -38,14 +36,25 @@ trait ExporterEnv[DT <: Datatree] {
   import webDSL._
   import relDSL._
 
+  import webDSL.Methods._
+
   import Exporter._
+
+  def apply(tl: Seq[sa.TopLevel.InstanceExp]) = topLevel_instances.export(tl)
 
   def ctxt: EvalContext
 
-  def nsBindings = ctxt.prgms.get(pragma.PrefixPragma.ID).to[List].flatten.map {
-    case sa.Pragma(_, Seq(sa.ValueExp.Identifier(sa.LocalName(pfx)), sa.ValueExp.Identifier(sa.Url(url)))) =>
-      NamespaceBinding(Namespace(Uri(url)), Prefix(pfx))
-  }
+  lazy val bindings = {
+    ctxt.prgms.get(pragma.PrefixPragma.ID).to[List].flatten.map {
+      case sa.Pragma(_, Seq(sa.ValueExp.Identifier(sa.LocalName(pfx)), sa.ValueExp.Identifier(sa.Url(url)))) =>
+        pfx -> Uri(url)
+    }
+  }.toMap
+
+  lazy val nsBindings = (bindings map { case (pfx, uri) => NamespaceBinding(Namespace(uri), Prefix(pfx)) }).to[Seq]
+
+  def qnameToUri(qName: sa.QName) = bindings(qName.prefix.pfx) extendWith qName.localName.name
+
   implicit def seqExporter[T, E](implicit ev: Exporter[T, E]): Exporter[Seq[T], Seq[E]] =
     Exporter { _ map ev.export }
 
@@ -58,33 +67,51 @@ trait ExporterEnv[DT <: Datatree] {
     Exporter { (t: sa.TopLevel.InstanceExp) =>
       TopLevelDocument(
         ZeroMany(),
-        ZeroOne(t.instanceExp.id.export),
+        ZeroOne(t.instanceExp.id.export[DT#Uri]),
         One(t.instanceExp.cstrApp.cstr.export),
-        ZeroMany())
+        ZeroMany(t.instanceExp.cstrApp.body.export :_*))
   }
 
-  implicit val instanceExpExporter: Exporter[sa.InstanceExp, DT#NestedDocument] =
+  implicit val instanceUriExpExporter: Exporter[sa.InstanceExp, DT#NestedDocument] =
     Exporter { (t: sa.InstanceExp) =>
       NestedDocument(
         ZeroMany(),
-        ZeroOne(t.id.export),
+        ZeroOne(t.id.export[DT#Uri]),
         One(t.cstrApp.cstr.export),
-        ZeroMany())
+        ZeroMany(t.cstrApp.body.export :_*))
     }
 
-  implicit val tpeConstructor: Exporter[sa.TpeConstructor, DT#QName] =
-    Exporter[sa.TpeConstructor, DT#QName] { _.id.export }
-
-  implicit val urlExporter: Exporter[sa.Url, DT#Uri] =
-    Exporter { (u: sa.Url) =>
-      u match {
-        case sa.Url(ln) =>
-          Uri(ln)
+  implicit val identifierToUri: Exporter[sa.Identifier, DT#Uri] =
+    Exporter { (i: sa.Identifier) =>
+      i match {
+        case sa.Url(url) =>
+          Uri(url)
+        case qn : sa.QName =>
+          qnameToUri(qn)
+        case ln : sa.LocalName =>
+          throw new IllegalStateException(s"Unable to export a local name as an instance URI: ${ln.name} from ${ln.region}")
       }
-  }
-
-  implicit def qnameExporterQName: Exporter[sa.QName, DT#QName] =
-    Exporter { case sa.QName(pfx, ln) =>
-      QName(null.asInstanceOf[DT#Namespace], LocalName(ln.name), Prefix(pfx.pfx))
     }
+
+  implicit val identifierToQName: Exporter[sa.Identifier, DT#QName] =
+    Exporter { (i: sa.Identifier) =>
+      i match {
+        case sa.QName(sa.NSPrefix(pfx), sa.LocalName(ln)) =>
+          QName(null, LocalName(ln), Prefix(pfx))
+        case _ =>
+          throw new IllegalStateException(s"Unable to export identifier as a type qname: $i from ${i.region}")
+      }
+    }
+
+  implicit val tpeConstructorExporter: Exporter[sa.TpeConstructor, DT#QName] =
+    Exporter { (t: sa.TpeConstructor) =>
+      t match {
+        case sa.TpeConstructor1(id, _) =>
+          id.export[DT#QName]
+        case sa.TpeConstructorStar() =>
+          throw new IllegalStateException(s"Unable to export a star constructor: $t from ${t.region}")
+      }
+    }
+
+  implicit val bodyStmtExporter: Exporter[sa.BodyStmt, DT#NamedProperty] = ???
 }

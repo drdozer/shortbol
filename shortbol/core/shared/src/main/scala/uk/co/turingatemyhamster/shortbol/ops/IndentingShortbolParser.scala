@@ -3,8 +3,6 @@ package ops
 
 import fastparse.all._
 import fastparse.core.{Parsed, Parser}
-import fastparse.parsers.Combinators
-import fastparse.parsers.Combinators.Rule
 import uk.co.turingatemyhamster.shortbol.ast.{AstNode, Pos, Region}
 
 
