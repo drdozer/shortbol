@@ -13,6 +13,8 @@ import scalaz._
   * Created by nmrp3 on 24/06/16.
   */
 object PrefixPragma {
+  self =>
+
   def apply: Hook = new Hook {
     var logLevel: LogLevel = LogLevel.Warning
 
@@ -66,8 +68,12 @@ object PrefixPragma {
           constant(())
       }).sequenceU
 
-    override val ID: LocalName = "prefix"
+    override val ID: LocalName = self.ID
 
-    override val bootstrap: String = "@pragma prefix pfx url"
+    override val bootstrap: String = self.bootstrap
   }
+
+  val ID: LocalName = "prefix"
+
+  val bootstrap: String = "@pragma prefix pfx url"
 }
