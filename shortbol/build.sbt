@@ -18,7 +18,7 @@ lazy val core = crossProject.settings(
   libraryDependencies += "com.chuusai" %%% "shapeless" % "2.3.0",
   libraryDependencies += "com.lihaoyi" %%% "fastparse" % "0.3.7",
   libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.3",
-  libraryDependencies += "uk.co.turingatemyhamster" %%% "datatree-core" % "develop-0.2.1",
+  libraryDependencies += "uk.co.turingatemyhamster" %%% "datatree-core" % "0.2.2",
   testFrameworks += new TestFramework("utest.runner.Framework"),
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
   ).settings(sharedSettings : _*).dependsOn(ast)
@@ -43,7 +43,7 @@ lazy val serverJs = server.js
 
 lazy val serverJvm = server.jvm
   .enablePlugins(SbtWeb, sbtdocker.DockerPlugin, JavaAppPackaging)
-  .dependsOn(serverJs).settings(
+  .dependsOn(serverJs).settings(Revolver.settings: _*).settings(
   libraryDependencies += "com.typesafe.akka" %% "akka-http-experimental" % "2.4.7",
   (resources in Assets) += {
     (fastOptJS in (serverJs, Compile)).value

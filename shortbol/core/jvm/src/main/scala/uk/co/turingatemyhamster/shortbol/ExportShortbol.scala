@@ -3,14 +3,14 @@ package uk.co.turingatemyhamster.shortbol
 import java.io.{File, FileWriter}
 import javax.xml.stream.XMLOutputFactory
 
-import uk.co.turingatemyhamster.shortbol.ops.{Exporter, PrettyPrinter, ShortbolParser}
-import ShortbolParser.POps
-import ast.sugar._
 import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter
-import ops.Eval.EvalOps
 import fastparse.core.Parsed.{Failure, Success}
 import uk.co.turingatemyhamster.datatree
 import uk.co.turingatemyhamster.datatree.io.RdfIo
+import uk.co.turingatemyhamster.shortbol.ast.sugar._
+import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
+import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
+import uk.co.turingatemyhamster.shortbol.ops.{Exporter, PrettyPrinter, ShortbolParser}
 
 import scala.io.Source
 
