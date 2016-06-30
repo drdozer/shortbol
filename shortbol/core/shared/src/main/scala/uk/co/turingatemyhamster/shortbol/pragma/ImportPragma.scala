@@ -83,9 +83,7 @@ object Resolver {
 
           for {
             base <- ImportBaseUrl.top
-            _ = println(s"Resolving $url against $base")
             relative = relativeUrl(base.collect{case Pragma(ImportBaseUrl.ID, (ValueExp.Identifier(url@Url(_)))::Nil) => url}, url)
-            _ = println(s"Resolved to $relative")
             src = Platform.slurp(relative.url)
             res <- ImportBaseUrl.pushFrame(Pragma(ImportBaseUrl.ID, relative::Nil))(
               DefaultPrefixPragma.pushFrame(

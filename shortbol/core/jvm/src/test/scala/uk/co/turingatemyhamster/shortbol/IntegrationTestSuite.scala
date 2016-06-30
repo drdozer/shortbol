@@ -29,5 +29,53 @@ object IntegrationTestSuite extends TestSuite {
             |  sbol:elements = "agct"""".stripMargin) in ⊥
 
     }
+
+    * - {
+      parse("""@prefix sbol <http://sbols.org/v2#>
+              |@defaultPrefix sbol
+              |
+              |DnaSequence(x) => Sequence
+              |  encoding = IUPACDNA
+              |  elements = x
+              |
+              |@prefix test <http://me.name/test#>
+              |@defaultPrefix test
+              |
+              |seq : DnaSequence("agct")""".stripMargin) in Fixture.configuredContext evaluatesTo
+        parse_instances(
+          """test:seq : sbol:Sequence
+            |  sbol:encoding = sbol:IUPACDNA
+            |  sbol:elements = "agct"""".stripMargin) in ⊥
+
+    }
+
+    * - {
+      parse("""@prefix sbol <http://sbols.org/v2#>
+              |@defaultPrefix sbol
+              |
+              |DnaSequence(x) => Sequence
+              |  encoding = IUPACDNA
+              |  elements = x
+              |
+              |seq : DnaSequence("agct")""".stripMargin) in Fixture.configuredContext evaluatesTo
+        parse_instances(
+          """sbol:seq : sbol:Sequence
+            |  sbol:encoding = sbol:IUPACDNA
+            |  sbol:elements = "agct"""".stripMargin) in ⊥
+
+    }
+
+    * - {
+      parse("""DnaSequence(x) => Sequence
+              |  encoding = IUPACDNA
+              |  elements = x
+              |
+              |seq : DnaSequence("agct")""".stripMargin) in Fixture.configuredContext evaluatesTo
+        parse_instances(
+          """seq : Sequence
+            |  encoding = IUPACDNA
+            |  elements = "agct"""".stripMargin) in ⊥
+
+    }
   }
 }

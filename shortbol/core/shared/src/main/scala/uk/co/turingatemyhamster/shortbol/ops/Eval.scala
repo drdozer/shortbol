@@ -256,6 +256,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     override def apply(t: Assignment) = for {
       p <- t.property.eval
       v <- t.value.eval
+      _ = println(s"Evaluated ${t.property} = ${t.value} to $p = $v")
     } yield {
       val a = Assignment(p, v)
       a.region = t.region
@@ -344,8 +345,9 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
       cd <- withStack(vscd._2.args, vscd._1)(vscd._2.cstrApp.eval)
     } yield (cd.cstr, cd.body)
 
-    def withStack[T](names: Seq[LocalName], values: Seq[ValueExp])(sf: EvalState[T]) = for {
+    def withStack[T](names: Seq[Identifier], values: Seq[ValueExp])(sf: EvalState[T]) = for {
       ec <- get[EvalContext]
+      _ = println(s"withStack $names : $values")
       _ <- modify ((_: EvalContext).withAssignments(names zip values map (Assignment.apply _).tupled :_*))
       v <- sf
       _ <- put(ec) // fixme: should we only be only overwriting the bindings?
@@ -360,6 +362,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
       args <- t.args.eval
       ts <- ot match {
         case Some(cd) =>
+          println(s"Resolved ${t.id} to $cd")
             (args, cd).eval
         case None =>
           val t1 = t.copy(args = args)

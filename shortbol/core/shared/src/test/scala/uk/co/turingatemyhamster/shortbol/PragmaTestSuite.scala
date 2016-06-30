@@ -131,6 +131,21 @@ object PragmaTestSuite extends TestSuite {
           Pragma("defaultPrefix", Seq("pfx"))
         )
       }
+
+      * - {
+        parse(
+          """@defaultPrefix pfx
+            |
+            |foo(x) => bar
+            |  y = x""".stripMargin) in
+          Fixture.configuredContext evaluatesWithRanges
+          Seq.empty[TopLevel.InstanceExp] in
+          Fixture.configuredContext.withConstructors(
+            parse_constructorDef(
+              """pfx:foo(pfx:x) => pfx:bar
+                |  pfx:y = pfx:x""".stripMargin)
+          ).withPragmas(Pragma("defaultPrefix", "pfx"::Nil))
+      }
     }
 
     'prefix - {

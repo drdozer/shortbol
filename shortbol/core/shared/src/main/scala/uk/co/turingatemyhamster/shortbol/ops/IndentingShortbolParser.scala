@@ -111,7 +111,7 @@ object ShortbolParsers {
 
   lazy val ComaSep = P(Space.rep ~ Coma ~ Space.rep)
   lazy val NoArgs = P(Pass).map(_ => Nil)
-  lazy val ArgList = P(LEllipse ~ LocalName.rep(0, ComaSep) ~ REllipse)
+  lazy val ArgList = P(LEllipse ~ Identifier.rep(0, ComaSep) ~ REllipse)
   lazy val ArgListO = P(ArgList | NoArgs)
 
   lazy val ValueList = P(LEllipse ~ ValueExp.rep(0, ComaSep) ~ REllipse)

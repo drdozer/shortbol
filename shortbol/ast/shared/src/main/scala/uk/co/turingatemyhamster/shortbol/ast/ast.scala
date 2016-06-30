@@ -89,7 +89,7 @@ case class ConstructorApp(cstr: TpeConstructor,
                           body: Seq[BodyStmt]) extends AstNode
 
 case class ConstructorDef(id: Identifier,
-                            args: Seq[LocalName],
+                            args: Seq[Identifier],
                             cstrApp: ConstructorApp) extends AstNode
 
 case class InstanceExp(id: Identifier,
