@@ -25,7 +25,7 @@ object IntegrationTestSuite extends TestSuite {
               |seq : DnaSequence("agct")""".stripMargin) in Fixture.configuredContext evaluatesTo
         parse_instances(
           """test:seq : sbol:Sequence
-            |  sbol:encoding = sbol:IUPACDNA
+            |  sbol:encoding = <http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html>
             |  sbol:elements = "agct"""".stripMargin) in ⊥
 
     }
@@ -54,13 +54,13 @@ object IntegrationTestSuite extends TestSuite {
               |@defaultPrefix sbol
               |
               |DnaSequence(x) => Sequence
-              |  encoding = IUPACDNA
+              |  encoding = iupac:DNA
               |  elements = x
               |
               |seq : DnaSequence("agct")""".stripMargin) in Fixture.configuredContext evaluatesTo
         parse_instances(
           """sbol:seq : sbol:Sequence
-            |  sbol:encoding = sbol:IUPACDNA
+            |  sbol:encoding = iupac:DNA
             |  sbol:elements = "agct"""".stripMargin) in ⊥
 
     }
