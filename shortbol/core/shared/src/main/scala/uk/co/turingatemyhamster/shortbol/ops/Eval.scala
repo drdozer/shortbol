@@ -268,8 +268,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     override type Result = List[TopLevel.InstanceExp]
 
     override def apply(t: TopLevel.Assignment) = for {
-      a <- t.assignment.eval
-      _ <- modify((_: EvalContext).withAssignments(a))
+      _ <- modify((_: EvalContext).withAssignments(t.assignment))
     } yield Nil
   }
 
@@ -409,7 +408,9 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     def apply(id: Identifier) = resolveWithAssignment(id)
 
     def resolveWithAssignment(id: Identifier): State[EvalContext, Identifier] = for {
+      m <- gets((_: EvalContext).vlxps)
       b <- resolveBinding(id)
+      _ = println(s" $id -> $b in $m")
       rb <- b match {
         case Some(ValueExp.Identifier(rid)) =>
           resolveWithAssignment(rid)

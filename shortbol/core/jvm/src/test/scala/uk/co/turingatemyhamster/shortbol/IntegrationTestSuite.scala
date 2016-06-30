@@ -7,7 +7,20 @@ import ast._
 
 object IntegrationTestSuite extends TestSuite {
   override def tests = TestSuite {
-    * - {
+    'dna_mapping - {
+      import uk.co.turingatemyhamster.shortbol.ops.Eval._
+      import ast.sugar._
+
+      val ctxt =
+        parse("@import <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/sbol.sbol>").eval.exec(
+          Fixture.configuredContext)
+      println(s"With value bindings: ${ctxt.vlxps}")
+
+      val res = ("iupac" :# "DNA").eval.eval(ctxt)
+      assert(res == Url("http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"))
+    }
+
+    'promoter_url - {
       parse("""@import <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/sbol.sbol>
               |p : Promoter""".stripMargin) in Fixture.configuredContext evaluatesTo
         parse_instances(
@@ -16,7 +29,7 @@ object IntegrationTestSuite extends TestSuite {
             |  sbol:role = sbol:Promoter""".stripMargin) in ⊥
     }
 
-    * - {
+    'dnaSequence_url - {
       parse("""@import <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/sbol.sbol>
               |
               |@prefix test <http://me.name/test#>
@@ -30,7 +43,7 @@ object IntegrationTestSuite extends TestSuite {
 
     }
 
-    * - {
+    'two_prefixes - {
       parse("""@prefix sbol <http://sbols.org/v2#>
               |@defaultPrefix sbol
               |
@@ -49,7 +62,7 @@ object IntegrationTestSuite extends TestSuite {
 
     }
 
-    * - {
+    'one_prefix - {
       parse("""@prefix sbol <http://sbols.org/v2#>
               |@defaultPrefix sbol
               |
@@ -65,7 +78,7 @@ object IntegrationTestSuite extends TestSuite {
 
     }
 
-    * - {
+    'no_prefix - {
       parse("""DnaSequence(x) => Sequence
               |  encoding = IUPACDNA
               |  elements = x

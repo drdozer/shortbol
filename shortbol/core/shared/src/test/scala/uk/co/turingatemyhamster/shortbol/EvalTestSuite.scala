@@ -14,6 +14,7 @@ import pragma.{ImportPragma, Resolver}
 import ShortbolParser.POps
 
 
+
 /**
  * Created by chris on 17/07/15.
  */
@@ -311,19 +312,32 @@ object EvalTestSuite extends TestSuite {
       'topLevel - {
         * - { ("a" -> "b" : TopLevel) evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments ("a" -> "b") }
 
-        * - { ("a" -> "b" : TopLevel) in Ø.withAssignments("a" -> "x") evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments ("a" -> "x", "x" -> "b") }
+        // withAssignments with matching keys doesn't merge values
+        * - { ("a" -> "b" : TopLevel) in Ø.withAssignments("a" -> "x") evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments("a" -> "x").withAssignments("a" -> "b") }
 
-        * - { ("a" -> "b" : TopLevel) in Ø.withAssignments("b" -> "y") evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments ("b" -> "y", "a" -> "y") }
+        * - { ("a" -> "b" : TopLevel) in Ø.withAssignments("b" -> "y") evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments ("b" -> "y", "a" -> "b") }
       }
     }
 
     'assignments - {
       * - {
-        Seq[TopLevel](
+        * - { Seq[TopLevel](
           "b" -> "c",
           "a" -> "b") evaluatesTo Seq[List[TopLevel.InstanceExp]](Nil, Nil) in Ø.withAssignments (
           "b" -> "c",
-          "a" -> "c")
+          "a" -> "b") }
+//
+//        * - { (LocalName("a") : Identifier) evaluatesTo (LocalName("c") : Identifier) in Ø.withAssignments (
+//          "b" -> "c",
+//          "a" -> "b") }
+//
+//        * - { (LocalName("b") : Identifier) evaluatesTo (LocalName("c") : Identifier) in Ø.withAssignments (
+//          "b" -> "c",
+//          "a" -> "b") }
+//
+//        * - { (LocalName("c") : Identifier) evaluatesTo (LocalName("c") : Identifier) in Ø.withAssignments (
+//          "b" -> "c",
+//          "a" -> "b") }
       }
 
       * - {
@@ -332,8 +346,8 @@ object EvalTestSuite extends TestSuite {
           "b" -> "c",
           "a" -> "b") evaluatesTo Seq[List[TopLevel.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
           "c" -> "d",
-          "b" -> "d",
-          "a" -> "d")
+          "b" -> "c",
+          "a" -> "b")
       }
 
       * - {
@@ -343,7 +357,7 @@ object EvalTestSuite extends TestSuite {
           "ax" -> "bx") evaluatesTo Seq[List[TopLevel.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
           "bx" -> "cx",
           "cx" -> "dx",
-          "ax" -> "dx")
+          "ax" -> "bx")
       }
     }
 
