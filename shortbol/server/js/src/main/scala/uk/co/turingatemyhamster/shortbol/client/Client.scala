@@ -30,10 +30,16 @@ object Client extends PageApplication {
   override def view() = div(
     h1("Shortbol sandpit"),
     div(
-      """@defaultPrefix df
-        |@prefix df <http://me.name/stuff#>
+      """@import <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/sbol.sbol>
         |
-        |me : you
+        |@prefix test <http://me.name/test#>
+        |@defaultPrefix test
+        |
+        |seq : DnaSequence("agct")
+        |
+        |cmp : DnaComponent
+        |
+        |prom : Promoter
         |""".stripMargin).id("shortbol_editor").css("shortbol_ace"),
     div().id("longbol").css("shortbol_ace"),
     div().id("xml-rdf").css("shortbol_ace"),
@@ -42,8 +48,6 @@ object Client extends PageApplication {
 
   override def ready(): Unit = {
     lazy val ace = js.Dynamic.global.ace
-    lazy val beautify = ace.require("ace/ext/beautify")
-    println(s"Using beautify $beautify")
 
     println("Loading editor")
     val editor = ace.edit("shortbol_editor")
@@ -94,7 +98,8 @@ object Client extends PageApplication {
           val xml = RdfIo.write[datatree.ast.AstDatatree](doc)
 
           xmlRdf.getSession().setValue(xml.render)
-          beautify.beautify(xmlRdf.getSession())
+          xmlRdf.find("><")
+          xmlRdf.replaceAll(">\n<")
       }
     }
   }
