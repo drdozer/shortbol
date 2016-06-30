@@ -152,7 +152,7 @@ sealed class IndentingShortbolParser(indent: Int) {
     val BlankLine = P(ShortbolParsers.BlankLine map ast.BodyStmt.BlankLine)
     val Comment = P(ShortbolParsers.Comment map ast.BodyStmt.Comment)
     val InstanceExp = P(self.InstanceExp map ast.BodyStmt.InstanceExp)
-    val ConstructorApp = P(self.ConstructorApp map ast.BodyStmt.ConstructorApp)
+    val ConstructorApp = P(ShortbolParsers.InfixConstructorApp map ast.BodyStmt.ConstructorApp)
   }
 
   lazy val BodyStmt: Parser[ast.BodyStmt] =
@@ -176,8 +176,6 @@ sealed class IndentingShortbolParser(indent: Int) {
 
   lazy val PrefixConstructorApp: Parser[ast.ConstructorApp] = P(TpeConstructor ~ Space.rep ~ IndentedInstanceBody map
     (ast.ConstructorApp.apply _ tupled))
-
-  lazy val ConstructorApp: Parser[ast.ConstructorApp] = InfixConstructorApp | PrefixConstructorApp
 
   lazy val InstanceExp: Parser[ast.InstanceExp] =
     P(Identifier ~ Space.rep ~ Colon ~/ Space.rep ~ PrefixConstructorApp map

@@ -16,7 +16,7 @@ object LogLevel {
 
 case class LogMessage(msg: String, level: LogLevel, region: Region, cause: Option[Throwable])
 {
-  def pretty = s"${level.pretty}: $msg"
+  def pretty = s"${level.pretty}: $msg" + cause.map(_.getMessage).getOrElse("")
 }
 
 object LogMessage {

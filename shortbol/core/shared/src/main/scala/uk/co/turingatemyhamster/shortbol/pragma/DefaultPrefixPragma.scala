@@ -10,6 +10,7 @@ import scalaz.Scalaz._
 import scalaz._
 
 object DefaultPrefixPragma {
+  self =>
 
   def apply: Hook = new Hook {
     override def register(p: Pragma) = for {
@@ -77,8 +78,22 @@ object DefaultPrefixPragma {
         i.point[EvalState]
     }
 
-    override val ID: LocalName = "defaultPrefix"
+    override val ID: LocalName = self.ID
 
-    override val bootstrap: String = "@pragma defaultPrefix pfx"
+    override val bootstrap: String = self.bootstrap
   }
+
+  val ID: LocalName = "defaultPrefix"
+
+  val bootstrap: String = "@pragma defaultPrefix pfx"
+
+  val all: EvalState[List[Pragma]] = gets((_: EvalContext).prgms.getOrElse(ID, Nil))
+
+  def reset(ps: List[Pragma]): EvalState[Unit] = modify((s: EvalContext) => s.copy(prgms = s.prgms + (ID -> ps)))
+
+  def pushFrame[T](f: EvalState[T]): EvalState[T] = for {
+    a <- all
+    t <- f
+    _ <- reset(a)
+  } yield t
 }

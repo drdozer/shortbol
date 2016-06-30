@@ -48,7 +48,14 @@ object ShortbolServer {
             }
           }
         }
+      } ~
+      get {
+        getFromResourceDirectory("")
       }
     }
+
+    val port = 10080
+    val bindingsFuture = Http().bindAndHandle(routes, "0.0.0.0", port)
+    println(s"Service deployed to http://localhost:$port/")
   }
 }

@@ -31,9 +31,10 @@ object Fixture {
     bootstrap.exec(emptyContext)
 
   lazy val bootstrapPragmas = PragmaPragma(
-      ImportPragma(Resolver.fromWeb),
-      DefaultPrefixPragma.apply,
-      PrefixPragma.apply
+    ImportBaseUrl.apply,
+    ImportPragma(Resolver.fromWeb),
+    DefaultPrefixPragma.apply,
+    PrefixPragma.apply
   )
 
   lazy val bootstrap = for {

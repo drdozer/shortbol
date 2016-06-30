@@ -59,7 +59,6 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   implicit val identifier = PrintApp[Identifier]
   implicit val tpeConstructor = PrintApp[TpeConstructor]
   implicit val valueExp = PrintApp[ValueExp]
-  implicit val bodyStmt = PrintApp[BodyStmt]
   implicit val topLevel = PrintApp[TopLevel]
 
   implicit def seq[T](implicit pa: PrintApp[List[T]]): PrintApp[Seq[T]] =
@@ -68,8 +67,6 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   def appendNested(bdy: Seq[BodyStmt]) = bdy.append
 
   implicit lazy val indentStr = "\n" + (" " * indent)
-
-//  implicit def seq[T](implicit pa: PrintApp[T]): PrintApp[Seq[T]] = PrintApp { _ foreach pa.apply }
 
   implicit lazy val string: PrintApp[String] = PrintApp.using(out append _)
 
@@ -192,5 +189,17 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     a.property.append
     " = ".append
     a.value.append
+  }
+
+  implicit lazy val bodyStmt: PrintApp[BodyStmt] = {
+    val bsG = Generic[BodyStmt]
+    val delegate = deriveInstance[BodyStmt, bsG.Repr]
+
+    new PrintApp[BodyStmt] {
+      override def apply(t: BodyStmt) = {
+        indentStr.append
+        delegate(t)
+      }
+    }
   }
 }

@@ -98,7 +98,7 @@ case class InstanceExp(id: Identifier,
 case class Pragma(id: Identifier, values: Seq[ast.ValueExp]) extends AstNode
 
 // the whole thing
-case class SBFile(tops: Seq[TopLevel] = Seq.empty, rdfAbout: Option[Url] = None, source: Option[Url] = None) extends AstNode
+case class SBFile(tops: Seq[TopLevel]) extends AstNode
 
 object sugar {
   import scala.language.implicitConversions

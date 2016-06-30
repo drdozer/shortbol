@@ -8,12 +8,26 @@ import ast._
 object IntegrationTestSuite extends TestSuite {
   override def tests = TestSuite {
     * - {
-      parse("""@import <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/sbol/genomic.sbol>
+      parse("""@import <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/sbol.sbol>
               |p : Promoter""".stripMargin) in Fixture.configuredContext evaluatesTo
         parse_instances(
-          """p : ComponentDefinition
-            |  type = <SBOL:DNA>
-            |  role = <SBOL:Promoter>""".stripMargin) in ⊥
+          """p : sbol:ComponentDefinition
+            |  sbol:type = sbol:DNA
+            |  sbol:role = sbol:Promoter""".stripMargin) in ⊥
+    }
+
+    * - {
+      parse("""@import <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/sbol.sbol>
+              |
+              |@prefix test <http://me.name/test#>
+              |@defaultPrefix test
+              |
+              |seq : DnaSequence("agct")""".stripMargin) in Fixture.configuredContext evaluatesTo
+        parse_instances(
+          """test:seq : sbol:Sequence
+            |  sbol:encoding = sbol:IUPACDNA
+            |  sbol:elements = "agct"""".stripMargin) in ⊥
+
     }
   }
 }

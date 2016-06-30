@@ -24,7 +24,8 @@ lazy val core = crossProject.settings(
   ).settings(sharedSettings : _*).dependsOn(ast)
   
 lazy val coreJs = core.js.settings(
-  libraryDependencies += "com.github.japgolly.fork.scalaz" %%% "scalaz-core" % "7.2.0"
+  libraryDependencies += "com.github.japgolly.fork.scalaz" %%% "scalaz-core" % "7.2.0",
+  libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.5.5"
 )
 
 lazy val coreJVM = core.jvm.settings(packAutoSettings : _*).settings(
@@ -39,7 +40,11 @@ lazy val server = crossProject.settings(
   name := "shortbol-server"
   ).settings(sharedSettings : _*).dependsOn(core)
 
-lazy val serverJs = server.js
+lazy val serverJs = server.js.settings(
+  persistLauncher in Compile := true,
+  persistLauncher in Test := false,
+  libraryDependencies += "io.github.widok" %%% "widok" % "0.3.0-SNAPSHOT"
+)
 
 lazy val serverJvm = server.jvm
   .enablePlugins(SbtWeb, sbtdocker.DockerPlugin, JavaAppPackaging)

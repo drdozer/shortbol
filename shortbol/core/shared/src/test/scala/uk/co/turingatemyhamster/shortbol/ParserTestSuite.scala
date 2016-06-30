@@ -43,9 +43,6 @@ object ParserTestSuite extends TestSuite{
   def shouldNotParse[T](txt: String, p: Parser[T]): Unit = {
     //println(escape(txt))
     (Start ~ p ~ End).parse(txt) match {
-      case s : Success[T] =>
-        assert(false)
-
       case f: Failure =>
         assert(true)
     }
@@ -669,6 +666,17 @@ object ParserTestSuite extends TestSuite{
           """.stripMargin.trim,
           ShortbolParser.InstanceExp
         )
+
+        * - shouldNotParse(
+        """me : you
+          |  name""".stripMargin,
+          ShortbolParser.InstanceExp)
+
+        * - shouldNotParse(
+        """me : you
+          |  name
+          |""".stripMargin,
+          ShortbolParser.InstanceExp)
       }
     }
 
