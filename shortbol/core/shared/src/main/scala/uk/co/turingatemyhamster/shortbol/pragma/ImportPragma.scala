@@ -43,7 +43,7 @@ object ImportPragma {
             } yield Nil
         }
       case _ =>
-        constant(List(p))
+        List(p).point[EvalState]
     }
 
     override val ID: LocalName = self.ID

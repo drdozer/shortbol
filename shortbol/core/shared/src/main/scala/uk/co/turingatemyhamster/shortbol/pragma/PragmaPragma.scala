@@ -1,9 +1,9 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import ops.{EvalContext, LogMessage, IndentingShortbolParser$}
+import ops.{EvalContext, LogMessage}
 import ops.Eval._
-import ast.{LocalName, Pragma, TopLevel}
+import ast.{LocalName, Pragma}
 import ast.sugar._
 
 import scalaz._
@@ -46,12 +46,12 @@ object PragmaPragma {
             } yield Nil
         }
       case _ =>
-        constant(List(p))
+        List(p).point[EvalState]
     }
 
     override val ID: LocalName = "pragma"
 
     def _bootstrap: String = "@pragma pragma"
-    override val bootstrap = (hook.map(_.bootstrap)).mkString("\n")
+    override val bootstrap = hook.map(_.bootstrap).mkString("\n")
   }
 }

@@ -131,16 +131,14 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
   def withIHooks(iHook: InstanceExp => Eval.EvalState[List[InstanceExp]]) = modify((_: EvalContext).withIHooks(iHook))
   def withCHooks(cHook: ConstructorDef => Eval.EvalState[List[ConstructorDef]]) = modify((_: EvalContext).withCHooks(cHook))
 
-  def constant[T](t: T): State[EvalContext, T] = t.point[EvalState]
-
   def constantEval[T, U](u: U) = new Eval[T] {
     override type Result = U
-    override def apply(t: T) = constant(u)
+    override def apply(t: T) = u.point[EvalState]
   }
 
   def identityEval[T] = new Eval[T] {
     override type Result = T
-    override def apply(t: T) = constant(t)
+    override def apply(t: T) = t.point[EvalState]
   }
 
   object typeClass extends TypeClass2[Aux] {
@@ -241,7 +239,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
     override def apply(t: Pragma) = for {
       phook <- gets((_: EvalContext).hooks.phook)
-      hook = phook.foldl((p: Pragma) => constant(List(p)))(
+      hook = phook.foldl((p: Pragma) => (List(p)).point[EvalState])(
         h1 => h2 => (p0: Pragma) => for {
           p1 <- h1(p0)
           p2 <- (p1 map h2).sequence
@@ -286,7 +284,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
     override def apply(t: ConstructorDef) = for {
       chook <- gets((_: EvalContext).hooks.chook)
-      hook = chook.foldl((c: ConstructorDef) => constant(List(c)))(
+      hook = chook.foldl((c: ConstructorDef) => List(c).point[EvalState])(
         h1 => h2 => (c0: ConstructorDef) => for {
           c1 <- h1(c0)
           c2 <- (c1 map h2).sequence
@@ -316,7 +314,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     override def apply(i: InstanceExp) = for {
       ce <- i.cstrApp.eval
       ihook <- gets((_: EvalContext).hooks.ihook)
-      hook = ihook.foldl((i: InstanceExp) => constant(List(i)))(
+      hook = ihook.foldl((i: InstanceExp) => List(i).point[EvalState])(
         h1 => h2 => (i0: InstanceExp) => for
         {
           i1 <- h1(i0)
@@ -366,7 +364,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
         case None =>
           val t1 = t.copy(args = args)
           t1.region = t.region
-          constant(t1, Seq.empty)
+          (t1, Seq.empty).point[EvalState]
       }
     } yield ts
 
@@ -374,7 +372,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
       c <- cstr(id)
       cc <- c match {
         case Some(_) =>
-          constant(c)
+          c.point[EvalState]
         case None =>
           for {
             b <- resolveBinding(id)
@@ -382,7 +380,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
               case Some(ValueExp.Identifier(nid)) =>
                 resolveWithAssignment(nid)
               case _ =>
-                constant(None : Option[ConstructorDef])
+                (None : Option[ConstructorDef]).point[EvalState]
             }
           } yield bb
       }
@@ -392,7 +390,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
   implicit val tpeConstructorStar: Aux[TpeConstructorStar, (TpeConstructorStar, Seq[BodyStmt])] = new Eval[TpeConstructorStar] {
     override type Result = (TpeConstructorStar, Seq[BodyStmt])
 
-    override def apply(t: TpeConstructorStar) = constant(t -> Seq.empty[BodyStmt])
+    override def apply(t: TpeConstructorStar) = (t -> Seq.empty[BodyStmt]).point[EvalState]
   }
 
   implicit val tpeConstructor: Aux[TpeConstructor, (TpeConstructor, Seq[BodyStmt])] = {
@@ -415,7 +413,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
         case Some(ValueExp.Identifier(rid)) =>
           resolveWithAssignment(rid)
         case _ =>
-          constant(id)
+          id.point[EvalState]
       }
     } yield rb
   }
@@ -438,9 +436,9 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
         case Some(ValueExp.Identifier(rid)) =>
           resolveWithAssignment(rid)
         case Some(l@ValueExp.Literal(_)) =>
-          constant(l)
+          l.point[EvalState]
         case None =>
-          constant(ValueExp.Identifier(id))
+          ValueExp.Identifier(id).point[EvalState]
       }
     } yield rb
   }

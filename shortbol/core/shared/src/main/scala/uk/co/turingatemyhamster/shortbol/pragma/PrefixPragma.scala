@@ -3,7 +3,7 @@ package pragma
 
 import ast._
 import ast.sugar._
-import ops.Eval.{EvalState, constant, log, withCHooks, withIHooks, withPHooks}
+import ops.Eval.{EvalState, log, withCHooks, withIHooks, withPHooks}
 import ops._
 
 import scalaz.Scalaz._
@@ -37,7 +37,7 @@ object PrefixPragma {
             } yield Nil
         }
       case _ =>
-        constant(List(p))
+        List(p).point[EvalState]
     }
 
     val instanceIDs = AllIdentifiers[InstanceExp]
@@ -61,11 +61,11 @@ object PrefixPragma {
             _ <- if (found.isEmpty) {
               log(LogMessage(s"No prefix binding for $pfx", logLevel, n.region, None))
             } else {
-              constant(())
+              ().point[EvalState]
             }
           } yield ()
         case _ =>
-          constant(())
+          ().point[EvalState]
       }).sequenceU
 
     override val ID: LocalName = self.ID

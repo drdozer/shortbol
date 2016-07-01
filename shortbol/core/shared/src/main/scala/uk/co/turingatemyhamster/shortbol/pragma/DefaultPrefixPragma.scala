@@ -32,7 +32,7 @@ object DefaultPrefixPragma {
             } yield Nil
         }
       case _ =>
-        Eval.constant(List(p))
+        List(p).point[EvalState]
     }
 
     def iHook(i: InstanceExp): EvalState[List[InstanceExp]] = for {
