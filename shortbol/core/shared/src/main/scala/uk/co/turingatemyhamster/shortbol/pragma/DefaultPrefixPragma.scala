@@ -17,6 +17,7 @@ object DefaultPrefixPragma {
       _ <- withPHooks(pHook)
       _ <- withCHooks(cHook)
       _ <- withIHooks(iHook)
+      _ <- withAHooks(aHook)
     } yield List(p)
 
     def pHook(p: Pragma): EvalState[List[Pragma]] = p match {
@@ -42,6 +43,10 @@ object DefaultPrefixPragma {
     def cHook(c: ConstructorDef): EvalState[List[ConstructorDef]] = for {
       cc <- ChangeIdentifiers.at(rewrite).constructorDef(c)
     } yield cc::Nil
+
+    def aHook(a: Assignment): EvalState[List[Assignment]] = for {
+      aa <- ChangeIdentifiers.at(rewrite).assignment(a)
+    } yield aa::Nil
 
     def rewrite(i: Identifier): EvalState[Identifier] = i match {
       case ln : LocalName =>

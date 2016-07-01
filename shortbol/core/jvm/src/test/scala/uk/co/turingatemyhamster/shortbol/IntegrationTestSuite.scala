@@ -25,7 +25,7 @@ object IntegrationTestSuite extends TestSuite {
               |p : Promoter""".stripMargin) in Fixture.configuredContext evaluatesTo
         parse_instances(
           """p : sbol:ComponentDefinition
-            |  sbol:type = sbol:DNA
+            |  sbol:type = biopax:DnaRegion
             |  sbol:role = sbol:Promoter""".stripMargin) in ⊥
     }
 

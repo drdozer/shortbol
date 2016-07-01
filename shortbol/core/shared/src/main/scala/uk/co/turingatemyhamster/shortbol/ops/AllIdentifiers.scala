@@ -139,6 +139,7 @@ object ChangeIdentifiers {
     }
     implicit val style = self[ast.StringLiteral.Style]
     implicit val literal = self[ast.Literal]
+    implicit val assignment = self[ast.Assignment]
     implicit val tpeConstructor = self[ast.TpeConstructor]
     implicit val instanceExp = self[ast.InstanceExp]
     implicit val constructorDef = self[ast.ConstructorDef]

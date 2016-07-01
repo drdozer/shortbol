@@ -27,7 +27,8 @@ object LogMessage {
 
 case class Hooks(phook: Vector[Pragma => Eval.EvalState[List[Pragma]]] = Vector.empty,
                  ihook: Vector[InstanceExp => Eval.EvalState[List[InstanceExp]]] = Vector.empty,
-                 chook: Vector[ConstructorDef => Eval.EvalState[List[ConstructorDef]]] = Vector.empty)
+                 chook: Vector[ConstructorDef => Eval.EvalState[List[ConstructorDef]]] = Vector.empty,
+                 ahook: Vector[Assignment => Eval.EvalState[List[Assignment]]] = Vector.empty)
 {
   def withPHooks(ps: (Pragma => Eval.EvalState[List[Pragma]])*) =
     copy(phook = phook ++ ps)
@@ -37,6 +38,9 @@ case class Hooks(phook: Vector[Pragma => Eval.EvalState[List[Pragma]]] = Vector.
 
   def withCHooks(cs: (ConstructorDef => Eval.EvalState[List[ConstructorDef]])*) =
     copy(chook = chook ++ cs)
+
+  def withAHooks(as: (Assignment => Eval.EvalState[List[Assignment]])*) =
+    copy(ahook = ahook ++ as)
 }
 
 case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
@@ -103,6 +107,9 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
 
   def withCHooks(cs: (ConstructorDef => Eval.EvalState[List[ConstructorDef]])*) =
     copy(hooks = hooks.withCHooks(cs :_*))
+
+  def withAHooks(as: (Assignment => Eval.EvalState[List[Assignment]])*) =
+    copy(hooks = hooks.withAHooks(as :_*))
 }
 
 sealed trait Eval[T] {
@@ -130,6 +137,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
   def withPHooks(pHook: Pragma => Eval.EvalState[List[Pragma]]) = modify((_: EvalContext).withPHooks(pHook))
   def withIHooks(iHook: InstanceExp => Eval.EvalState[List[InstanceExp]]) = modify((_: EvalContext).withIHooks(iHook))
   def withCHooks(cHook: ConstructorDef => Eval.EvalState[List[ConstructorDef]]) = modify((_: EvalContext).withCHooks(cHook))
+  def withAHooks(aHook: Assignment => Eval.EvalState[List[Assignment]]) = modify((_ : EvalContext).withAHooks(aHook))
 
   def constantEval[T, U](u: U) = new Eval[T] {
     override type Result = U
@@ -266,7 +274,14 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     override type Result = List[TopLevel.InstanceExp]
 
     override def apply(t: TopLevel.Assignment) = for {
-      _ <- modify((_: EvalContext).withAssignments(t.assignment))
+      ahook <- gets((_: EvalContext).hooks.ahook)
+      hook = ahook.foldl((a: Assignment) => List(a).point[EvalState])(
+        h1 => h2 => (a0 : Assignment) => for {
+          a1 <- h1(a0)
+          a2 <- (a1 map h2).sequence
+        } yield a2.flatten)
+      a <- hook(t.assignment)
+      _ <- modify((_: EvalContext).withAssignments(a :_*))
     } yield Nil
   }
 
@@ -408,7 +423,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     def resolveWithAssignment(id: Identifier): State[EvalContext, Identifier] = for {
       m <- gets((_: EvalContext).vlxps)
       b <- resolveBinding(id)
-      _ = println(s" $id -> $b in $m")
+      _ = println(s"resolve identifier to identifier: $id -> $b in $m")
       rb <- b match {
         case Some(ValueExp.Identifier(rid)) =>
           resolveWithAssignment(rid)
@@ -431,7 +446,9 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     }
 
     def resolveWithAssignment(id: Identifier): State[EvalContext, ValueExp] = for {
+      m <- gets((_: EvalContext).vlxps)
       b <- resolveBinding(id)
+      _ = println(s"resolve identifier to value: $id -> $b in $m")
       rb <- b match {
         case Some(ValueExp.Identifier(rid)) =>
           resolveWithAssignment(rid)
