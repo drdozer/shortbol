@@ -25,7 +25,7 @@ lazy val core = crossProject.settings(
   
 lazy val coreJs = core.js.settings(
   libraryDependencies += "com.github.japgolly.fork.scalaz" %%% "scalaz-core" % "7.2.0",
-  libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.5.5"
+  libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.5.6"
 )
 
 lazy val coreJVM = core.jvm.settings(packAutoSettings : _*).settings(

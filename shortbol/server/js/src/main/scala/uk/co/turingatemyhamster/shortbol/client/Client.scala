@@ -97,9 +97,9 @@ object Client extends PageApplication {
           val rdfIo = RdfIo.rdfIo[datatree.ast.AstDatatree]
           val xml = RdfIo.write[datatree.ast.AstDatatree](doc)
 
-          xmlRdf.getSession().setValue(xml.render)
-          xmlRdf.find("><")
-          xmlRdf.replaceAll(">\n<")
+          xmlRdf.getSession().setValue(xml.render(2))
+//          xmlRdf.find("><")
+//          xmlRdf.replaceAll(">\n<")
       }
     }
   }
