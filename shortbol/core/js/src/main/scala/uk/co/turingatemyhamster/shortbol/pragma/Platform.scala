@@ -1,5 +1,7 @@
 package uk.co.turingatemyhamster.shortbol.pragma
 
+import java.io.IOException
+
 import org.scalajs.dom.raw.XMLHttpRequest
 
 /**
@@ -12,6 +14,9 @@ object Platform {
     val xmlHttp = new XMLHttpRequest
     xmlHttp.open("GET", url, false)
     xmlHttp.send(null)
-    xmlHttp.responseText
+    if(xmlHttp.status == 200)
+      xmlHttp.responseText
+    else
+      throw new IOException(s"Failed to slurp $url with status ${xmlHttp.status}")
   }
 }

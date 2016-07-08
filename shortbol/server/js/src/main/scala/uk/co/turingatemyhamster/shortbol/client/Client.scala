@@ -30,7 +30,7 @@ object Client extends PageApplication {
   override def view() = div(
     h1("Shortbol sandpit"),
     div(
-      """@import <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/sbol.sbol>
+      """@import stdlib:sbol
         |
         |@prefix test <http://me.name/test#>
         |@defaultPrefix test
@@ -43,7 +43,7 @@ object Client extends PageApplication {
         |""".stripMargin).id("shortbol_editor").css("shortbol_ace"),
     div().id("longbol").css("shortbol_ace"),
     div().id("xml-rdf").css("shortbol_ace"),
-    div(logMsgs map { m => div(m.pretty) }).id("log")
+    div(logMsgs map { m => div(m.pretty).css(m.level.pretty) }).id("log")
     )
 
   override def ready(): Unit = {

@@ -16,7 +16,7 @@ object LogLevel {
 
 case class LogMessage(msg: String, level: LogLevel, region: Region, cause: Option[Throwable])
 {
-  def pretty = s"${level.pretty}: $msg" + cause.map(_.getMessage).getOrElse("")
+  def pretty = s"${level.pretty}: $msg" + cause.map(t => " because " ++ t.getMessage).getOrElse("")
 }
 
 object LogMessage {
@@ -78,7 +78,6 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
     vlxps get id map (_.head) orElse { // todo: log if there are multiple elements in the list
       id match {
         case ln : LocalName =>
-          println(s"resolveValue $id in resolveLocalName($ln) = ${resolveLocalName(ln)}")
           (resolveLocalName(ln) map ValueExp.Identifier).headOption // todo: log clashes
         case _ => None
       }
@@ -422,10 +421,8 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
     def resolveWithAssignment(id: Identifier): State[EvalContext, Identifier] = for {
       b <- resolveBinding(id)
-      _ = println(s"resolveBinding($id) = $b")
       rb <- b match {
         case Some(ValueExp.Identifier(rid)) =>
-          println(s"recursing for $rid")
           resolveWithAssignment(rid)
         case _ =>
           id.point[EvalState]

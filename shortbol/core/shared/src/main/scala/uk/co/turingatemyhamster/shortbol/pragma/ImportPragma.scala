@@ -75,33 +75,45 @@ object Resolver {
   }
 
   def fromWeb: Resolver = new Resolver {
-    override def resolve(id: Identifier): EvalState[Throwable \/ Seq[TopLevel.InstanceExp]] = {
-      id match {
-        case url : Url =>
-          def relativeUrl(b: Option[Url], l: Url): Url = b map { bu =>
-            Url(bu.url.substring(0, bu.url.lastIndexOf("/")) ++ "/" ++ l.url) } getOrElse l
-
-          for {
-            base <- ImportBaseUrl.top
-            relative = relativeUrl(base.collect{case Pragma(ImportBaseUrl.ID, (ValueExp.Identifier(url@Url(_)))::Nil) => url}, url)
-            src = Platform.slurp(relative.url)
-            res <- ImportBaseUrl.pushFrame(Pragma(ImportBaseUrl.ID, relative::Nil))(
-              DefaultPrefixPragma.pushFrame(
-                ShortbolParser.SBFile.withPositions(id, src) match {
-                  case Success(s, _) =>
-                    for {
-                      e <- s.eval
-                    } yield e.right
-                  case f: Failure =>
-                    (new Exception(s"Failed to parse ${url.url} as ${relative.url} at ${f.index}: ${f.extra.traced}") : Throwable).left.point[EvalState]
-                }
-              )
-            )
-          } yield res
-        case _ =>
-          // todo: resolve non-url identifiers using the context
-          (new Exception(s"Could not resolve identifier $id") : Throwable).left.point[EvalState]
-      }
+    override def resolve(id: Identifier): EvalState[Throwable \/ Seq[TopLevel.InstanceExp]] = id.eval flatMap {
+      case url : Url =>
+        resolveUrl(url)
+      case qn : QName =>
+        PrefixPragma.resolve(qn) flatMap {
+          case Some(url) =>
+            resolveUrl(url)
+          case None =>
+            (new Exception(s"Could not resolve identifier $id via $qn") : Throwable).left.point[EvalState]
+        }
+      case i =>
+        // todo: resolve non-url identifiers using the context
+        (new Exception(s"Could not resolve identifier $id via $i") : Throwable).left.point[EvalState]
     }
+
+    def resolveUrl(url: Url): EvalState[Throwable \/ Seq[TopLevel.InstanceExp]] = for {
+      base <- ImportBaseUrl.top
+      relative = relativeUrl(base.collect{case Pragma(ImportBaseUrl.ID, (ValueExp.Identifier(url@Url(_)))::Nil) => url}, url)
+      src = try {
+        Platform.slurp(relative.url)
+      } catch {
+        case e : Exception =>
+          Platform.slurp(relative.url ++ ".sbol")
+      }
+      res <- ImportBaseUrl.pushFrame(Pragma(ImportBaseUrl.ID, relative::Nil))(
+        DefaultPrefixPragma.pushFrame(
+          ShortbolParser.SBFile.withPositions(relative, src) match {
+            case Success(s, _) =>
+              for {
+                e <- s.eval
+              } yield e.right
+            case f: Failure =>
+              (new Exception(s"Failed to parse ${url.url} as ${relative.url} at ${f.index}: ${f.extra.traced}") : Throwable).left.point[EvalState]
+          }
+        )
+      )
+    } yield res
+
+    def relativeUrl(b: Option[Url], l: Url): Url = b map { bu =>
+      Url(bu.url.substring(0, bu.url.lastIndexOf("/")) ++ "/" ++ l.url) } getOrElse l
   }
 }

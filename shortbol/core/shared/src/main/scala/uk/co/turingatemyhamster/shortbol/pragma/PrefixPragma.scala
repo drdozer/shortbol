@@ -76,4 +76,10 @@ object PrefixPragma {
   val ID: LocalName = "prefix"
 
   val bootstrap: String = "@pragma prefix pfx url"
+
+  def resolve(qn: QName): EvalState[Option[Url]] =
+    gets((_: EvalContext).prgms.get(ID).to[Vector].flatten collect {
+      case Pragma(_, Seq(ValueExp.Identifier(LocalName(p)), ValueExp.Identifier(Url(url)))) if p == qn.prefix.pfx =>
+        Url(url ++ qn.localName.name)
+    } headOption)
 }
