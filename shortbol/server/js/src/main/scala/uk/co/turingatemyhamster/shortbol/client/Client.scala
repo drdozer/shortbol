@@ -77,29 +77,27 @@ object Client extends PageApplication {
         case s: Success[SBFile] =>
           val (c, v) = s.value.eval.run(Fixture.configuredContext)
 
-          println("Setting log messages")
+//          println("Setting log messages")
           logMsgs.clear()
           logMsgs ++= c.logms
 
           val sw = new StringWriter()
           PrettyPrinter(sw)(ast.SBFile(v))
           sw.append("\n")
-          println("Evaluated to:")
-          println(ast.SBFile(v))
-          println("Pretty printed as:")
-          println(sw)
+//          println("Evaluated to:")
+//          println(ast.SBFile(v))
+//          println("Pretty printed as:")
+//          println(sw)
 
           result.getSession().setValue(sw.toString)
 
-          println("Exporting to datatree")
+//          println("Exporting to datatree")
           val doc = Exporter[datatree.ast.AstDatatree](c).apply(v)
-          println("Exporting to xml-rdf")
+//          println("Exporting to xml-rdf")
           val rdfIo = RdfIo.rdfIo[datatree.ast.AstDatatree]
           val xml = RdfIo.write[datatree.ast.AstDatatree](doc)
 
           xmlRdf.getSession().setValue(xml.render(2))
-//          xmlRdf.find("><")
-//          xmlRdf.replaceAll(">\n<")
       }
     }
   }

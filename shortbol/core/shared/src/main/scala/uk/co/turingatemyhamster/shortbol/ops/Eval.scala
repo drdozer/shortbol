@@ -47,54 +47,57 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
                        cstrs: Map[Identifier, List[ConstructorDef]] = Map.empty,
                        vlxps: Map[Identifier, List[ValueExp]] = Map.empty,
                        insts: Map[Identifier, List[InstanceExp]] = Map.empty,
+                       qnams: Map[LocalName, Set[QName]] = Map.empty,
                        hooks: Hooks = Hooks(),
                        logms: Seq[LogMessage] = Seq.empty)
 {
 
+  def withQNams(qs: QName*) =
+    copy(qnams = qs.foldLeft(qnams) { case (m, q) => m + (q.localName -> (m.getOrElse(q.localName, Set.empty) + q))})
+
   def withConstructors(cs: ConstructorDef*) =
-    copy(cstrs = cstrs ++ cs.map(c => c.id -> (c :: cstrs.getOrElse(c.id, Nil))))
+    copy(cstrs = cstrs ++ cs.map(c => c.id -> (c :: cstrs.getOrElse(c.id, Nil)))).withQNams(AllQNames.in(cs) :_*)
 
   def withAssignments(as: Assignment*) =
-    copy(vlxps = vlxps ++ as.map(a => a.property -> (a.value :: vlxps.getOrElse(a.property, Nil))))
+    copy(vlxps = vlxps ++ as.map(a => a.property -> (a.value :: vlxps.getOrElse(a.property, Nil)))).withQNams(AllQNames.in(as) :_*)
 
   def withPragmas(ps: Pragma*) =
     copy(prgms = prgms ++ ps.map(p => p.id -> (p :: prgms.getOrElse(p.id, Nil))))
 
   def withInstances(is: InstanceExp*) =
-    copy(insts = insts ++ is.map(i => i.id -> (i :: insts.getOrElse(i.id, Nil))))
+    copy(insts = insts ++ is.map(i => i.id -> (i :: insts.getOrElse(i.id, Nil)))).withQNams(AllQNames.in(is) :_*)
 
   def withLog(lm: LogMessage*) =
     copy(logms = logms ++ lm)
 
+  def resolveLocalName(ln: LocalName): Set[QName] =
+    qnams.getOrElse(ln, Set.empty)
+
+
   def resolveValue(id: Identifier): Option[ValueExp] =
-    vlxps get id map (_.head) orElse {
+    vlxps get id map (_.head) orElse { // todo: log if there are multiple elements in the list
       id match {
-        case LocalName(name) =>
-          (for {
-            (QName(_, LocalName(qln)), ve::_) <- vlxps if qln == name
-          } yield ve).headOption // fixme: should report clashes
+        case ln : LocalName =>
+          println(s"resolveValue $id in resolveLocalName($ln) = ${resolveLocalName(ln)}")
+          (resolveLocalName(ln) map ValueExp.Identifier).headOption // todo: log clashes
         case _ => None
       }
     }
 
   def resolveCstr(id: Identifier): Option[ConstructorDef] =
-    cstrs get id map (_.head) orElse {
+    cstrs get id map (_.head) orElse { // todo: log if there are multiple elements in the list
       id match {
-        case LocalName(name) =>
-          (for {
-            (QName(_, LocalName(qln)), ve::_) <- cstrs if qln == name
-          } yield ve).headOption // fixme: should report clashes
+        case ln : LocalName =>
+          (resolveLocalName(ln) flatMap resolveCstr).headOption // todo: log clashes
         case _ => None
       }
     }
 
   def resolveInst(id: Identifier): Option[InstanceExp] =
-    insts get id map (_.head) orElse {
+    insts get id map (_.head) orElse { // todo: log if there are multiple elements in the list
       id match {
-        case LocalName(name) =>
-          (for {
-            (QName(_, LocalName(qln)), ie::_) <- insts if qln == name
-          } yield ie).headOption // fixme: should report clashes
+        case ln : LocalName =>
+          (resolveLocalName(ln) flatMap resolveInst).headOption // todo: log clashes
         case _ => None
       }
     }
@@ -262,7 +265,6 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     override def apply(t: Assignment) = for {
       p <- t.property.eval
       v <- t.value.eval
-      _ = println(s"Evaluated ${t.property} = ${t.value} to $p = $v")
     } yield {
       val a = Assignment(p, v)
       a.region = t.region
@@ -359,7 +361,6 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
     def withStack[T](names: Seq[Identifier], values: Seq[ValueExp])(sf: EvalState[T]) = for {
       ec <- get[EvalContext]
-      _ = println(s"withStack $names : $values")
       _ <- modify ((_: EvalContext).withAssignments(names zip values map (Assignment.apply _).tupled :_*))
       v <- sf
       _ <- put(ec) // fixme: should we only be only overwriting the bindings?
@@ -374,8 +375,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
       args <- t.args.eval
       ts <- ot match {
         case Some(cd) =>
-          println(s"Resolved ${t.id} to $cd")
-            (args, cd).eval
+          (args, cd).eval
         case None =>
           val t1 = t.copy(args = args)
           t1.region = t.region
@@ -421,11 +421,11 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     def apply(id: Identifier) = resolveWithAssignment(id)
 
     def resolveWithAssignment(id: Identifier): State[EvalContext, Identifier] = for {
-      m <- gets((_: EvalContext).vlxps)
       b <- resolveBinding(id)
-      _ = println(s"resolve identifier to identifier: $id -> $b in $m")
+      _ = println(s"resolveBinding($id) = $b")
       rb <- b match {
         case Some(ValueExp.Identifier(rid)) =>
+          println(s"recursing for $rid")
           resolveWithAssignment(rid)
         case _ =>
           id.point[EvalState]
@@ -446,9 +446,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     }
 
     def resolveWithAssignment(id: Identifier): State[EvalContext, ValueExp] = for {
-      m <- gets((_: EvalContext).vlxps)
       b <- resolveBinding(id)
-      _ = println(s"resolve identifier to value: $id -> $b in $m")
       rb <- b match {
         case Some(ValueExp.Identifier(rid)) =>
           resolveWithAssignment(rid)

@@ -251,6 +251,32 @@ object EvalTestSuite extends TestSuite {
       * - { (42 : ValueExp) evaluatesTo (42 : ValueExp) in Ø }
     }
 
+    'qnameLookup - {
+
+      'nothing_in_scope - {
+        parse("""me : foaf:person
+          |  name = "matthew"""".stripMargin) evaluatesTo parse_instances(
+          """me : foaf:person
+             |  name = "matthew"""".stripMargin) in ⊥
+      }
+
+      'name_in_scope - {
+        val ctxt = parse("""foaf:name : predicate""").eval.exec(Ø)
+
+        val qnams = ctxt.qnams
+        assert(qnams.nonEmpty)
+        assert(qnams.get("name").nonEmpty)
+        val fName = "foaf" :# "name"
+        assert(qnams("name").contains(fName))
+
+        parse("""me : foaf:person
+                  |  name = "matthew"""".stripMargin) in ctxt evaluatesTo
+          parse_instances("""me : foaf:person
+                            |  foaf:name = "matthew"""".stripMargin) in ⊥
+      }
+
+    }
+
     'valueExps - {
       * - {
         Seq[ValueExp](
@@ -321,23 +347,11 @@ object EvalTestSuite extends TestSuite {
 
     'assignments - {
       * - {
-        * - { Seq[TopLevel](
+        Seq[TopLevel](
           "b" -> "c",
           "a" -> "b") evaluatesTo Seq[List[TopLevel.InstanceExp]](Nil, Nil) in Ø.withAssignments (
           "b" -> "c",
-          "a" -> "b") }
-//
-//        * - { (LocalName("a") : Identifier) evaluatesTo (LocalName("c") : Identifier) in Ø.withAssignments (
-//          "b" -> "c",
-//          "a" -> "b") }
-//
-//        * - { (LocalName("b") : Identifier) evaluatesTo (LocalName("c") : Identifier) in Ø.withAssignments (
-//          "b" -> "c",
-//          "a" -> "b") }
-//
-//        * - { (LocalName("c") : Identifier) evaluatesTo (LocalName("c") : Identifier) in Ø.withAssignments (
-//          "b" -> "c",
-//          "a" -> "b") }
+          "a" -> "b")
       }
 
       * - {
@@ -660,8 +674,8 @@ object EvalTestSuite extends TestSuite {
     }
 
     'sbfile - {
-      parse(
-        """WithNameAge(name, age) => WithAge(age)
+      parse("""
+          |WithNameAge(name, age) => WithAge(age)
           |  foaf:name = name
           |
           |WithAge(age) => foaf:person
