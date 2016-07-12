@@ -89,7 +89,8 @@ object ShortbolParsers {
   lazy val MultiLineLiteralEnd = P(Space.rep.! ~ RBrace) map
     (_.length)
   lazy val MultiLineLiteral = P(MultiLineLiteralStart ~/ MultiLineLiteralLine.rep ~ MultiLineLiteralEnd map
-    { case (ss, i) => ast.StringLiteral.MultiLine(ss map (_ substring i), i) })
+    { case (ss, i) =>
+      ast.StringLiteral.MultiLine(ss map { s => if(s.length < i) s else  s substring i}, i) })
 
   lazy val DigitSign = P(Plus | Hyphen)
   lazy val IntegerLiteral = P((DigitSign.? ~ Digit.rep(1)).!.map(_.toInt).map(ast.IntegerLiteral))

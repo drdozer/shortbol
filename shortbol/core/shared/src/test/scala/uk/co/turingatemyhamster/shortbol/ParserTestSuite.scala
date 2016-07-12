@@ -975,8 +975,25 @@ object ParserTestSuite extends TestSuite{
            |  foaf:name = "matthew"
            |  foaf:knows = "caroline"
            |""".stripMargin, ShortbolParser.SBFile)
-    }
 
+      * - shouldParse(
+        """owl:oneOf : list("public", "private")""",
+        ShortbolParser.SBFile)
+
+      * - shouldParse(
+        """owl:oneOf : rdf:list("public", "private")""",
+        ShortbolParser.SBFile)
+
+      * - shouldParse(
+        """owl:oneOf : rdf:list(public, private)""",
+        ShortbolParser.SBFile)
+
+      * - shouldParse(
+        """a : thing
+          |  owl:oneOf : rdf:list(public, private)
+        """.stripMargin,
+        ShortbolParser.SBFile)
+    }
   }
 
 }

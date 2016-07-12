@@ -22,7 +22,7 @@ import scala.scalajs.js
   *
   * @author Matthew Pocock
   */
-object Client extends PageApplication {
+object Sandbox extends PageApplication {
   implicit val ec = scala.scalajs.concurrent.JSExecutionContext.queue
 
   lazy val logMsgs: Buffer[LogMessage] = Buffer()
@@ -38,8 +38,12 @@ object Client extends PageApplication {
         |seq : DnaSequence("agct")
         |
         |cmp : DnaComponent
+        |  sequence = seq
         |
         |prom : Promoter
+        |  displayId = "p1"
+        |  name = "Promoter 1"
+        |  description = "The first promoter"
         |""".stripMargin).id("shortbol_editor").css("shortbol_ace"),
     div().id("longbol").css("shortbol_ace"),
     div().id("xml-rdf").css("shortbol_ace"),

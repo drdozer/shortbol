@@ -93,24 +93,22 @@ object Resolver {
     def resolveUrl(url: Url): EvalState[Throwable \/ Seq[TopLevel.InstanceExp]] = for {
       base <- ImportBaseUrl.top
       relative = relativeUrl(base.collect{case Pragma(ImportBaseUrl.ID, (ValueExp.Identifier(url@Url(_)))::Nil) => url}, url)
-      src = try {
-        Platform.slurp(relative.url)
-      } catch {
-        case e : Exception =>
-          Platform.slurp(relative.url ++ ".sbol")
+      res <- Platform.slurp(relative.url) orElse
+              Platform.slurp(relative.url ++ ".sbol") match {
+        case -\/(t) =>
+          t.left[Seq[TopLevel.InstanceExp]].point[EvalState]
+        case \/-(str) =>
+          ImportBaseUrl.pushFrame(Pragma(ImportBaseUrl.ID, relative::Nil))(
+            DefaultPrefixPragma.pushFrame(
+              ShortbolParser.SBFile.withPositions(relative, str) match {
+                case Success(s, _) =>
+                  s.eval.map((_: Seq[TopLevel.InstanceExp]).right[Throwable])
+                case f: Failure =>
+                  (new Exception(s"Failed to parse ${url.url} as ${relative.url} at ${f.index}: ${f.extra.traced}") : Throwable).left[Seq[TopLevel.InstanceExp]].point[EvalState]
+              }
+            )
+          )
       }
-      res <- ImportBaseUrl.pushFrame(Pragma(ImportBaseUrl.ID, relative::Nil))(
-        DefaultPrefixPragma.pushFrame(
-          ShortbolParser.SBFile.withPositions(relative, src) match {
-            case Success(s, _) =>
-              for {
-                e <- s.eval
-              } yield e.right
-            case f: Failure =>
-              (new Exception(s"Failed to parse ${url.url} as ${relative.url} at ${f.index}: ${f.extra.traced}") : Throwable).left.point[EvalState]
-          }
-        )
-      )
     } yield res
 
     def relativeUrl(b: Option[Url], l: Url): Url = b map { bu =>

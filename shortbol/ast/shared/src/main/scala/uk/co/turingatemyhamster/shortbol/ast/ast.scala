@@ -119,6 +119,7 @@ object sugar {
   implicit def ass[A, B](ab: (A, B))(implicit ai: A => Identifier, bv: B => ValueExp): Assignment = Assignment(ab._1, ab._2)
 
   implicit def strLit[S](s: S)(implicit e: S => StringLiteral.Style): StringLiteral = StringLiteral(s, None, None)
+  def slLit(s: String): StringLiteral = StringLiteral(StringLiteral.SingleLine(s, false), None, None)
 
   implicit def strLN(s: String): LocalName = LocalName(s)
   implicit def strNP(s: String): NSPrefix = NSPrefix(s)

@@ -41,7 +41,7 @@ lazy val server = crossProject.settings(
   ).settings(sharedSettings : _*).dependsOn(core)
 
 lazy val serverJs = server.js.settings(
-  persistLauncher in Compile := true,
+  persistLauncher in Compile := false,
   persistLauncher in Test := false,
   libraryDependencies += "io.github.widok" %%% "widok" % "0.3.0-SNAPSHOT"
 )
@@ -54,10 +54,10 @@ lazy val serverJvm = server.jvm
     (fastOptJS in (serverJs, Compile)).value
     (artifactPath in (serverJs, Compile, fastOptJS)).value
   },
-  (resources in Assets) += {
-    (fastOptJS in (serverJs, Compile)).value
-    (artifactPath in (serverJs, Compile, packageScalaJSLauncher)).value
-  },
+//  (resources in Assets) += {
+//    (fastOptJS in (serverJs, Compile)).value
+//    (artifactPath in (serverJs, Compile, packageScalaJSLauncher)).value
+//  },
   (resources in Assets) += {
     (fastOptJS in (serverJs, Compile)).value
     (artifactPath in (serverJs, Compile, packageJSDependencies)).value

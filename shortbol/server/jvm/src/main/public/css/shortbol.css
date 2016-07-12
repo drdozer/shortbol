@@ -370,5 +370,34 @@ pre{
     width: 100%;
 }
 
+.warning {
+    color: red;
+}
 
+.success {
+    color: green;
+}
 
+header .logo {
+    float: right;
+    max-height: 80px;
+}
+
+.tutorialContent {
+    clear: both;
+}
+
+footer ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+footer li {
+    float: left;
+}
+
+footer img {
+    max-height: 40px;
+}
