@@ -107,9 +107,9 @@ case class YourFirstScript() extends TutorialContent {
         Container.Generic(
           yourTurn.checkList(
             yourTurn.check(
-              """set the description to "LacI protein"""", "lacI", "description" -> slLit("LacI protein")),
+              """set the description to "LacI protein"""", "LacI", "description" -> slLit("LacI protein")),
             yourTurn.check(
-              """set the displayId to "P03023"""", "lacI", "displayId" -> slLit("P03023"))
+              """set the displayId to "P03023"""", "LacI", "displayId" -> slLit("P03023"))
           )
         ).width(Length.Percentage(40))
       )
