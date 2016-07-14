@@ -40,4 +40,50 @@ object TutorialUtils {
       }
     }
   }
+
+  def shortbol = Container.Inline("ShortBOL").css("projectName")
+  def sbol = Container.Inline("SBOL").css("projectName")
+  def code(v: View*) = Container.Inline(v :_*).css("code")
+  def gene(v: View*) = Container.Inline(v :_*).css("gene")
+
+  def TetR_gene = gene("TetR")
+  def pTetR_gene = gene("pTetR")
+  def LacI_gene = gene("LacI")
+
+  def pTetR = code("pTetR")
+  def pTetRSeq = code("pTetRSeq")
+  def LacI = code("LacI")
+  def lacIRbs = code("lacIRbs")
+  def lacIT = code("lacIT")
+  def lacITSeq = code("lacITSeq")
+
+  def displayId = code("displayId")
+  def description = code("description")
+  def sequence = code("sequence")
+
+  def DnaSequence = code("DnaSequence")
+
+  def Promoter = code("Promoter")
+  def CDS = code("CDS")
+  def Terminator = code("Terminator")
+  def RBS = code("RBS")
+  def Operator = code("Operator")
+
+
+  implicit class WidokStringContext(val _sc: StringContext) extends AnyVal {
+    def v(args: Any*): View = if(args.isEmpty) {
+      _sc.parts.mkString: View
+    } else {
+      Container.Inline(
+        (
+          (_sc.parts.head : View) :: (args zip _sc.parts.tail.map(p => p : View)).to[List].flatMap {
+            case (v, p) => (v match {
+              case vv : View => vv
+              case vs => vs.toString : View
+            }) :: p :: Nil
+          }
+          ) :_*
+      )
+    }
+  }
 }

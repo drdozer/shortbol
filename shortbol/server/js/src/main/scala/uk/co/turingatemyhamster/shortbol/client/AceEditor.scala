@@ -64,7 +64,7 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
     )
    } :_*).css("checkList")
 
-  case class AssignmentSbolCheck(description: String, instId: Identifier, ass: Assignment) extends SbolCheck {
+  case class AssignmentSbolCheck(description: View, instId: Identifier, ass: Assignment) extends SbolCheck {
     lazy val checker = lastSuccess.map { s =>
       (s.tops collect {
         case TopLevel.InstanceExp(i@InstanceExp(id, _)) if id == instId =>
@@ -80,7 +80,7 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
     }
   }
 
-  case class TypeSbolCheck(description: String, instId: Identifier, ofType: Identifier) extends SbolCheck {
+  case class TypeSbolCheck(description: View, instId: Identifier, ofType: Identifier) extends SbolCheck {
     lazy val checker = lastSuccess.map {
       s =>
         (s.tops collect {
@@ -90,12 +90,12 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
     }
   }
 
-  def check(description: String, instId: Identifier, ass: Assignment) = AssignmentSbolCheck(description, instId, ass)
+  def check(description: View, instId: Identifier, ass: Assignment) = AssignmentSbolCheck(description, instId, ass)
 
-  def check(description: String, instId: Identifier, ofType: Identifier) = TypeSbolCheck(description, instId, ofType)
+  def check(description: View, instId: Identifier, ofType: Identifier) = TypeSbolCheck(description, instId, ofType)
 }
 
 sealed trait SbolCheck {
-  def description: String
+  def description: View
   def checker: ReadChannel[Boolean]
 }

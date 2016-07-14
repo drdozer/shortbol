@@ -370,6 +370,19 @@ pre{
     width: 100%;
 }
 
+.projectName {
+    font-weight: bolder;
+    color: darkslategray;
+}
+
+.code {
+    font-family: monospace;
+}
+
+.gene {
+    font-style: italic;
+}
+
 .warning {
     color: red;
 }

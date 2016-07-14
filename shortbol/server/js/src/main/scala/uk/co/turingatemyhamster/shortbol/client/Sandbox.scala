@@ -52,6 +52,8 @@ object Sandbox extends PageApplication {
 
   override def ready(): Unit = {
     lazy val ace = js.Dynamic.global.ace
+    lazy val rdf = js.Dynamic.global.rdf
+    lazy val rdf_xml_parser = js.Dynamic.global.rdf
 
     println("Loading editor")
     val editor = ace.edit("shortbol_editor")
@@ -100,8 +102,11 @@ object Sandbox extends PageApplication {
 //          println("Exporting to xml-rdf")
           val rdfIo = RdfIo.rdfIo[datatree.ast.AstDatatree]
           val xml = RdfIo.write[datatree.ast.AstDatatree](doc)
+          val xmlText = xml.render(2)
 
-          xmlRdf.getSession().setValue(xml.render(2))
+          xmlRdf.getSession().setValue(xmlText)
+
+//          rdf.
       }
     }
   }

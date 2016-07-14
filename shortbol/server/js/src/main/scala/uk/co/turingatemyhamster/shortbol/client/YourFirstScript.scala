@@ -25,59 +25,74 @@ case class YourFirstScript() extends TutorialContent {
     Container.Generic(
       Section(
         Heading.Level2("Your first script"),
-        Paragraph(
-          """We're going to start by building the Shortbol for the TetR inverter of the TetR/LacI toggle switch.
-            |""".stripMargin),
-        Paragraph(
-          """The TetR inverter couples a tetracycline-repressed promoter with the LacI coding sequence, so that in the absence of tetracycline, LacI is produced.
-            |We are going to describe the design of the TetR inverter using Shortbol.
-            |""".stripMargin
-        ),
+        Paragraph(v"""
+              We're going to start by building the $shortbol for the $TetR_gene inverter of the $TetR_gene/$LacI_gene toggle switch.
+          """),
+        Paragraph(v"""
+              The $TetR_gene inverter couples a tetracycline-repressed promoter with the $LacI_gene coding sequence, so that in
+               the absence of tetracycline, $LacI_gene is produced.
+              We are going to describe the design of the $TetR_gene inverter using $shortbol.
+          """),
         AceEditor(
           """@import <stdlib:sbol>
             |
             |pTetR : Promoter
             |
             |LacI : CDS""".stripMargin).width(Length.Percentage(80)).height(Length.Pixel(80)).isReadOnly(true),
-        Paragraph(
-          """This script contains three lines.
-            |The first line imports the sbol standard library.
-            |You will usually have this at the top of all your shortbol scripts.
-            |The second line declares a promoter called pTetR, and the third declares a CDS called LacI.
-          """.stripMargin),
-        Paragraph(
-          """In this example we have separated each line with a blank-line.
-            |Blank lines are ignored by shortbol, but can make reading a script easier.
-            |This script, without the newlines means exactly the same thing.
-          """.stripMargin),
+        Paragraph(v"""
+              This script contains three lines.
+              The first line imports the $sbol standard library.
+              You will usually have this at the top of all your $shortbol scripts.
+              The second line declares a promoter called $pTetR, and the third declares a complement
+              determining region (open reading frame, or coding region) called $LacI."""),
+        Paragraph(v"""
+              In this example we have separated each line with a blank line.
+              Blank lines are ignored by $shortbol, but can make reading a script easier.
+              This script, without the newlines means exactly the same thing.
+          """),
         AceEditor(
           """@import <stdlib:sbol>
             |pTetR : Promoter
             |LacI : CDS""".stripMargin).width(Length.Percentage(80)).height(Length.Pixel(60)).isReadOnly(true),
         Paragraph(
-          """I find that more difficult to read, but it's down to personal taste."""
-        )
+          v"""I find that more difficult to read, but it's down to personal taste."""
+        ),
+        Paragraph(v"""
+              Comments an be added to the script.
+              Any line starting with a pound '${code("#")}' character is treated as a comment, and ignored.
+              """),
+        AceEditor(
+          """# Import the SBOL standard library
+            |@import <stdlib:sbol>
+            |
+            |# Declare a promoter named pTetR
+            |pTetR : Promoter
+            |
+            |# Declare a CDS named LacI
+            |LacI : CDS""".stripMargin).width(Length.Percentage(80)).height(Length.Pixel(100)).isReadOnly(true)
       ),
       Section(
         Heading.Level2("Adding some properties"),
+        Paragraph(v"""
+              So far we have created a promoter and a CDS and named them.
+              With $shortbol we can attach properties and values to these instances.
+              $shortbol uses indentation to make lines 'part of' a containing instance.
+          """),
         Paragraph(
-          """So far we have created a promoter and a CDS and named them.
-            |With shortbol we can attach properties and values to these instances.
-            |Shortbol uses indentation to make lines 'part of' a containing instance.
-          """.stripMargin),
-        Paragraph(
-          """We can add a description to pTetR like this:"""),
+          v"""We can add a description to $pTetR like this:"""),
         AceEditor(
           """pTetR : Promoter
             |  description = "pTet promoter"
           """.stripMargin
         ).width(Length.Percentage(80)).height(Length.Pixel(40)).isReadOnly(true),
-        Paragraph(
-          """You can add any names and values you like to an instance, and these become extra annotating data.
-            |However, some of these names mean something special to SBOL.
-            |For example, displayId is a property that captures an identifier that can be displayed on a diagram or parts listing.
-            |In our TetR inverter example, the pTetR part actually comes from the biobrick BBa_R0040, so this is a good candidate for a displayId value.
-          """.stripMargin),
+        Paragraph(v"""
+              You can add any names and values you like to an instance, and these become extra annotating data.
+              However, some of these names mean something special to $sbol.
+              For example, $displayId is a property that captures an identifier that can be displayed on a diagram or
+               parts listing.
+              In our $TetR_gene inverter example, the $pTetR part actually comes from the biobrick ${code("BBa_R0040")},
+               so this is a good candidate for a $displayId value.
+          """),
         AceEditor(
           """pTetR : Promoter
             |  description = "pTet promoter"
@@ -87,16 +102,16 @@ case class YourFirstScript() extends TutorialContent {
       ),
       Section(
         Heading.Level2("Your turn"),
-        Paragraph(
-          """Now it is your turn.
-            |So far all the code examples have been read-only.
-            |You can edit the next sample, like any text area.
-          """.stripMargin),
-        Paragraph(
-          """Start with the provided skeleton script and modify it so that LacI has the description "LacI protein" and displayId of "P03023".
-            |Don't forget to indent the property names.
-          """.stripMargin
-        ),
+        Paragraph(v"""
+              Now it is your turn.
+              So far all the code examples have been read-only.
+              You can edit the next sample, like any text area.
+          """),
+        Paragraph(v"""
+              Start with the provided skeleton script and modify it so that $LacI has the $description
+                "LacI protein coding region" and $displayId of "P03023".
+              Don't forget to indent the property names.
+          """),
         AceEditor(
           """LacI : CDS
             |""".stripMargin
@@ -107,9 +122,9 @@ case class YourFirstScript() extends TutorialContent {
         Container.Generic(
           yourTurn.checkList(
             yourTurn.check(
-              """set the description to "LacI protein"""", "LacI", "description" -> slLit("LacI protein")),
+              v"""set the $description to "LacI protein coding region"""", "LacI", "description" -> slLit("LacI protein coding region")),
             yourTurn.check(
-              """set the displayId to "P03023"""", "LacI", "displayId" -> slLit("P03023"))
+              v"""set the $displayId to "P03023"""", "LacI", "displayId" -> slLit("P03023"))
           )
         ).width(Length.Percentage(40))
       )

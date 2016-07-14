@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+    <Description about="urn:mozilla:install-manifest">
+        <em:id>{Themes_UUID}</em:id>
+        <em:version>Themes_Version</em:version>
+
+        <!-- Target Application this extension can install into,
+                 with minimum and maximum supported versions. -->
+
+        <em:targetApplication>
+            <Description>
+                <!-- Firefox's UUID -->
+                <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+                <em:minVersion>Min_FF_Version</em:minVersion>
+                <em:maxVersion>Max_FF_Version</em:maxVersion>
+            </Description>
+        </em:targetApplication>
+
+        <!-- Front End MetaData -->
+        <!-- My_Theme -->
+        <em:name>My_Theme</em:name>
+        <em:description>My_Theme</em:description>
+        <em:creator>Your_Name</em:creator>
+        <em:contributor>Contributors_Names</em:contributor>
+        <em:homepageURL>Themes_HomePage</em:homepageURL>
+        <em:updateURL> Url_of_Update_Location </em:updateURL>
+        <em:aboutURL> Url_of_About_Page </em:aboutURL>
+
+        <!-- Front End Integration Hooks (used by Theme Manager)-->
+        <em:internalName>My_Theme</em:internalName>
+    </Description>
+
+</RDF>
