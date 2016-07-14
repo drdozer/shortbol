@@ -383,6 +383,10 @@ pre{
     font-style: italic;
 }
 
+.emph {
+    font-style: oblique;
+}
+
 .warning {
     color: red;
 }

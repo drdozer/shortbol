@@ -23,22 +23,26 @@ case class IntroductionToTypes() extends TutorialContent {
         Heading.Level2("Types"),
         Paragraph(v"""
               In the previous tutorial, we created instances to represent $pTetR_gene and $LacI_gene in the $TetR_gene
-               inverter device, and gave them ${description}s and ${displayId}s.
+               inverter device, and gave them ${name}s, ${description}s and ${displayId}s.
               When we put it all together, that example looks like this:
           """),
         AceEditor(
-          """@import <stdlib:sbol>
+          """# Import the SBOL standard library, including the SBOL types and properties
+            |@import <stdlib:sbol>
             |
+            |# Declare an instance named pTetR, of type Promoter
             |pTetR : Promoter
-            |  description = "pTet promoter"
+            |  name = "pTetR"
+            |  description = "pTetR promoter"
             |  displayId = "BBa_R0040"
             |
+            |# Declare an instance named LacI, of type CDS
             |LacI : CDS
+            |  name = "LacI"
             |  description = "LacI protein coding region"
-            |  displayId = "P03023"
-          """.stripMargin
+            |  displayId = "P03023"""".stripMargin
         ).width(Length.Percentage(40))
-          .height(Length.Pixel(130))
+          .height(Length.Pixel(180))
           .isReadOnly(true),
         Paragraph(v"""
               Let's look at this example again.

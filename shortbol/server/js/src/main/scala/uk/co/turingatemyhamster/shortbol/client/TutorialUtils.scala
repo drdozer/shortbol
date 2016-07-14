@@ -41,10 +41,15 @@ object TutorialUtils {
     }
   }
 
-  def shortbol = Container.Inline("ShortBOL").css("projectName")
-  def sbol = Container.Inline("SBOL").css("projectName")
+  def projectName(v: View*) = Container.Inline(v :_*).css("projectName")
   def code(v: View*) = Container.Inline(v :_*).css("code")
   def gene(v: View*) = Container.Inline(v :_*).css("gene")
+  def defn(v: View*) = Container.Inline(v :_*).css("definition")
+  def emph(v: View*) = Container.Inline(v :_*).css("emph")
+
+  def shortbol = projectName("ShortBOL")
+  def sbol = projectName("SBOL")
+  def edam = projectName("EDAM")
 
   def TetR_gene = gene("TetR")
   def pTetR_gene = gene("pTetR")
@@ -59,6 +64,7 @@ object TutorialUtils {
 
   def displayId = code("displayId")
   def description = code("description")
+  def name = code("name")
   def sequence = code("sequence")
 
   def DnaSequence = code("DnaSequence")

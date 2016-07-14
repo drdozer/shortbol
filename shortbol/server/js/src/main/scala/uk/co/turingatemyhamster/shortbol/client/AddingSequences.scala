@@ -16,8 +16,11 @@ case class AddingSequences() extends TutorialContent {
     Section(
       Heading.Level2("Adding Sequences"),
       Paragraph(v"""
-              Ultimately, the units that are assembled for a genome design are DNA sequences.
-              $shortbol has a type called $DnaSequence that lets you specify a DNA sequence.
+              Ultimately, when you build a genome design, you need the corresponding DNA sequence.
+              Each individual genetic part in your design will have its own sequence, and the sequence of the whole
+              design is composed from these.
+              $shortbol has a type called $DnaSequence that lets you specify a DNA sequence,
+              and a property $sequence that lets you associate this with an instance representing a genetic part.
         """),
       AceEditor(
         """lacITSeq : DnaSequence("ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa")"""
@@ -32,7 +35,7 @@ case class AddingSequences() extends TutorialContent {
         """),
       Paragraph(v"""
               Until now, we have been using inline strings with values protected with quote '${code("\"")}' marks.
-              These are convenient for short stretches of text, but quickly become unweildy for large blocks of text.
+              These are convenient for short stretches of text, but quickly become unwieldy for large blocks of text.
               $shortbol supports multi-line quotes to let you spread a long block of text over many lines.
               We could have written the previous sequence instance like this:
         """),
@@ -50,16 +53,64 @@ case class AddingSequences() extends TutorialContent {
               closing '}'.
              You can use any amount of indent that makes the text easy to read and edit.
              $shortbol works out what the indent is by looking at how indented the closing '}' is.
-                """)
+                """),
+      Paragraph(
+        v"""
+           The $sbol standard expects DNA sequences to be written with no spaces or newlines.
+           However, typically you will be copy-pasting the sequence string from another format, such as fasta or
+            genbank.
+           You can tell $shortbol that the string is a fasta string by tagging it with teh type for fasta.
+           In this case, the type for fasta is ${code("edam:fasta")}. Strings are tagged with a type by folowing them
+           with ${code("^^")} and then the type.
+         """),
+      AceEditor(
+        """lacITSeq : DnaSequence({
+          |  ttcagccaaa aaacttaaga ccgccggtct tgtccactac cttgcagtaa tgcggtggac
+          |  aggatcggcg gttttctttt ctcttctcaa
+          |  }^^edam:fasta)
+        """.stripMargin
+      ).width(Length.Percentage(40))
+              .height(Length.Pixel(60))
+              .isReadOnly(true),
+      Paragraph(
+        v"""
+           We can make use of the flexible indenting rules for multi-line strings to allow us to copy-paste direct from
+            genbank.
+         """),
+      AceEditor(
+        """lacITSeq : DnaSequence({
+          |        1 ttcagccaaa aaacttaaga ccgccggtct tgtccactac cttgcagtaa tgcggtggac
+          |       61 aggatcggcg gttttctttt ctcttctcaa
+          |}^^edam:genbank)
+        """.stripMargin
+      ).width(Length.Percentage(40))
+        .height(Length.Pixel(60))
+        .isReadOnly(true),
+      Paragraph(
+        v"""
+           By placing the closing '${code("}")}' in the first column, it marks out that the copy-pasted sequence starts
+            in the first colum, allowing you to copy-paste it verbatum from a genbank file.
+           By giving the string the type ${code("edam:genbak")}, $shortbol knows how to process the string into the form
+            that $sbol requires.
+           As a rule of thumb, file formats will have names that look like ${code("edam:FOO")} where ${code("FOO")} is
+            the every-day format name.
+           The ${Anchor(edam)
+          .url("http://edamontology.org/page")
+          .title("EDAM Ontology")
+          .attribute("target", "_blank")
+        } ontology catalogues a wide range of file formats.
+         """)
     ),
     Section(
       Heading.Level2("Attaching the sequence to the terminator"),
       Paragraph(v"""
-              Now that we know how to make a sequence, we need to attach it to the corresponing part.
-              This is done in the same way that we set the description and displayId for the parts earlier.
-              $sbol defines a property called sequence that links from a part back to the sequence it has.
+              Now that we know how to make a sequence, we need to attach it to the corresponding part.
+              This is done in the same way that we set the $name, $description and $displayId for the parts earlier.
+              $sbol defines a property called $sequence that links from a genetic part back to the sequence it has.
               This time, rather than quoting the value, we use the naked value.
-              This tells $shortbol that we are linking to another instance, rather than quoting a value.
+              This tells $shortbol that we are linking to another instance, rather than capturing some text.
+              Instances are always linked by the name that their $shortbol instance was declared with, rather than by
+               the value of their $name or $displayId, or any other data property.
         """),
       AceEditor(
         """lacIT : Terminator
@@ -77,7 +128,7 @@ case class AddingSequences() extends TutorialContent {
           |lacITSeq : DnaSequence({
           |  ttcagccaaa aaacttaaga ccgccggtct tgtccactac cttgcagtaa tgcggtggac
           |  aggatcggcg gttttctttt ctcttctcaa
-          |  })
+          |  }^^edam:fasta)
           |
           |lacIT : Terminator
           |  sequence = lacItSeq
@@ -98,7 +149,10 @@ case class AddingSequences() extends TutorialContent {
         .rememberAs(yourTurn = _),
       yourTurn.checkList(
         yourTurn.check(v"Create a $Promoter called $pTetR", "pTetR", "Promoter"),
-        yourTurn.check(v"Create a $DnaSequence called $pTetRSeq with the DNA sequence tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac (you may want to cut and paste)", "pTetRSeq", "DnaSequence"),
+        yourTurn.check(
+          v"""Create a $DnaSequence called $pTetRSeq with the DNA sequence
+              tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac (you may want to cut and paste this)""",
+          "pTetRSeq", "DnaSequence"),
         yourTurn.check(v"Set the $sequence property of $pTetR equal to $pTetRSeq", "pTetR", "sequence" -> "pTetRSeq")
       )
     ),
