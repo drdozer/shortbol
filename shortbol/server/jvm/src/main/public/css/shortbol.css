@@ -404,6 +404,10 @@ header .logo {
     clear: both;
 }
 
+.back_forward {
+    float: right;
+}
+
 footer ul {
     list-style-type: none;
     margin: 0;

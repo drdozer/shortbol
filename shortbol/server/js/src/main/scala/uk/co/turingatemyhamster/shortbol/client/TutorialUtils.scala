@@ -66,8 +66,22 @@ object TutorialUtils {
   def description = code("description")
   def name = code("name")
   def sequence = code("sequence")
+  def sequenceConstraint = code("sequenceConstraint")
+  def sequenceAnnotation = code("sequenceAnnotation")
+  def `type` = code("type")
+  def component = code("component")
+  def at = code("at")
+  def inline = code("inline")
+  def reverseComplement = code("reverseComplement")
+
+  def precedes = code("precedes")
+  def sameOrientationAs = code("sameOrientationAs")
+  def differentOrientationAs = code("differentOrientationAs")
 
   def DnaSequence = code("DnaSequence")
+  def DnaComponent = code("DnaComponent")
+  def ComponentDefinition = code("ComponentDefinition")
+  def SequenceConstraint = code("SequenceConstraint")
 
   def Promoter = code("Promoter")
   def CDS = code("CDS")

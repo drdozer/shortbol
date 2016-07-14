@@ -15,6 +15,7 @@ object TutorialRoutes {
       Route("/yourFirstScript", () => TutorialPage(YourFirstScript())) ::
       Route("/introductionToTypes", () => TutorialPage(IntroductionToTypes())) ::
       Route("/addingSequences", () => TutorialPage(AddingSequences())) ::
+      Route("/composingADesign", () => TutorialPage(ComposingADesign())) ::
       Nil
 
   val nav = {
@@ -27,6 +28,8 @@ object TutorialRoutes {
 
   def after(at: Route): Option[Route] =
     nav collectFirst { case (l, r) if l contains at => r } flatten
+
+  def find(p: String): Route = routes filter { _.path endsWith p } head
 
   val notFound = Route("/404", TutorialNotFound)
 }
