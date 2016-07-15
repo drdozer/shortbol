@@ -387,12 +387,37 @@ pre{
     font-style: oblique;
 }
 
+.exercise {
+    border-color: #0b97c4;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.exercise .editor {
+    float: left;
+    width: 50%;
+}
+
+.exercise .tasks {
+    float: left;
+}
+
+.exercise .status {
+    clear: both;
+}
+
 .warning {
     color: red;
 }
 
 .success {
     color: green;
+}
+
+.navpannel {
+    padding: 5px;
+    float: left;
+    background: ivory;
 }
 
 header .logo {

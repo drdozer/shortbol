@@ -24,7 +24,7 @@ case class AddingSequences() extends TutorialContent {
         """),
       AceEditor(
         """lacITSeq : DnaSequence("ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa")"""
-      ).width(Length.Percentage(40))
+      ).width(Length.Percentage(0.40))
         .height(Length.Pixel(30))
         .isReadOnly(true),
       Paragraph(v"""
@@ -45,7 +45,7 @@ case class AddingSequences() extends TutorialContent {
           |  aggatcggcg gttttctttt ctcttctcaa
           |  })
         """.stripMargin
-      ).width(Length.Percentage(40))
+      ).width(Length.Percentage(0.40))
               .height(Length.Pixel(60))
               .isReadOnly(true),
       Paragraph(v"""
@@ -69,7 +69,7 @@ case class AddingSequences() extends TutorialContent {
           |  aggatcggcg gttttctttt ctcttctcaa
           |  }^^edam:fasta)
         """.stripMargin
-      ).width(Length.Percentage(40))
+      ).width(Length.Percentage(0.40))
               .height(Length.Pixel(60))
               .isReadOnly(true),
       Paragraph(
@@ -83,7 +83,7 @@ case class AddingSequences() extends TutorialContent {
           |       61 aggatcggcg gttttctttt ctcttctcaa
           |}^^edam:genbank)
         """.stripMargin
-      ).width(Length.Percentage(40))
+      ).width(Length.Percentage(0.40))
         .height(Length.Pixel(60))
         .isReadOnly(true),
       Paragraph(
@@ -116,7 +116,7 @@ case class AddingSequences() extends TutorialContent {
         """lacIT : Terminator
           |  sequence = lacItSeq
         """.stripMargin
-      ).width(Length.Percentage(40))
+      ).width(Length.Percentage(0.40))
                     .height(Length.Pixel(60))
                     .isReadOnly(true),
       Paragraph(
@@ -133,7 +133,7 @@ case class AddingSequences() extends TutorialContent {
           |lacIT : Terminator
           |  sequence = lacItSeq
         """.stripMargin
-      ).width(Length.Percentage(40))
+      ).width(Length.Percentage(0.40))
         .height(Length.Pixel(120))
         .isReadOnly(true)
     ),
@@ -143,11 +143,11 @@ case class AddingSequences() extends TutorialContent {
         v"""It's your turn to create a sequence for the $pTetR_gene promoter and attach it to the promoter."""
       ),
       AceEditor("")
-        .width(Length.Percentage(40))
+        .width(Length.Percentage(0.40))
         .height(Length.Pixel(60))
         .isReadOnly(false)
         .rememberAs(yourTurn = _),
-      yourTurn.checkList(
+      TaskList(
         yourTurn.check(v"Create a $Promoter called $pTetR", "pTetR", "Promoter"),
         yourTurn.check(
           v"""Create a $DnaSequence called $pTetRSeq with the DNA sequence
@@ -173,7 +173,7 @@ case class AddingSequences() extends TutorialContent {
           |    sequence : DnaSequence("tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac")
         """.stripMargin
       )
-        .width(Length.Percentage(40))
+        .width(Length.Percentage(0.40))
         .height(Length.Pixel(60))
         .isReadOnly(true),
       Paragraph(v"""

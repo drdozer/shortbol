@@ -41,7 +41,7 @@ case class IntroductionToTypes() extends TutorialContent {
             |  name = "LacI"
             |  description = "LacI protein coding region"
             |  displayId = "P03023"""".stripMargin
-        ).width(Length.Percentage(40))
+        ).width(Length.Percentage(0.40))
           .height(Length.Pixel(180))
           .isReadOnly(true),
         Paragraph(v"""
@@ -89,11 +89,11 @@ case class IntroductionToTypes() extends TutorialContent {
               In the editor below, create the corresponding instances.
           """),
         AceEditor("")
-          .width(Length.Percentage(40))
+          .width(Length.Percentage(0.40))
           .height(Length.Pixel(120))
           .isReadOnly(false)
           .rememberAs(allParts = _),
-        allParts.checkList(
+        TaskList(
           allParts.check(v"a $Promoter instance called $pTetR", "pTetR", "Promoter"),
           allParts.check(v"an $RBS instance called $lacIRbs", "lacIRbs", "RBS"),
           allParts.check(v"a $CDS instance called $LacI", "LacI", "CDS"),

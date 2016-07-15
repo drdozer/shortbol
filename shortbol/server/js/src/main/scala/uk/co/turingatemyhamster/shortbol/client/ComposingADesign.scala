@@ -69,7 +69,7 @@ case class ComposingADesign() extends TutorialContent {
           |  role = <http://identifiers.org/so/SO:0000167>
         """.stripMargin
       )
-        .width(Length.Percentage(40))
+        .width(Length.Percentage(0.40))
         .height(Length.Pixel(240))
         .isReadOnly(true),
       Paragraph(
@@ -118,7 +118,7 @@ case class ComposingADesign() extends TutorialContent {
                 |  component = lacIT
               """.stripMargin
             )
-              .width(Length.Percentage(40))
+              .width(Length.Percentage(0.40))
               .height(Length.Pixel(200))
               .isReadOnly(true),
       Paragraph(
@@ -167,7 +167,7 @@ case class ComposingADesign() extends TutorialContent {
                 |  sequenceConstraint : precedes(LacI, lacIT)
               """.stripMargin
             )
-              .width(Length.Percentage(40))
+              .width(Length.Percentage(0.40))
               .height(Length.Pixel(160))
               .isReadOnly(true),
       Paragraph(
@@ -190,7 +190,7 @@ case class ComposingADesign() extends TutorialContent {
           |  sequenceConstraint : precedes(LacI, lacIT)
         """.stripMargin
       )
-        .width(Length.Percentage(40))
+        .width(Length.Percentage(0.40))
         .height(Length.Pixel(100))
         .isReadOnly(true),
       Paragraph(
@@ -226,7 +226,7 @@ case class ComposingADesign() extends TutorialContent {
           |  sequenceAnnotation : at(lacIT,   1198, 1288, inline)
         """.stripMargin
       )
-        .width(Length.Percentage(40))
+        .width(Length.Percentage(0.40))
         .height(Length.Pixel(100))
         .isReadOnly(true),
       Paragraph(

@@ -38,7 +38,7 @@ case class YourFirstScript() extends TutorialContent {
             |
             |pTetR : Promoter
             |
-            |LacI : CDS""".stripMargin).width(Length.Percentage(80)).height(Length.Pixel(80)).isReadOnly(true),
+            |LacI : CDS""".stripMargin).width(Length.Percentage(0.80)).height(Length.Pixel(80)).isReadOnly(true),
         Paragraph(v"""
               This script contains three lines.
               The first line imports the $sbol standard library.
@@ -58,7 +58,7 @@ case class YourFirstScript() extends TutorialContent {
         AceEditor(
           """@import <stdlib:sbol>
             |pTetR : Promoter
-            |LacI : CDS""".stripMargin).width(Length.Percentage(80)).height(Length.Pixel(60)).isReadOnly(true),
+            |LacI : CDS""".stripMargin).width(Length.Percentage(0.80)).height(Length.Pixel(60)).isReadOnly(true),
         Paragraph(
           v"""I find that more difficult to read, but it's down to personal taste."""
         ),
@@ -74,7 +74,7 @@ case class YourFirstScript() extends TutorialContent {
             |pTetR : Promoter
             |
             |# Declare a CDS named LacI
-            |LacI : CDS""".stripMargin).width(Length.Percentage(80)).height(Length.Pixel(100)).isReadOnly(true)
+            |LacI : CDS""".stripMargin).width(Length.Percentage(0.80)).height(Length.Pixel(100)).isReadOnly(true)
       ),
       Section(
         Heading.Level2("Adding some properties"),
@@ -98,7 +98,7 @@ case class YourFirstScript() extends TutorialContent {
           """pTetR : Promoter
             |  description = "pTet promoter"
           """.stripMargin
-        ).width(Length.Percentage(80)).height(Length.Pixel(40)).isReadOnly(true),
+        ).width(Length.Percentage(0.80)).height(Length.Pixel(40)).isReadOnly(true),
         Paragraph(v"""
               We can also add comments inside an instance.
               These are indented, in the same way as the properties are.
@@ -108,7 +108,7 @@ case class YourFirstScript() extends TutorialContent {
             |  # give pTetR a description
             |  description = "pTet promoter"
           """.stripMargin
-        ).width(Length.Percentage(80)).height(Length.Pixel(40)).isReadOnly(true),
+        ).width(Length.Percentage(0.80)).height(Length.Pixel(40)).isReadOnly(true),
         Paragraph(v"""
              Comments ${emph("are not")} carried through to the final $sbol representation, so use them to document your script,
               for people who will read it in the future (probably you!) and may need some hints.
@@ -142,7 +142,7 @@ case class YourFirstScript() extends TutorialContent {
             |  description = "pTetR promoter"
             |  displayId = "BBa_R0040"
           """.stripMargin
-        ).width(Length.Percentage(80)).height(Length.Pixel(60)).isReadOnly(true),
+        ).width(Length.Percentage(0.80)).height(Length.Pixel(60)).isReadOnly(true),
         Paragraph(
           v"""
              You have probably spotted that we have used ${code("pTetR")} both for the instance name, and for the $name
@@ -168,28 +168,35 @@ case class YourFirstScript() extends TutorialContent {
                 "LacI protein coding region" and $displayId of "P03023".
               Don't forget to indent the property names.
           """),
-        AceEditor(
-          """LacI : CDS
-            |""".stripMargin
-        ).width(Length.Percentage(40))
-          .height(Length.Pixel(60))
-          .isReadOnly(false)
-          .rememberAs(yourTurn = _),
         Container.Generic(
-          yourTurn.checkList(
-            yourTurn.check(
-              v"""set $name to "LacI"""", "LacI", "name" -> slLit("LacI")),
-            yourTurn.check(
-              v"""set $description to "LacI protein coding region"""", "LacI", "description" -> slLit("LacI protein coding region")),
-            yourTurn.check(
-              v"""set $displayId to "P03023"""", "LacI", "displayId" -> slLit("P03023"))
+          AceEditor(
+            """LacI : CDS
+              |""".stripMargin
           )
-        ).width(Length.Percentage(40))
+            .height(Length.Pixel(100))
+            .isReadOnly(false)
+            .rememberAs(yourTurn = _).css("editor"),
+          Container.Generic(
+            TaskList(
+              yourTurn.check(
+                v"""set $name to "LacI"""", "LacI", "name" -> slLit("LacI")),
+              yourTurn.check(
+                v"""set $description to "LacI protein coding region"""", "LacI", "description" -> slLit("LacI protein coding region")),
+              yourTurn.check(
+                v"""set $displayId to "P03023"""", "LacI", "displayId" -> slLit("P03023"))
+            ).rememberAs(yourTurnTaskList = _)
+          ).css("tasks"),
+          Container.Generic(
+            Container.Inline(yourTurnTaskList.progress map { case (done, of) => s"Progress: $done/$of" }),
+            Container.Inline(" Done!").css("success").visible(yourTurnTaskList.allCompleted)
+          ).css("status")
+        ).css("exercise")
       )
     )
   }
 
   var yourTurn: AceEditor = _
+  var yourTurnTaskList: TaskList = _
 }
 
 

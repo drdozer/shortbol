@@ -11,10 +11,14 @@ import org.widok.bindings.HTML._
 
 import scala.scalajs.js
 import scala.util.Random
-
 import TutorialUtils._
+import org.scalajs.dom.html.Element
+
+import scala.concurrent.Promise
 
 case class AceEditor(src: String*) extends Widget[AceEditor] {
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   lazy val readOnly = Var[Boolean](false)
 
   def isReadOnly(ro: Boolean) = {
@@ -24,7 +28,7 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
 
   lazy val editorText: Var[String] = {
     val text = Var[String]("")
-    editor.getSession().on("change", (e: AnyVal) => text := editor.getSession().getValue().asInstanceOf[String])
+    for(ed <- editor) ed.getSession().on("change", (e: AnyVal) => text := ed.getSession().getValue().asInstanceOf[String])
     text
   }
 
@@ -37,7 +41,8 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
 
   override val rendered = DOM.createElement("div", Seq(src.mkString("\n")))
 
-  var editor: js.Dynamic = _
+  val editorP = Promise[js.Dynamic]
+  def editor = editorP.future
 
   override def render(parent: Node,
                       offset: Node) = {
@@ -48,21 +53,15 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
   def registerAce() = {
     lazy val ace = js.Dynamic.global.ace
     if(rendered.id == null || rendered.id.isEmpty) rendered.id = Random.alphanumeric.take(10).mkString
-    editor = ace.edit(rendered.id)
-    editor.setTheme("ace/theme/solarized_light")
-    editor.getSession().setMode("ace/mode/sbolshorthand2")
-    editor.setReadOnly(readOnly.get)
+    val ed = ace.edit(rendered.id)
+    ed.setTheme("ace/theme/solarized_light")
+    ed.getSession().setMode("ace/mode/sbolshorthand2")
+    ed.setReadOnly(readOnly.get)
 
-    readOnly.attach(ro => editor.setReadOnly(ro))
+    readOnly.attach(ro => ed.setReadOnly(ro))
+
+    editorP.complete(scala.util.Success(ed))
   }
-
-  def checkList(check: SbolCheck*) = List.Unordered(check map { c =>
-    List.Item(
-      Container.Inline(c.description).css("description"), ": ",
-      Container.Inline("todo").css("warning").delayed(_.show(!c.checker)),
-      Container.Inline("done").css("success").delayed(_.show(c.checker))
-    )
-   } :_*).css("checkList")
 
   case class AssignmentSbolCheck(description: View, instId: Identifier, ass: Assignment) extends SbolCheck {
     lazy val checker = lastSuccess.map { s =>
@@ -98,4 +97,21 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
 sealed trait SbolCheck {
   def description: View
   def checker: ReadChannel[Boolean]
+}
+
+case class TaskList(check: SbolCheck*) extends Widget[TaskList] {
+  lazy val allCompleted = check.map(_.checker).reduce(_ && _)
+
+  lazy val progress = check.map(_.checker.map(b => if(b) 1 else 0)).reduce(_ + _).map(c => (c, check.length))
+
+  override val rendered =
+    List.Unordered(
+      check map { c =>
+        List.Item(
+          Container.Inline(c.description).css("description"), ": ",
+          Container.Inline("todo").css("warning").delayed(_.show(!c.checker)),
+          Container.Inline("done").css("success").delayed(_.show(c.checker))
+        )
+      } :_*)
+      .css("taskList").rendered
 }

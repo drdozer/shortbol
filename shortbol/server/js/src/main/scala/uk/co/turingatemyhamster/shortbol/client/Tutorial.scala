@@ -69,6 +69,7 @@ case class TutorialPage(content: TutorialContent) extends Page {
       ),
       Container.Generic(
         Navigation(
+          Heading.Level2("Tutorials"),
           List.Unordered(
             TutorialRoutes.routes.map { case r@Route(path, page) =>
               page() match {
@@ -77,7 +78,7 @@ case class TutorialPage(content: TutorialContent) extends Page {
               }
             } :_*
           )
-        ),
+        ).css("navpannel"),
         content.render(route),
         prevNext(route)
       ).css("tutorialContent"),
