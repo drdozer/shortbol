@@ -15,7 +15,7 @@ object TutorialRoutes {
       Route("/yourFirstScript", () => TutorialPage(YourFirstScript())) ::
       Route("/introductionToTypes", () => TutorialPage(IntroductionToTypes())) ::
       Route("/addingSequences", () => TutorialPage(AddingSequences())) ::
-      Route("/composingADesign", () => TutorialPage(ComposingDesigns())) ::
+      Route("/composingDesigns", () => TutorialPage(ComposingDesigns())) ::
       Nil
 
   val nav = {
