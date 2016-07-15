@@ -37,48 +37,6 @@ case class ComposingDesigns() extends TutorialContent {
       )
     ),
     Section(
-      Heading.Level2(v"A diversion: $shortbol sugar"),
-      Paragraph(
-        v"""
-           In previous tutorials, we used a range of types of genetic parts, like $Promoter and $Terminator.
-           Within $sbol, each of these is actually represented as a $ComponentDefinition instance.
-           $shortbol takes care of re-writing $Promoter, and all the other genetic parts that you've been using to
-            the $ComponentDefinition that $sbol expects to see.
-           You could, if you had wanted, constructed an instance of $ComponentDefinition and filled in its properties
-            to tell SBOL what kind of component it was, but this process is fiddly and error-prone, so $shortbol
-            provides various type constructors to hide this complexity for you.
-           This 'syntactic sugar'
-         """
-      ),
-      aceExample(
-        """@import stdlib:sbol
-          |
-          |# A promoter, maximum shortbol sugar
-          |p1 : Promoter
-          |
-          |# A promoter, shortbol with some sugar
-          |p2 : DnaComponent
-          |  role = Promoter
-          |
-          |# A promoter, sbol with some sugar
-          |p2 : ComponentDefinition
-          |  type = DNA
-          |  role = Promoter
-          |
-          |# A promoter, sbol with no sugar
-          |p3 : ComponentDefinition
-          |  type = biopax:DnaRegion
-          |  role = <http://identifiers.org/so/SO:0000167>
-        """.stripMargin),
-      Paragraph(
-        v"""
-           The instances ${code("p1")}, ${code("p2")}, ${code("p3")} and ${code("p4")} are equivalent.
-           You could choose to write down your promoter in any of these four forms, but I hope you agree that the more
-            sugary forms are easier to understand and to write.
-         """
-      )
-    ),
-    Section(
       Heading.Level2("Sub-components"),
       Paragraph(v"""In the tutorial ${
         val itt = TutorialRoutes.find("introductionToTypes")
@@ -88,15 +46,8 @@ case class ComposingDesigns() extends TutorialContent {
         However, we stopped short of assembling them into a composite device."""),
       Paragraph(
         v"""
-           $sbol represents both composite devices and simple genetic parts as instances of $ComponentDefinition.
-           In our case, as this is a DNA design, rather than an RNA or protein design, we can use the $shortbol
-           $DnaComponent type.
-           As we saw above, $DnaComponent is sugar for a $ComponentDefinition with the ${`type`} field set
-            to ${code("DNA")}.
-         """),
-      Paragraph(
-        v"""
-          To place the genetic parts we've made within a larger $DnaComponent, we use the $component property.
+           The $sbol type for a composite DNA device is a $DnaComponent.
+           To place the genetic parts we've made within a larger $DnaComponent, we use the $component property.
           """
       ),
       aceExample(
@@ -120,10 +71,7 @@ case class ComposingDesigns() extends TutorialContent {
            Because we are adding four sub-components, we set the $component property four times.
            When you assign to a property multiple times, you add new values rather than over-writing previous ones.
          """
-      )
-    ),
-    Section(
-      Heading.Level2("Constraints"),
+      ),
       Paragraph(
         v"""
            We have built a $pTetR_gene inverter device that contains its four genetic parts as sub-components.
@@ -131,10 +79,13 @@ case class ComposingDesigns() extends TutorialContent {
            There are two complementary ways to specify this.
            Firstly, we can attach constraints on their relative positions.
            Secondly, we can say exactly where the sub-components are located within the composite component.
-           In this section we are going to explore constraints.
-         """),
+           """)
+    ),
+    Section(
+      Heading.Level2("Constraints"),
       Paragraph(
         v"""
+           In this section we are going to explore constraints.
            Sequence constraints are declared using the $sequenceConstraint property.
            The values of this property are $SequenceConstraint instances.
            These can be a bit fiddly to set up, which is why $sbol provides you with lots of sugar to make the medicine
