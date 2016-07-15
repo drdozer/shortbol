@@ -8,8 +8,8 @@ import TutorialUtils._
   *
   * @author Matthew Pocock
   */
-case class ComposingADesign() extends TutorialContent {
-  override def navigationEntry = "Composing a Design"
+case class ComposingDesigns() extends TutorialContent {
+  override def navigationEntry = "Composing Designs"
 
   override def render(route: InstantiatedRoute) = Container.Generic(
     Section(
@@ -48,7 +48,7 @@ case class ComposingADesign() extends TutorialContent {
            This 'syntactic sugar'
          """
       ),
-      AceEditor(
+      aceExample(
         """@import stdlib:sbol
           |
           |# A promoter, maximum shortbol sugar
@@ -67,11 +67,7 @@ case class ComposingADesign() extends TutorialContent {
           |p3 : ComponentDefinition
           |  type = biopax:DnaRegion
           |  role = <http://identifiers.org/so/SO:0000167>
-        """.stripMargin
-      )
-        .width(Length.Percentage(0.40))
-        .height(Length.Pixel(240))
-        .isReadOnly(true),
+        """.stripMargin),
       Paragraph(
         v"""
            The instances ${code("p1")}, ${code("p2")}, ${code("p3")} and ${code("p4")} are equivalent.
@@ -101,7 +97,7 @@ case class ComposingADesign() extends TutorialContent {
           To place the genetic parts we've made within a larger $DnaComponent, we use the $component property.
           """
       ),
-      AceEditor(
+      aceExample(
               """@import stdlib:sbol
                 |
                 |# The genetic parts of the TetR inverter
@@ -116,11 +112,7 @@ case class ComposingADesign() extends TutorialContent {
                 |  component = lacIRbs
                 |  component = LacI
                 |  component = lacIT
-              """.stripMargin
-            )
-              .width(Length.Percentage(0.40))
-              .height(Length.Pixel(200))
-              .isReadOnly(true),
+              """.stripMargin),
       Paragraph(
         v"""
            Because we are adding four sub-components, we set the $component property four times.
@@ -153,7 +145,7 @@ case class ComposingADesign() extends TutorialContent {
            In this way, we can place the genetic parts, left-to-right.
          """
       ),
-      AceEditor(
+      aceExample(
               """# The composite device for the TetR inverter
                 |tetRInverter : DnaComponent
                 |  # include the child components
@@ -165,11 +157,7 @@ case class ComposingADesign() extends TutorialContent {
                 |  sequenceConstraint : precedes(pTetR, lacIRbs)
                 |  sequenceConstraint : precedes(lacIRbs, LacI)
                 |  sequenceConstraint : precedes(LacI, lacIT)
-              """.stripMargin
-            )
-              .width(Length.Percentage(0.40))
-              .height(Length.Pixel(160))
-              .isReadOnly(true),
+              """.stripMargin),
       Paragraph(
         v"""
            You may be thinking that it is a bit of a faff listing the child genetic parts both as components and within
@@ -181,18 +169,14 @@ case class ComposingADesign() extends TutorialContent {
            So an equivalent, but shorter $shortbol instance declaration would be:
          """
       ),
-      AceEditor(
+      aceExample(
         """# The composite device for the TetR inverter
           |tetRInverter : DnaComponent
           |  # relative positions of child components
           |  sequenceConstraint : precedes(pTetR, lacIRbs)
           |  sequenceConstraint : precedes(lacIRbs, LacI)
           |  sequenceConstraint : precedes(LacI, lacIT)
-        """.stripMargin
-      )
-        .width(Length.Percentage(0.40))
-        .height(Length.Pixel(100))
-        .isReadOnly(true),
+        """.stripMargin),
       Paragraph(
         v"""
            $sbol currently defines three types of constraints.
@@ -216,7 +200,7 @@ case class ComposingADesign() extends TutorialContent {
            The $sbol property used to position sub-components is called $sequenceAnnotation.
          """
       ),
-      AceEditor(
+      aceExample(
         """# The composite device for the TetR inverter
           |tetRInverter : DnaComponent
           |  # absolute positions of child components
@@ -224,11 +208,7 @@ case class ComposingADesign() extends TutorialContent {
           |  sequenceAnnotation : at(lacIRbs,   56,   68, inline)
           |  sequenceAnnotation : at(LacI,      69, 1197, inline)
           |  sequenceAnnotation : at(lacIT,   1198, 1288, inline)
-        """.stripMargin
-      )
-        .width(Length.Percentage(0.40))
-        .height(Length.Pixel(100))
-        .isReadOnly(true),
+        """.stripMargin),
       Paragraph(
         v"""
            Let's unpack that a bit.

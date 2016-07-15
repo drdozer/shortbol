@@ -387,6 +387,14 @@ pre{
     font-style: oblique;
 }
 
+.code_example {
+    width: 90%;
+    margin: auto;
+    border-color: #0b97c4;
+    border-width: 1px;
+    border-style: solid;
+}
+
 .exercise {
     border-color: #0b97c4;
     border-width: 1px;
@@ -400,9 +408,15 @@ pre{
 
 .exercise .tasks {
     float: left;
+    width: 50%
 }
 
 .exercise .status {
+    text-align: right;
+    padding-right: 5px;
+}
+
+.exercise .force_clear {
     clear: both;
 }
 

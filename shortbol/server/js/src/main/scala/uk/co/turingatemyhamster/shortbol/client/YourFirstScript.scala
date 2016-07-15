@@ -33,12 +33,12 @@ case class YourFirstScript() extends TutorialContent {
                the absence of tetracycline, $LacI_gene is produced.
               We are going to describe the design of the $TetR_gene inverter using $shortbol.
           """),
-        AceEditor(
+        aceExample(
           """@import <stdlib:sbol>
             |
             |pTetR : Promoter
             |
-            |LacI : CDS""".stripMargin).width(Length.Percentage(0.80)).height(Length.Pixel(80)).isReadOnly(true),
+            |LacI : CDS""".stripMargin),
         Paragraph(v"""
               This script contains three lines.
               The first line imports the $sbol standard library.
@@ -55,10 +55,10 @@ case class YourFirstScript() extends TutorialContent {
               Blank lines are ignored by $shortbol, but can make reading a script easier.
               This script, without the newlines means exactly the same thing.
           """),
-        AceEditor(
+        aceExample(
           """@import <stdlib:sbol>
             |pTetR : Promoter
-            |LacI : CDS""".stripMargin).width(Length.Percentage(0.80)).height(Length.Pixel(60)).isReadOnly(true),
+            |LacI : CDS""".stripMargin),
         Paragraph(
           v"""I find that more difficult to read, but it's down to personal taste."""
         ),
@@ -66,7 +66,7 @@ case class YourFirstScript() extends TutorialContent {
               Comments an be added to the script.
               Any line starting with a pound '${code("#")}' character is treated as a comment, and ignored.
               """),
-        AceEditor(
+        aceExample(
           """# Import the SBOL standard library
             |@import <stdlib:sbol>
             |
@@ -74,7 +74,7 @@ case class YourFirstScript() extends TutorialContent {
             |pTetR : Promoter
             |
             |# Declare a CDS named LacI
-            |LacI : CDS""".stripMargin).width(Length.Percentage(0.80)).height(Length.Pixel(100)).isReadOnly(true)
+            |LacI : CDS""".stripMargin)
       ),
       Section(
         Heading.Level2("Adding some properties"),
@@ -94,21 +94,19 @@ case class YourFirstScript() extends TutorialContent {
               With $shortbol we can attach properties and values to instances.
               $shortbol uses indentation to make lines 'part of' a containing instance.
               For example, we can add a human-readable description to $pTetR like this:"""),
-        AceEditor(
+        aceExample(
           """pTetR : Promoter
             |  description = "pTet promoter"
-          """.stripMargin
-        ).width(Length.Percentage(0.80)).height(Length.Pixel(40)).isReadOnly(true),
+          """.stripMargin),
         Paragraph(v"""
               We can also add comments inside an instance.
               These are indented, in the same way as the properties are.
           """),
-        AceEditor(
+        aceExample(
           """pTetR : Promoter
             |  # give pTetR a description
             |  description = "pTet promoter"
-          """.stripMargin
-        ).width(Length.Percentage(0.80)).height(Length.Pixel(40)).isReadOnly(true),
+          """.stripMargin),
         Paragraph(v"""
              Comments ${emph("are not")} carried through to the final $sbol representation, so use them to document your script,
               for people who will read it in the future (probably you!) and may need some hints.
@@ -136,13 +134,12 @@ case class YourFirstScript() extends TutorialContent {
         ),
         Paragraph(v"""
               Here's our $pTetR_gene example documented with these properties filled in."""),
-        AceEditor(
+        aceExample(
           """pTetR : Promoter
             |  name = "pTetR"
             |  description = "pTetR promoter"
             |  displayId = "BBa_R0040"
-          """.stripMargin
-        ).width(Length.Percentage(0.80)).height(Length.Pixel(60)).isReadOnly(true),
+          """.stripMargin),
         Paragraph(
           v"""
              You have probably spotted that we have used ${code("pTetR")} both for the instance name, and for the $name
@@ -168,35 +165,20 @@ case class YourFirstScript() extends TutorialContent {
                 "LacI protein coding region" and $displayId of "P03023".
               Don't forget to indent the property names.
           """),
-        Container.Generic(
-          AceEditor(
-            """LacI : CDS
-              |""".stripMargin
-          )
-            .height(Length.Pixel(100))
-            .isReadOnly(false)
-            .rememberAs(yourTurn = _).css("editor"),
-          Container.Generic(
-            TaskList(
-              yourTurn.check(
-                v"""set $name to "LacI"""", "LacI", "name" -> slLit("LacI")),
-              yourTurn.check(
-                v"""set $description to "LacI protein coding region"""", "LacI", "description" -> slLit("LacI protein coding region")),
-              yourTurn.check(
-                v"""set $displayId to "P03023"""", "LacI", "displayId" -> slLit("P03023"))
-            ).rememberAs(yourTurnTaskList = _)
-          ).css("tasks"),
-          Container.Generic(
-            Container.Inline(yourTurnTaskList.progress map { case (done, of) => s"Progress: $done/$of" }),
-            Container.Inline(" Done!").css("success").visible(yourTurnTaskList.allCompleted)
-          ).css("status")
-        ).css("exercise")
+        aceTask(
+          10,
+          """LacI : CDS
+            |""".stripMargin,
+          check(
+            v"""set $name to "LacI"""", "LacI", "name" -> slLit("LacI")),
+          check(
+            v"""set $description to "LacI protein coding region"""", "LacI", "description" -> slLit("LacI protein coding region")),
+          check(
+            v"""set $displayId to "P03023"""", "LacI", "displayId" -> slLit("P03023"))
+        )
       )
     )
   }
-
-  var yourTurn: AceEditor = _
-  var yourTurnTaskList: TaskList = _
 }
 
 

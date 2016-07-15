@@ -27,19 +27,41 @@ object TutorialUtils {
     }
   }
 
-  def check(editor: AceEditor, instId: Identifier, ass: Assignment): ReadChannel[Boolean] = {
-    editor.lastSuccess.map { s =>
-      (s.tops collect {
-        case TopLevel.InstanceExp(i@InstanceExp(instId, _)) =>
-          i.cstrApp.body
-      }).flatten exists {
-        case BodyStmt.Assignment(Assignment(p, v)) =>
-          p == ass.property && v == ass.value
-        case _ =>
-          false
-      }
-    }
+  val aceLineHeight = 12.5
+
+  def aceExample(code: String) =
+    AceEditor(code).css("code_example").height(Length.Pixel(code.lines.length * aceLineHeight)).isReadOnly(true)
+
+  def aceTask(lineCount: Int, code: String, check: (AceEditor => SbolCheck)*) = {
+    var editor: AceEditor = null
+    var taskList: TaskList = null
+
+    Container.Generic(
+      AceEditor(code)
+        .height(Length.Pixel(lineCount * aceLineHeight))
+        .isReadOnly(false)
+        .css("editor")
+        .rememberAs(editor = _),
+      Container.Generic(
+        TaskList(check map (_ apply editor) :_*).rememberAs(taskList = _)
+      ).css("tasks"),
+      Container.Generic(
+        Container.Inline(taskList.progress map { case (done, of) => s"Progress: $done/$of" }),
+        Container.Inline(" Completed!").css("success").visible(taskList.allCompleted)
+      ).css("status"),
+      Container.Generic().css("force_clear")
+    ).css("exercise")
   }
+
+  def check(description: View, instId: Identifier, ass: Assignment) =
+    (ae: AceEditor) => ae.AssignmentSbolCheck(description, instId, ass)
+
+  def check(description: View, instId: Identifier, ofType: Identifier) =
+    (ae: AceEditor) => ae.TypeSbolCheck(description, instId, ofType)
+
+  def check(description: View, instId: Identifier, args: List[ValueExp]) =
+    (ae: AceEditor) => ae.ConstructorSbolCheck(description, instId, args)
+
 
   def projectName(v: View*) = Container.Inline(v :_*).css("projectName")
   def code(v: View*) = Container.Inline(v :_*).css("code")

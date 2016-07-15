@@ -26,7 +26,7 @@ case class IntroductionToTypes() extends TutorialContent {
                inverter device, and gave them ${name}s, ${description}s and ${displayId}s.
               When we put it all together, that example looks like this:
           """),
-        AceEditor(
+        aceExample(
           """# Import the SBOL standard library, including the SBOL types and properties
             |@import <stdlib:sbol>
             |
@@ -40,10 +40,7 @@ case class IntroductionToTypes() extends TutorialContent {
             |LacI : CDS
             |  name = "LacI"
             |  description = "LacI protein coding region"
-            |  displayId = "P03023"""".stripMargin
-        ).width(Length.Percentage(0.40))
-          .height(Length.Pixel(180))
-          .isReadOnly(true),
+            |  displayId = "P03023"""".stripMargin),
         Paragraph(v"""
               Let's look at this example again.
               It starts with an import of the $sbol standard library.
@@ -88,20 +85,13 @@ case class IntroductionToTypes() extends TutorialContent {
               The $TetR_gene inverter is made of four parts. A promoter, RBS, CDS and terminator.
               In the editor below, create the corresponding instances.
           """),
-        AceEditor("")
-          .width(Length.Percentage(0.40))
-          .height(Length.Pixel(120))
-          .isReadOnly(false)
-          .rememberAs(allParts = _),
-        TaskList(
-          allParts.check(v"a $Promoter instance called $pTetR", "pTetR", "Promoter"),
-          allParts.check(v"an $RBS instance called $lacIRbs", "lacIRbs", "RBS"),
-          allParts.check(v"a $CDS instance called $LacI", "LacI", "CDS"),
-          allParts.check(v"a $Terminator instance called $lacIT", "lacIT", "Terminator")
+        aceTask(10, "",
+          check(v"a $Promoter instance called $pTetR", "pTetR", "Promoter"),
+          check(v"an $RBS instance called $lacIRbs", "lacIRbs", "RBS"),
+          check(v"a $CDS instance called $LacI", "LacI", "CDS"),
+          check(v"a $Terminator instance called $lacIT", "lacIT", "Terminator")
         )
       )
     )
   }
-
-  var allParts: AceEditor = _
 }

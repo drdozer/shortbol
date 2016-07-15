@@ -67,11 +67,9 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
     lazy val checker = lastSuccess.map { s =>
       (s.tops collect {
         case TopLevel.InstanceExp(i@InstanceExp(id, _)) if id == instId =>
-          println(s"Found instance with id $instId")
           i.cstrApp.body
       }).flatten exists {
         case BodyStmt.Assignment(Assignment(p, v)) =>
-          println(s"Comparing ($p -> $v) with (${ass.property} -> ${ass.value}) : (${p == ass.property} -> ${v == ass.value})")
           p == ass.property && v == ass.value
         case _ =>
           false
@@ -89,9 +87,16 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
     }
   }
 
-  def check(description: View, instId: Identifier, ass: Assignment) = AssignmentSbolCheck(description, instId, ass)
-
-  def check(description: View, instId: Identifier, ofType: Identifier) = TypeSbolCheck(description, instId, ofType)
+  case class ConstructorSbolCheck(description: View, instId: Identifier, args: Seq[ValueExp]) extends SbolCheck {
+    lazy val checker = lastSuccess.map {
+      s =>
+        (s.tops collect {
+          case TopLevel.InstanceExp(i@InstanceExp(id, ConstructorApp(TpeConstructor1(_, a), _))) =>
+            println(s"Comparing $id to $instId: ${id == instId}, $a to $args: ${a == args}")
+            id == instId && a == args
+        }).exists(_ == true)
+    }
+  }
 }
 
 sealed trait SbolCheck {

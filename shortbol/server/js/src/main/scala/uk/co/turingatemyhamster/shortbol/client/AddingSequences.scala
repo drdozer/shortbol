@@ -2,6 +2,7 @@ package uk.co.turingatemyhamster.shortbol.client
 import org.widok._
 import org.widok.bindings.HTML._
 import TutorialUtils._
+import uk.co.turingatemyhamster.shortbol.ast.ValueExp
 import uk.co.turingatemyhamster.shortbol.ast.sugar._
 
 /**
@@ -22,11 +23,8 @@ case class AddingSequences() extends TutorialContent {
               $shortbol has a type called $DnaSequence that lets you specify a DNA sequence,
               and a property $sequence that lets you associate this with an instance representing a genetic part.
         """),
-      AceEditor(
-        """lacITSeq : DnaSequence("ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa")"""
-      ).width(Length.Percentage(0.40))
-        .height(Length.Pixel(30))
-        .isReadOnly(true),
+      aceExample(
+        """lacITSeq : DnaSequence("ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa")"""),
       Paragraph(v"""
               Here we have constructed a $DnaSequence named $lacITSeq, and rather than setting a property, the DNA sequence
                string is passed into the $DnaSequence constructor.
@@ -39,15 +37,12 @@ case class AddingSequences() extends TutorialContent {
               $shortbol supports multi-line quotes to let you spread a long block of text over many lines.
               We could have written the previous sequence instance like this:
         """),
-      AceEditor(
+      aceExample(
         """lacITSeq : DnaSequence({
           |  ttcagccaaa aaacttaaga ccgccggtct tgtccactac cttgcagtaa tgcggtggac
           |  aggatcggcg gttttctttt ctcttctcaa
           |  })
-        """.stripMargin
-      ).width(Length.Percentage(0.40))
-              .height(Length.Pixel(60))
-              .isReadOnly(true),
+        """.stripMargin),
       Paragraph(v"""
              The multi-line quote is started with an opening brace '{' followed by an indented block of text, and then a
               closing '}'.
@@ -63,29 +58,23 @@ case class AddingSequences() extends TutorialContent {
            In this case, the type for fasta is ${code("edam:fasta")}. Strings are tagged with a type by folowing them
            with ${code("^^")} and then the type.
          """),
-      AceEditor(
+      aceExample(
         """lacITSeq : DnaSequence({
           |  ttcagccaaa aaacttaaga ccgccggtct tgtccactac cttgcagtaa tgcggtggac
           |  aggatcggcg gttttctttt ctcttctcaa
           |  }^^edam:fasta)
-        """.stripMargin
-      ).width(Length.Percentage(0.40))
-              .height(Length.Pixel(60))
-              .isReadOnly(true),
+        """.stripMargin),
       Paragraph(
         v"""
            We can make use of the flexible indenting rules for multi-line strings to allow us to copy-paste direct from
             genbank.
          """),
-      AceEditor(
+      aceExample(
         """lacITSeq : DnaSequence({
           |        1 ttcagccaaa aaacttaaga ccgccggtct tgtccactac cttgcagtaa tgcggtggac
           |       61 aggatcggcg gttttctttt ctcttctcaa
           |}^^edam:genbank)
-        """.stripMargin
-      ).width(Length.Percentage(0.40))
-        .height(Length.Pixel(60))
-        .isReadOnly(true),
+        """.stripMargin),
       Paragraph(
         v"""
            By placing the closing '${code("}")}' in the first column, it marks out that the copy-pasted sequence starts
@@ -112,17 +101,14 @@ case class AddingSequences() extends TutorialContent {
               Instances are always linked by the name that their $shortbol instance was declared with, rather than by
                the value of their $name or $displayId, or any other data property.
         """),
-      AceEditor(
+      aceExample(
         """lacIT : Terminator
           |  sequence = lacItSeq
-        """.stripMargin
-      ).width(Length.Percentage(0.40))
-                    .height(Length.Pixel(60))
-                    .isReadOnly(true),
+        """.stripMargin),
       Paragraph(
         v"""Putting it all together, we have this $shortbol script:"""
       ),
-      AceEditor(
+      aceExample(
         """@import <stdlib:sbol>
           |
           |lacITSeq : DnaSequence({
@@ -132,28 +118,24 @@ case class AddingSequences() extends TutorialContent {
           |
           |lacIT : Terminator
           |  sequence = lacItSeq
-        """.stripMargin
-      ).width(Length.Percentage(0.40))
-        .height(Length.Pixel(120))
-        .isReadOnly(true)
+        """.stripMargin)
     ),
     Section(
       Heading.Level2("Your Turn"),
       Paragraph(
         v"""It's your turn to create a sequence for the $pTetR_gene promoter and attach it to the promoter."""
       ),
-      AceEditor("")
-        .width(Length.Percentage(0.40))
-        .height(Length.Pixel(60))
-        .isReadOnly(false)
-        .rememberAs(yourTurn = _),
-      TaskList(
-        yourTurn.check(v"Create a $Promoter called $pTetR", "pTetR", "Promoter"),
-        yourTurn.check(
-          v"""Create a $DnaSequence called $pTetRSeq with the DNA sequence
-              tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac (you may want to cut and paste this)""",
+      aceTask(15, "",
+        check(v"Create a $Promoter called $pTetR", "pTetR", "Promoter"),
+        check(
+          v"""Create a $DnaSequence called $pTetRSeq""",
           "pTetRSeq", "DnaSequence"),
-        yourTurn.check(v"Set the $sequence property of $pTetR equal to $pTetRSeq", "pTetR", "sequence" -> "pTetRSeq")
+        check(
+          v"""Pass the $DnaSequence construtor the DNA tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac (you may
+               want to cut and paste this)""", "pTetRSeq",
+          (slLit("tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac") : ValueExp)::Nil
+        ),
+        check(v"Set the $sequence property of $pTetR equal to $pTetRSeq", "pTetR", "sequence" -> "pTetRSeq")
       )
     ),
     Section(
@@ -168,14 +150,10 @@ case class AddingSequences() extends TutorialContent {
               It isn't best practice, but when deadlines loom, or when you are going to throw away the script anyway,
                well, who's watching?
         """),
-      AceEditor(
+      aceExample(
         """pTetR : Promoter
           |    sequence : DnaSequence("tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac")
-        """.stripMargin
-      )
-        .width(Length.Percentage(0.40))
-        .height(Length.Pixel(60))
-        .isReadOnly(true),
+        """.stripMargin),
       Paragraph(v"""
               The main difference here is that instead of assigning a value to the $sequence property, we are calling a
                type constructor.
@@ -184,6 +162,4 @@ case class AddingSequences() extends TutorialContent {
         """)
     )
   )
-
-  var yourTurn: AceEditor = _
 }
