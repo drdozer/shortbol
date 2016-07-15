@@ -46,9 +46,14 @@ object TutorialUtils {
         TaskList(check map (_ apply editor) :_*).rememberAs(taskList = _)
       ).css("tasks"),
       Container.Generic(
-        Container.Inline(taskList.progress map { case (done, of) => s"Progress: $done/$of" }),
-        Container.Inline(" Completed!").css("success").visible(taskList.allCompleted)
-      ).css("status"),
+        Container.Generic(
+          Container.Inline("Good").css("success").show(editor.parseStatus),
+          Container.Inline("Errors").css("warning").show(!editor.parseStatus)
+        ).css("parse_status"),
+        Container.Inline("Completed!").css("success").visible(taskList.allCompleted && editor.parseStatus).css("completion"),
+        Container.Generic(
+          taskList.progress map { case (done, of) => s"Progress: $done/$of" }).css("progress")
+      ).css("status_bar"),
       Container.Generic().css("force_clear")
     ).css("exercise")
   }

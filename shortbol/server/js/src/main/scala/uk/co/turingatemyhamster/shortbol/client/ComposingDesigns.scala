@@ -135,7 +135,8 @@ case class ComposingDesigns() extends TutorialContent {
         v"""
            Sequence constraints are declared using the $sequenceConstraint property.
            The values of this property are $SequenceConstraint instances.
-           These can be a bit fiddly to set up, which is why $sbol provides you with lots of sugar.
+           These can be a bit fiddly to set up, which is why $sbol provides you with lots of sugar to make the medicine
+            go down.
          """
       ),
       Paragraph(
@@ -154,9 +155,9 @@ case class ComposingDesigns() extends TutorialContent {
                 |  component = LacI
                 |  component = lacIT
                 |  # relative positions of child components
-                |  sequenceConstraint : precedes(pTetR, lacIRbs)
-                |  sequenceConstraint : precedes(lacIRbs, LacI)
-                |  sequenceConstraint : precedes(LacI, lacIT)
+                |  sequenceConstraint = pTetR   precedes lacIRbs
+                |  sequenceConstraint = lacIRbs precedes LacI
+                |  sequenceConstraint = LacI    precedes lacIT
               """.stripMargin),
       Paragraph(
         v"""
@@ -173,10 +174,10 @@ case class ComposingDesigns() extends TutorialContent {
         """# The composite device for the TetR inverter
           |tetRInverter : DnaComponent
           |  # relative positions of child components
-          |  sequenceConstraint : precedes(pTetR, lacIRbs)
-          |  sequenceConstraint : precedes(lacIRbs, LacI)
-          |  sequenceConstraint : precedes(LacI, lacIT)
-        """.stripMargin),
+          |  sequenceConstraint = pTetR   precedes lacIRbs
+          |  sequenceConstraint = lacIRbs precedes LacI
+          |  sequenceConstraint = LacI    precedes lacIT
+          |        """.stripMargin),
       Paragraph(
         v"""
            $sbol currently defines three types of constraints.
@@ -184,6 +185,30 @@ case class ComposingDesigns() extends TutorialContent {
            These last two tell you if the two components share the same orientation or have different orientations, but
             not what the orientation of either component is.
          """
+      ),
+      Paragraph(
+        v"""
+           You may have spotted that the way we used $precedes was to place it between the two things it was relating.
+           This is called ${emph("infix")} notation, which just means 'inbetween'.
+           Infix notation is sugar for a constructor that expects exactly two values.
+           It lets us write down things in $shortbol scripts that read a bit more like natural language, and a bit less
+            like computer code.
+         """
+      ),
+      aceExample(
+        """dc : DnaComponent
+          |  # using infix notation
+          |  sequenceConstraint = promoter precedes open_reading_frame
+          |  # the same thing, but using a constructor
+          |  sequenceConstraint : precedes(promoter, open_reading_frame)
+        """.stripMargin
+      ),
+      Paragraph(
+        v"""
+            Which of these two forms you use is entirely up to you.
+            I find that infix notation often results in scripts that are clearer, and easier to read, but it's
+             ultimately a personal choice what style you use.
+          """
       )
     ),
     Section(

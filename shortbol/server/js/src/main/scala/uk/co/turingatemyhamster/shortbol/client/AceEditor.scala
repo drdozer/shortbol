@@ -35,6 +35,13 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
   lazy val parsed = editorText map { txt =>
     ShortbolParser.SBFile.withPositions(LocalName("shortbol_editor"), txt) }
 
+  lazy val parseStatus = parsed map {
+    _ match {
+      case Success(_, _) => true
+      case _ => false
+    }
+  }
+
   lazy val lastSuccess = parsed collect {
     case s: Success[SBFile] =>
       s.value }
