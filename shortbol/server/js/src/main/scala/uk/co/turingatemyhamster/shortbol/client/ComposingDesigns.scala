@@ -2,6 +2,8 @@ package uk.co.turingatemyhamster.shortbol.client
 import org.widok._
 import org.widok.bindings.HTML._
 import TutorialUtils._
+import uk.co.turingatemyhamster.shortbol.ast._
+import uk.co.turingatemyhamster.shortbol.ast.sugar._
 
 /**
   *
@@ -197,8 +199,10 @@ case class ComposingDesigns() extends TutorialContent {
       ),
       aceExample(
         """dc : DnaComponent
+          |
           |  # using infix notation
           |  sequenceConstraint = promoter precedes open_reading_frame
+          |
           |  # the same thing, but using a constructor
           |  sequenceConstraint : precedes(promoter, open_reading_frame)
         """.stripMargin
@@ -247,8 +251,25 @@ case class ComposingDesigns() extends TutorialContent {
            In the example above, I have made use of $shortbol's lack of interest in how many spaces are used to line up
             these four values into a table of sorts, to aid with reading.
          """)
+    ),
+    Section(
+      Heading.Level2("Your turn"),
+      Paragraph(
+        v"""Now it's your turn.
+           In the previous $pTetR_gene inverter positions example, we constrained the positions of the four parts by
+           saying they preceded one-another.
+           This time, we will constrain them all to be in the same orientation.
+           Use $sameOrientationAs on $pTetR, $lacIRbs, $LacI and $lacIT to ensure that they are all on the same strand.
+         """
+      ),
+      aceTask(9,
+      """dc : DnaComponent
+        |  # sequenceConstraint : sameOrientationAs(a, b)
+        |  """.stripMargin,
+        check(v"$pTetR and $lacIRbs have the same orientation", "dc", "sequenceConstraint", "sameOrientationAs", "pTetR"::("lacIRbs" : ValueExp)::Nil),
+        check(v"$lacIRbs and $LacI have the same orientation", "dc", "sequenceConstraint", "sameOrientationAs", "lacIRbs"::("LacI" : ValueExp)::Nil),
+        check(v"$LacI and $lacIT have the same orientation", "dc", "sequenceConstraint", "sameOrientationAs", "LacI"::("lacIT": ValueExp)::Nil)
+      )
     )
-
-
   )
 }

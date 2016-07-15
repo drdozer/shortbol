@@ -115,6 +115,7 @@ object sugar {
 
   implicit def veIdentifier[I](i: I)(implicit e: I => ast.Identifier): ValueExp.Identifier = ValueExp.Identifier(i)
   implicit def veLiteral[L](l: L)(implicit e: L => ast.Literal): ValueExp.Literal = ValueExp.Literal(l)
+  def slVal(s: String): ValueExp = veLiteral(slLit(s))
 
   implicit def ass[A, B](ab: (A, B))(implicit ai: A => Identifier, bv: B => ValueExp): Assignment = Assignment(ab._1, ab._2)
 

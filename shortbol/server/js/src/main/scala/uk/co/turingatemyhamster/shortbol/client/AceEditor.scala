@@ -99,9 +99,19 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
       s =>
         (s.tops collect {
           case TopLevel.InstanceExp(i@InstanceExp(id, ConstructorApp(TpeConstructor1(_, a), _))) =>
-            println(s"Comparing $id to $instId: ${id == instId}, $a to $args: ${a == args}")
             id == instId && a == args
         }).exists(_ == true)
+    }
+  }
+
+  case class NestedConstructorSbolCheck(description: View, instId: Identifier, prop: Identifier, tpe: Identifier, args: List[ValueExp]) extends SbolCheck {
+    lazy val checker = lastSuccess.map {
+      s =>
+        (for {
+          TopLevel.InstanceExp(InstanceExp(id, ConstructorApp(TpeConstructor1(_, _), c))) <- s.tops if id == instId
+          BodyStmt.InstanceExp(InstanceExp(bi, ConstructorApp(TpeConstructor1(t, a), _))) <- c if {
+          bi == prop && t == tpe && a == args}
+        } yield ()).nonEmpty
     }
   }
 }

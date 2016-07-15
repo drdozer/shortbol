@@ -67,6 +67,9 @@ object TutorialUtils {
   def check(description: View, instId: Identifier, args: List[ValueExp]) =
     (ae: AceEditor) => ae.ConstructorSbolCheck(description, instId, args)
 
+  def check(description: View, instId: Identifier, prop: Identifier, tpe: Identifier, args: List[ValueExp]) =
+    (ae: AceEditor) => ae.NestedConstructorSbolCheck(description, instId, prop, tpe, args)
+
 
   def projectName(v: View*) = Container.Inline(v :_*).css("projectName")
   def code(v: View*) = Container.Inline(v :_*).css("code")
