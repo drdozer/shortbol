@@ -13,7 +13,10 @@ import scalaz.Scalaz._
   * @author Matthew Pocock
   */
 object Platform {
-  def slurp(url: String): Throwable \/ String = {
+
+  val cache = scala.collection.mutable.Map.empty[String, Throwable \/ String]
+
+  def slurp(url: String): Throwable \/ String = cache.getOrElseUpdate(url, {
     val xmlHttp = new XMLHttpRequest
     println("Made request")
     try {
@@ -35,5 +38,5 @@ object Platform {
         println("Caught exception - raising one")
         (new IOException(s"Failed to slurp $url", t)).left
     }
-  }
+  })
 }
