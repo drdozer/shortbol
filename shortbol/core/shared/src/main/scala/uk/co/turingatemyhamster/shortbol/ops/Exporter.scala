@@ -157,10 +157,8 @@ trait ExporterEnv[DT <: Datatree] {
       l match {
         case sa.IntegerLiteral(i) =>
           LongLiteral(i)
-        case sa.StringLiteral(s, None, None) =>
-          dtDSL.StringLiteral(s.export)
-        case sa.StringLiteral(s, Some(sa.Datatype(iri)), None) =>
-          dtDSL.TypedLiteral(s.export, iri)
+        case sa.StringLiteral(s, dt, lang) =>
+          dtDSL.TypedLiteral(One(s.export), ZeroOne.fromOption(dt map (_.tpe.export[DT#Uri])), ZeroOne.fromOption(lang.map(_.tag)))
       }
     }
 

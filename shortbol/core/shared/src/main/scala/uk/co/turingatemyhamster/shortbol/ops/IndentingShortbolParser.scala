@@ -80,9 +80,11 @@ object ShortbolParsers {
   lazy val StringLiteral = P( (QuotedStringLiteral | CurlyStringLiteral | MultiLineLiteral) ~ Datatype.? ~ Language.? map
     (ast.StringLiteral.apply _ tupled))
 
-  lazy val Datatype = P( "^^" ~ quotedString map ast.Datatype)
+  lazy val Datatype = P( "^^" ~ Identifier map ast.Datatype)
 
-  lazy val Language = P( "@" ~ quotedString map ast.Language)
+  lazy val LangCode = Letter.rep(1).rep(1, sep = "-")
+
+  lazy val Language = P( "@" ~ LangCode.! map ast.Language)
 
   lazy val MultiLineLiteralStart = P(LBrace ~/ Space.rep ~ Nl)
   lazy val MultiLineLiteralLine = P(!MultiLineLiteralEnd ~ ((!Nl ~ AnyChar).rep ~ Nl).!)

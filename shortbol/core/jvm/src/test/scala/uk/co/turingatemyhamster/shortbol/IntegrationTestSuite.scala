@@ -26,7 +26,7 @@ object IntegrationTestSuite extends TestSuite {
         parse_instances(
           """p : sbol:ComponentDefinition
             |  sbol:type = biopax:DnaRegion
-            |  sbol:role = <http://identifiers.org/so/SO:0000167>""".stripMargin) in ⊥
+            |  sbol:role = so:_0000167""".stripMargin) in ⊥
     }
 
     'dnaSequence_url - {

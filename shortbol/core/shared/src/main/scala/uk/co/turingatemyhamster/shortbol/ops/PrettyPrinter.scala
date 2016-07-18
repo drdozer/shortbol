@@ -161,23 +161,23 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   }
 
   implicit lazy val mutliLine: PrintApp[StringLiteral.MultiLine] = PrintApp.using { str =>
-    val indentStr = " " * str.indent
-    "{".append
-    indentStr.append
+    val indentS = " " * str.indent
+    "{\n".append
+    indentS.append
     for(l <- str.ss) {
       l.append
-      indentStr.append
+      indentS.append
     }
     "}".append
   }
 
   implicit lazy val datatype: PrintApp[Datatype] = PrintApp.using { dt =>
     "^^".append
-    dt.iri.append
+    dt.tpe.append
   }
 
   implicit lazy val language: PrintApp[Language] = PrintApp.using { l =>
-    "@@".append
+    "@".append
     l.tag.append
   }
 

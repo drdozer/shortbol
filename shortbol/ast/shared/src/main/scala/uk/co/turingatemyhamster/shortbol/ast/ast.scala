@@ -71,7 +71,7 @@ object StringLiteral {
 
 case class IntegerLiteral(i: Int) extends Literal
 
-case class Datatype(iri: String) extends AstNode
+case class Datatype(tpe: Identifier) extends AstNode
 case class Language(tag: String) extends AstNode
 
 // type constructors

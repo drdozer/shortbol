@@ -177,6 +177,44 @@ object ParserTestSuite extends TestSuite{
           assert(v1r == Region(Pos(0, 1, 1), Pos(15,1,16), "_test_"))
         }
       }
+
+      'typedLanguage - {
+        'type - {
+          shouldParse(
+            "\"A string with a type\"^^xsd:string",
+            ShortbolParsers.StringLiteral,
+            StringLiteral(
+              StringLiteral.SingleLine("A string with a type"),
+              datatype = Some(Datatype("xsd":#"string"))))
+        }
+
+        'lang - {
+          shouldParse(
+            "\"A string with a lang code\"@en",
+            ShortbolParsers.StringLiteral,
+            StringLiteral(
+              StringLiteral.SingleLine("A string with a lang code"),
+              language = Some(Language("en"))))
+        }
+
+        'lang - {
+          shouldParse(
+            "\"A string with a lang code\"@en-uk",
+            ShortbolParsers.StringLiteral,
+            StringLiteral(
+              StringLiteral.SingleLine("A string with a lang code"),
+              language = Some(Language("en-uk"))))
+        }
+
+        'typeLang - {
+          shouldParse(
+            "\"A string with a type and lang code\"^^xsd:string@en",
+            ShortbolParsers.StringLiteral,
+            StringLiteral(StringLiteral.SingleLine("A string with a type and lang code"),
+              datatype = Some(Datatype("xsd":#"string")),
+              language = Some(Language("en"))))
+        }
+      }
     }
 
     'CurlyLiteral - {
@@ -194,6 +232,38 @@ object ParserTestSuite extends TestSuite{
       'location - {
         val r = ShortbolParsers.CurlyStringLiteral.withPositions("_test_", "{I am also a string}").get.value.region
         assert(r == Region(Pos(0, 1, 1), Pos(20, 1, 21), "_test_"))
+      }
+
+      'typedLanguage - {
+        'type - {
+          shouldParse(
+            "{I am a curly string with a type}^^xsd:string",
+            ShortbolParsers.StringLiteral,
+            StringLiteral(
+              StringLiteral.SingleLine("I am a curly string with a type", escaped = true),
+                datatype = Some(Datatype("xsd":#"string"))))
+        }
+
+        'lang - {
+          shouldParse(
+            "{I am a curly string with a lang code}@en",
+            ShortbolParsers.StringLiteral,
+            StringLiteral(
+              StringLiteral.SingleLine("I am a curly string with a lang code", escaped = true),
+              language = Some(Language("en"))
+            )
+          )
+        }
+
+        'typeLang - {
+          shouldParse(
+            "{I am a curly string with a type and lang code}^^xsd:string@en",
+            ShortbolParsers.StringLiteral,
+            StringLiteral(
+              StringLiteral.SingleLine("I am a curly string with a type and lang code", escaped = true),
+              datatype = Some(Datatype("xsd":#"string")),
+              language = Some(Language("en"))))
+        }
       }
     }
 
@@ -222,6 +292,35 @@ object ParserTestSuite extends TestSuite{
         * - shouldParse("{\n  I am a string\n  }", ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral.MultiLine("I am a string\n"::Nil, 2)))
         * - shouldParse("{\n  I am a string\n }", ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral.MultiLine(" I am a string\n"::Nil, 1)))
         * - shouldParse("{\n I\n Am\n A\n Typeface\n }", ShortbolParsers.ValueExp, ValueExp.Literal(StringLiteral.MultiLine("I\n"::"Am\n"::"A\n"::"Typeface\n"::Nil, 1)))
+      }
+
+      'typedLanguage - {
+        'type - {
+          shouldParse(
+            """{
+              |  l1
+              |  l2
+              |  }^^edam:genbank""".stripMargin,
+            ShortbolParsers.StringLiteral)
+
+          'lang - {
+            shouldParse(
+              """{
+                |  l1
+                |  l2
+                |  }@en-US""".stripMargin,
+              ShortbolParsers.StringLiteral)
+          }
+
+          'typeLang - {
+            shouldParse(
+              """{
+                |  l1
+                |  l2
+                |  }^^edam:genbank@en-US""".stripMargin,
+              ShortbolParsers.StringLiteral)
+          }
+        }
       }
     }
 
