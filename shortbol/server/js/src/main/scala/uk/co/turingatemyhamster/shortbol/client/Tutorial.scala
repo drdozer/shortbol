@@ -64,6 +64,7 @@ case class TutorialPage(content: TutorialContent) extends Page {
   override final def render(route: InstantiatedRoute) = Future.successful {
     Container.Generic(
       Header(
+        Image("images/toggle_simple.svg").title("Toggle Switch").css("logo"),
         Image("images/logo.png").css("logo"),
         Heading.Level1(v"$shortbol Tutorial")
       ),
