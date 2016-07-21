@@ -13,7 +13,7 @@ import utest._
 object PragmaTestSuite extends TestSuite {
 
   val tests = TestSuite {
-    import EvalTestSuite.{parse, parse_instances, parse_constructorDef, Ø, TestOps}
+    import EvalTestSuite.{parse, parse_instances, parse_instances_eval, parse_constructorDef, Ø, TestOps}
 
     'pragma - {
       (Fixture.configuredContext.prgms,
@@ -35,7 +35,7 @@ object PragmaTestSuite extends TestSuite {
           """@import <http://xmlns.com/foaf/0.1/>
             |me : WithNameAge("matthew", 40)
             |  foaf:knows = "caroline"
-            |""".stripMargin) in startCtxt evaluatesWithRanges parse_instances(
+            |""".stripMargin) in startCtxt evaluatesWithRanges parse_instances_eval(
           """me : WithNameAge("matthew", 40)
             |  foaf:knows = "caroline"
             |""".stripMargin) in startCtxt.withInstances(
@@ -63,7 +63,7 @@ object PragmaTestSuite extends TestSuite {
           """@import <http://xmlns.com/foaf/0.1/>
             |me : WithNameAge("matthew", 40)
             |  foaf:knows = "caroline"
-            |""".stripMargin) in startCtxt evaluatesWithRanges parse_instances(
+            |""".stripMargin) in startCtxt evaluatesWithRanges parse_instances_eval(
           """me : foaf:person
             |  foaf:age = 40
             |  foaf:name = "matthew"
@@ -95,7 +95,7 @@ object PragmaTestSuite extends TestSuite {
         parse(
           """@defaultPrefix pfx
             |
-            |me : foaf:person""".stripMargin) in Ø evaluatesWithRanges parse_instances(
+            |me : foaf:person""".stripMargin) in Ø evaluatesWithRanges parse_instances_eval(
           """me : foaf:person"""
         ) in Ø.withInstances(parse_instances(
           """me : foaf:person"""
@@ -110,7 +110,7 @@ object PragmaTestSuite extends TestSuite {
         parse(
           """@defaultPrefix pfx
             |
-            |me : foaf:person""".stripMargin) in startCtxt evaluatesWithRanges parse_instances(
+            |me : foaf:person""".stripMargin) in startCtxt evaluatesWithRanges parse_instances_eval(
           """pfx:me : foaf:person"""
         ) in startCtxt.withInstances(parse_instances(
           """pfx:me : foaf:person"""
@@ -123,7 +123,7 @@ object PragmaTestSuite extends TestSuite {
         parse(
           """@defaultPrefix pfx
             |
-            |me : foaf:person""".stripMargin) in Fixture.configuredContext evaluatesWithRanges parse_instances(
+            |me : foaf:person""".stripMargin) in Fixture.configuredContext evaluatesWithRanges parse_instances_eval(
           """pfx:me : foaf:person"""
         ) in Fixture.configuredContext.withInstances(parse_instances(
           """pfx:me : foaf:person"""
@@ -139,7 +139,7 @@ object PragmaTestSuite extends TestSuite {
             |foo(x) => bar
             |  y = x""".stripMargin) in
           Fixture.configuredContext evaluatesWithRanges
-          Seq.empty[TopLevel.InstanceExp] in
+          SBEvaluatedFile(Seq.empty) in
           Fixture.configuredContext.withConstructors(
             parse_constructorDef(
               """pfx:foo(pfx:x) => pfx:bar
@@ -151,7 +151,7 @@ object PragmaTestSuite extends TestSuite {
     'prefix - {
       * - {
         parse("@prefix foo <http://some.com/stuff#>") in
-          Fixture.configuredContext evaluatesWithRanges Seq.empty[TopLevel.InstanceExp] in
+          Fixture.configuredContext evaluatesWithRanges SBEvaluatedFile(Seq.empty) in
           Fixture.configuredContext.withPragmas(Pragma("prefix", Seq("foo", Url("http://some.com/stuff#"))))
       }
 
@@ -163,7 +163,7 @@ object PragmaTestSuite extends TestSuite {
       }
 
       * - {
-        parse("foo:me : foaf:person") in Fixture.configuredContext evaluatesWithRanges parse_instances(
+        parse("foo:me : foaf:person") in Fixture.configuredContext evaluatesWithRanges parse_instances_eval(
           "foo:me : foaf:person"
         ) in Fixture.configuredContext.withInstances(parse_instances(
           "foo:me : foaf:person"
@@ -182,7 +182,7 @@ object PragmaTestSuite extends TestSuite {
         parse(
           """@prefix foo <http://some.com/stuff#>
             |foo:me : foaf:person""".stripMargin) in Fixture.configuredContext evaluatesWithRanges
-          parse_instances(
+          parse_instances_eval(
           "foo:me : foaf:person"
         ) in
           Fixture.configuredContext.withInstances(

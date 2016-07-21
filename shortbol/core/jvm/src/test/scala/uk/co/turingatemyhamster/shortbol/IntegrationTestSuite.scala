@@ -23,7 +23,7 @@ object IntegrationTestSuite extends TestSuite {
     'promoter_url - {
       parse("""@import <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/sbol.sbol>
               |p : Promoter""".stripMargin) in Fixture.configuredContext evaluatesTo
-        parse_instances(
+        parse_instances_eval(
           """p : sbol:ComponentDefinition
             |  sbol:type = biopax:DnaRegion
             |  sbol:role = so:_0000167""".stripMargin) in ⊥
@@ -36,7 +36,7 @@ object IntegrationTestSuite extends TestSuite {
               |@defaultPrefix test
               |
               |seq : DnaSequence("agct")""".stripMargin) in Fixture.configuredContext evaluatesTo
-        parse_instances(
+        parse_instances_eval(
           """test:seq : sbol:Sequence
             |  sbol:encoding = <http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html>
             |  sbol:elements = "agct"""".stripMargin) in ⊥
@@ -55,7 +55,7 @@ object IntegrationTestSuite extends TestSuite {
               |@defaultPrefix test
               |
               |seq : DnaSequence("agct")""".stripMargin) in Fixture.configuredContext evaluatesTo
-        parse_instances(
+        parse_instances_eval(
           """test:seq : sbol:Sequence
             |  sbol:encoding = sbol:IUPACDNA
             |  sbol:elements = "agct"""".stripMargin) in ⊥
@@ -71,7 +71,7 @@ object IntegrationTestSuite extends TestSuite {
               |  elements = x
               |
               |seq : DnaSequence("agct")""".stripMargin) in Fixture.configuredContext evaluatesTo
-        parse_instances(
+        parse_instances_eval(
           """sbol:seq : sbol:Sequence
             |  sbol:encoding = iupac:DNA
             |  sbol:elements = "agct"""".stripMargin) in ⊥
@@ -84,7 +84,7 @@ object IntegrationTestSuite extends TestSuite {
               |  elements = x
               |
               |seq : DnaSequence("agct")""".stripMargin) in Fixture.configuredContext evaluatesTo
-        parse_instances(
+        parse_instances_eval(
           """seq : Sequence
             |  encoding = IUPACDNA
             |  elements = "agct"""".stripMargin) in ⊥

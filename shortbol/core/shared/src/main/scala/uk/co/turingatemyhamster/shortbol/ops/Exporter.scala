@@ -7,7 +7,7 @@ import datatree.{ast => da}
 import relations._
 import web._
 import shortbol.{ast => sa}
-import uk.co.turingatemyhamster.shortbol.ast.IntegerLiteral
+import uk.co.turingatemyhamster.shortbol.ast.{IntegerLiteral, SBEvaluatedFile}
 
 /**
  * Created by nmrp3 on 23/09/15.
@@ -43,7 +43,7 @@ trait ExporterEnv[DT <: Datatree] {
 
   import Exporter._
 
-  def apply(tl: Seq[sa.TopLevel.InstanceExp]) = topLevel_instances.export(tl)
+  def apply(tl: SBEvaluatedFile) = topLevel_instances.export(tl.tops)
 
   def ctxt: EvalContext
 

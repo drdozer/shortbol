@@ -37,6 +37,19 @@ object ConstraintRule {
   def success[A] = AlwaysSucceed[A]()
   def fail[A] = AlwaysFail[A](none)
 
+
+  def applyAll[A](cs: List[ConstraintRule[A]]): ConstraintRule[A] =
+    cs filter { case AlwaysSucceed() => false; case _ => true } match {
+      case Nil => success[A]
+      case h::Nil => h
+      case css => ApplyAll(css)
+    }
+
+  def forEvery[A](c: ConstraintRule[A]): ConstraintRule[List[A]] =
+    c match {
+      case AlwaysSucceed() => success[List[A]]
+      case _ => ForEvery(c)
+    }
 }
 
 case class AlwaysSucceed[A]() extends ConstraintRule[A] {
@@ -55,16 +68,20 @@ case class If[A](condition: ConstraintRule[A], ifTrue: ConstraintRule[A], ifFals
   )
 }
 
-case class AndOf[A](cs: List[ConstraintRule[A]]) extends ConstraintRule[A] {
+case class ApplyAll[A](cs: List[ConstraintRule[A]]) extends ConstraintRule[A] {
   override def apply(a: A) =
     (NonEmptyList.nel(cs.head, IList.fromList(cs.tail)) map (_ apply a)).sequenceU map (_.head)
 }
 
 case class ForEvery[A](c: ConstraintRule[A]) extends ConstraintRule[List[A]] {
-  override def apply(as: List[A]) =
-    (NonEmptyList.nel(as.head, IList.fromList(as.tail)).zipWithIndex map { case(a, i) =>
-      c apply a leftMap (e => e map (_.at(as, i))) }
-      ).sequenceU map (_.list.toList)
+  override def apply(as: List[A]) = as match {
+    case Nil =>
+      as.successNel
+    case _ =>
+      (NonEmptyList.nel(as.head, IList.fromList(as.tail)).zipWithIndex map { case(a, i) =>
+        c apply a leftMap (e => e map (_.at(as, i))) }
+        ).sequenceU map (_.list.toList)
+  }
 }
 
 case class EqualTo[A](eA: A) extends ConstraintRule[A] {
@@ -89,21 +106,31 @@ case class At[A, B](key: Symbol, bC: ConstraintRule[B])(f: A => B) extends Const
 
 object At {
   def from[B](key: Symbol, bc: ConstraintRule[B]) = new {
-    def following[A](f: A => B): ConstraintRule[A] = At[A, B](key, bc)(f)
+    def following[A](f: A => B): ConstraintRule[A] = bc match {
+      case AlwaysSucceed() => ConstraintRule.success[A]
+      case _ => At[A, B](key, bc)(f)
+    }
   }
 }
 
+trait ConstraintSystem {
+  def fromContext(ctxt: EvalContext): ConstraintRule[SBEvaluatedFile]
+}
 
-//
-//case class InstanceHasWellFormedProperties(pc: ConstraintRule[List[BodyStmt]]) extends ConstraintRule[InstanceExp]
-//
-//case class PropertyValuesAreWellFormed(prop: Identifier, vc: ConstraintRule[List[BodyStmt]]) extends ConstraintRule[List[BodyStmt]]
-//
+object ConstraintSystem {
+  def apply(cs: ConstraintSystem*) = new ConstraintSystem {
+    def apply(cf: (EvalContext, SBEvaluatedFile)) =
+      fromContext(cf._1).apply(cf._2)
 
-object OwlConstraints {
+    override def fromContext(ctxt: EvalContext) =
+      ConstraintRule.applyAll(cs.to[List] map (_.fromContext(ctxt)))
+  }
+}
+
+object OWL extends ConstraintSystem {
   val owl = "owl" : NSPrefix
-  val owl_class = owl :# "class"
-  val owl_restriction = owl :# "restriction"
+  val owl_class = owl :# "Class"
+  val owl_propertyRestriction = owl :# "propertyRestriction"
   val owl_minCardinality = owl :# "minCardinality"
   val owl_maxCardinality = owl :# "maxCardinality"
   val owl_exactCardinality = owl :# "exactCardinality"
@@ -111,26 +138,25 @@ object OwlConstraints {
   val owl_subClassOf = owl :# "subClassOf"
 
   trait Typer[A] {
-    def apply(a: A): Option[Identifier]
+    def exactTypeOf(a: A): Option[Identifier]
   }
 
-  implicit val bsTyper: Typer[BodyStmt] = new Typer[BodyStmt] {
-    override def apply(a: BodyStmt) = a match {
-      case BodyStmt.InstanceExp(i) =>
-        implicitly[Typer[InstanceExp]] apply i
-      case _ => None
-    }
-  }
-
-  implicit val instTyper: Typer[InstanceExp] = new Typer[InstanceExp] {
-    override def apply(a: InstanceExp) = a match {
+  implicit val instanceExpTyper: Typer[InstanceExp] = new Typer[InstanceExp] {
+    override def exactTypeOf(a: InstanceExp) = a match {
       case InstanceExp(_, ConstructorApp(TpeConstructor1(t, _), _)) => t.some
       case _ => none
     }
   }
 
+  implicit val literalTyper: Typer[Literal] = new Typer[Literal] {
+    override def exactTypeOf(a: Literal) = a match {
+      case IntegerLiteral(_) => Some("xsd":#"integer")
+      case StringLiteral(_, dt, _) => dt map (_.tpe) orElse ("xsd":#"string").some
+    }
+  }
+
   def byType[A](tpe: Identifier)(implicit t: Typer[A]) =
-    At.from('type, EqualTo(tpe.some)) following t.apply
+    At.from('type, EqualTo(tpe.some)) following t.exactTypeOf
 
   def bySize[T](c: ConstraintRule[Int]) = At.from('size, c) following ((_:List[T]).size)
 
@@ -158,39 +184,101 @@ object OwlConstraints {
         Nil
     }
 
-  def allValuesFromConstraint(propRes: BodyStmt): Option[ConstraintRule[List[BodyStmt]]] =
-    propRes match {
-      case BodyStmt.Assignment(Assignment(`owl_allValuesFrom`, ValueExp.Identifier(tpe))) =>
-        ForEvery(
-          byType[BodyStmt](tpe)).some
-      case _ =>
-        none
+
+  class ContextConstraints(ctxt: EvalContext) extends ConstraintRule[SBEvaluatedFile] {
+
+    implicit val identifierTyper: Typer[Identifier] = new Typer[Identifier] {
+      override def exactTypeOf(a: Identifier) =
+        for {
+          is <- ctxt.insts.get(a)
+          i <- is.headOption
+          t <- implicitly[Typer[InstanceExp]] exactTypeOf i
+        } yield t
     }
 
-  def restrictions(restrs: Seq[BodyStmt]): ConstraintRule[List[BodyStmt]] =
-    AndOf(
-      restrs.to[List] flatMap { r =>
-        List.empty ++
-          minCardinalityConstraint(r) ++
-          maxCardinalityConstraint(r) ++
-          exactCardinalityConstraint(r) ++
-          allValuesFromConstraint(r)
+  implicit val assignmentTyper: Typer[Assignment] = new Typer[Assignment] {
+    override def exactTypeOf(a: Assignment) = a.value match {
+      case ValueExp.Identifier(i) => implicitly[Typer[Identifier]] exactTypeOf i
+      case ValueExp.Literal(l) => implicitly[Typer[Literal]] exactTypeOf l
+    }
+  }
+
+    implicit val bsTyper: Typer[BodyStmt] = new Typer[BodyStmt] {
+      override def exactTypeOf(a: BodyStmt) = a match {
+        case BodyStmt.InstanceExp(i) =>
+          implicitly[Typer[InstanceExp]] exactTypeOf i
+        case BodyStmt.Assignment(a) =>
+          implicitly[Typer[Assignment]] exactTypeOf a
+        case _ => None
       }
-    )
-
-  def owlClassConstraint(cl: TopLevel.InstanceExp): Option[ConstraintRule[InstanceExp]] =
-    cl match {
-      case TopLevel.InstanceExp(InstanceExp(clsId, ConstructorApp(TpeConstructor1(`owl_class`, _), clsBdy))) =>
-        val rs = AndOf(
-          clsBdy.to[List].collect {
-            case BodyStmt.InstanceExp(InstanceExp(propId, ConstructorApp(TpeConstructor1(`owl_restriction`, _), restrs))) =>
-              At.from(Symbol(s"property($propId)"), restrictions(restrs)) following ((_: List[BodyStmt]) collect {
-                case b@BodyStmt.Assignment(Assignment(p, _)) if p == propId => b
-                case b@BodyStmt.InstanceExp(InstanceExp(p, _)) if p == propId => b
-              })
-          })
-        (At.from('properties, rs) following ((_:InstanceExp).cstrApp.body.to[List]) onlyIf byType[InstanceExp](clsId)).some
-      case _ =>
-        none
     }
+
+    def allValuesFromConstraint(propRes: BodyStmt): Option[ConstraintRule[List[BodyStmt]]] =
+      propRes match {
+        case BodyStmt.Assignment(Assignment(`owl_allValuesFrom`, ValueExp.Identifier(tpe))) =>
+          ConstraintRule.forEvery(
+            byType[BodyStmt](tpe)).some
+        case _ =>
+          none
+      }
+
+    def restrictions(restrs: Seq[BodyStmt]): ConstraintRule[List[BodyStmt]] =
+      ConstraintRule.applyAll(
+        restrs.to[List] flatMap { r =>
+          List.empty ++
+            minCardinalityConstraint(r) ++
+            maxCardinalityConstraint(r) ++
+            exactCardinalityConstraint(r) ++
+            allValuesFromConstraint(r)
+        }
+      )
+
+    def restrictionInstance(i: InstanceExp): Option[ConstraintRule[List[BodyStmt]]] = i match {
+      case InstanceExp(propId, ConstructorApp(TpeConstructor1(`owl_propertyRestriction`, _), restrs)) =>
+        (At.from(Symbol(s"property($propId)"), restrictions(restrs)) following ((_: List[BodyStmt]) collect {
+          case b@BodyStmt.Assignment(Assignment(p, _)) if p == propId => b
+          case b@BodyStmt.InstanceExp(InstanceExp(p, _)) if p == propId => b
+        })).some
+      case _ => None
+    }
+
+    def owlClassConstraint(cl: InstanceExp): Option[ConstraintRule[InstanceExp]] =
+      cl match {
+        case InstanceExp(clsId, ConstructorApp(TpeConstructor1(`owl_class`, _), clsBdy)) =>
+          println(s"Processing owl class $clsId")
+          val rs = ConstraintRule.applyAll(
+            clsBdy.to[List].flatMap {
+              case BodyStmt.InstanceExp(i) => restrictionInstance(i)
+              case _ => Nil
+            })
+          (At.from('properties, rs) following ((_:InstanceExp).cstrApp.body.to[List]) onlyIf byType[InstanceExp](clsId)).some
+        case _ =>
+          println(s"Skipping non owl class $cl")
+          none
+      }
+
+    def allOwlClasses(ctxt: EvalContext) =
+      ConstraintRule.applyAll(
+          for {
+            is <- ctxt.insts.values.to[List]
+            _ = println(s"Processing ${is.size} instances")
+            i <- is
+            _ = println(s" at ${i.id}")
+            c <- owlClassConstraint(i)
+            _ = println(s" as ${c}")
+          } yield c
+        )
+
+    val allContext =
+      At.from('instances, ConstraintRule.forEvery(allOwlClasses(ctxt))) following ((_:SBEvaluatedFile).tops.to[List] collect {
+        case TopLevel.InstanceExp(i) =>
+          i
+      })
+
+    override def apply(a: SBEvaluatedFile) =
+      allContext apply a
+  }
+
+  override def fromContext(ctxt: EvalContext): ContextConstraints = new ContextConstraints(ctxt)
 }
+

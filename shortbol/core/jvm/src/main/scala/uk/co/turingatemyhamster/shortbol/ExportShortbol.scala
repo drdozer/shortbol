@@ -32,7 +32,7 @@ object ExportShortbol {
           println
           val (c, v) = s.value.eval.run(Fixture.configuredContext)
           println("Expanded to:")
-          PrettyPrinter(System.out)(ast.SBFile(v))
+          PrettyPrinter(System.out)(v)
           println
           println
           println("With logs:")

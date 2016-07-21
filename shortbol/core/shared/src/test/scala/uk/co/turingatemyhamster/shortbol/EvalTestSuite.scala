@@ -38,6 +38,9 @@ object EvalTestSuite extends TestSuite {
   def parse_instances(shortbol: String): Seq[TopLevel.InstanceExp] =
     parse(shortbol).tops.collect { case i : TopLevel.InstanceExp => i }
 
+  def parse_instances_eval(shortbol: String): SBEvaluatedFile =
+    SBEvaluatedFile(parse_instances(shortbol))
+
   def parse_constructorDef(shortbol: String): ConstructorDef =
     ShortbolParser.ConstructorDef.parse(shortbol) match {
       case s: Success[ConstructorDef] =>
@@ -255,7 +258,7 @@ object EvalTestSuite extends TestSuite {
 
       'nothing_in_scope - {
         parse("""me : foaf:person
-          |  name = "matthew"""".stripMargin) evaluatesTo parse_instances(
+          |  name = "matthew"""".stripMargin) evaluatesTo parse_instances_eval(
           """me : foaf:person
              |  name = "matthew"""".stripMargin) in ⊥
       }
@@ -271,8 +274,9 @@ object EvalTestSuite extends TestSuite {
 
         parse("""me : foaf:person
                   |  name = "matthew"""".stripMargin) in ctxt evaluatesTo
-          parse_instances("""me : foaf:person
-                            |  foaf:name = "matthew"""".stripMargin) in ⊥
+          parse_instances_eval(
+            """me : foaf:person
+              |  foaf:name = "matthew"""".stripMargin) in ⊥
       }
 
     }
@@ -683,7 +687,7 @@ object EvalTestSuite extends TestSuite {
           |
           |me : WithNameAge("matthew", 40)
           |  foaf:knows = "caroline"
-          |""".stripMargin) in Ø evaluatesWithRanges parse_instances(
+          |""".stripMargin) in Ø evaluatesWithRanges parse_instances_eval(
         """me : foaf:person
           |  foaf:age = 40
           |  foaf:name = "matthew"

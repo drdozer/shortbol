@@ -5,9 +5,9 @@ package shortbol
 import datatree._
 import relations._
 import web._
-import ast.{SBFile, TopLevel, Pragma}
+import ast.{Pragma, SBEvaluatedFile, SBFile}
 import ast.sugar._
-import ops.{EvalContext, ShortbolParser, Eval}
+import ops.{Eval, EvalContext, ShortbolParser}
 import ShortbolParser.POps
 import pragma._
 
@@ -18,12 +18,6 @@ import scalaz._
 object Fixture {
 
   import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
-
-  def eval(file: SBFile): (EvalContext, Seq[TopLevel.InstanceExp]) =
-    eval(file, emptyContext)
-
-  def eval(file: SBFile, ctxt: EvalContext): (EvalContext, Seq[TopLevel.InstanceExp]) =
-    file.eval.run(ctxt)
 
   lazy val emptyContext: EvalContext = EvalContext()
 
