@@ -88,7 +88,7 @@ object Sandbox extends PageApplication {
           logMsgs ++= c.logms
 
           val sw = new StringWriter()
-          PrettyPrinter(sw)(ast.SBFile(v))
+          PrettyPrinter(sw)(v)
           sw.append("\n")
 //          println("Evaluated to:")
 //          println(ast.SBFile(v))
