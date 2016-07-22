@@ -335,7 +335,7 @@ object ConstraintsTestSuite extends TestSuite {
             ViolationAt(
               bs, 0, ViolationAt(
                 bs(0), 'type, ConstraintViolation.failure(
-                  EqualTo(Some("myClass" : Identifier)), Some("jane" : Identifier)))))
+                  In("myClass" : Identifier), Set("jane" : Identifier)))))
         }
 
         'failsWithNonMatchingType1 - {
@@ -355,7 +355,7 @@ object ConstraintsTestSuite extends TestSuite {
             ViolationAt(
               bs, 1, ViolationAt(
                 bs(1), 'type, ConstraintViolation.failure(
-                  EqualTo(Some("myClass" : Identifier)), Some("freddy" : Identifier)))))
+                  In("myClass" : Identifier), Set("freddy" : Identifier)))))
         }
 
         'multipleRestrictions - {
@@ -447,136 +447,280 @@ object ConstraintsTestSuite extends TestSuite {
       import ShortbolParser.POps
       val ontologyCtxt = ShortbolParser.SBFile.withPositions("_ontology_", ontology).get.value.eval.exec(Fixture.configuredContext)
 
-      val cSys = ConstraintSystem(OWL)
-
       def typecheck(sbol: String, c: EvalContext): ConstraintRule.CheckedConstraints[SBEvaluatedFile] =
-        cSys(ShortbolParser.SBFile.withPositions("_test_", sbol).get.value.eval.run(c))
+        OWL(ShortbolParser.SBFile.withPositions("_test_", sbol).get.value.eval.run(c))
 
       'createsTypes - {
-        println(s"createTypes: ${ontologyCtxt.insts}")
-        val r = cSys fromContext ontologyCtxt
-        println("----")
+        val r = OWL fromContext ontologyCtxt
+
+        'allClassIds - {
+          val cids = r.allClassIds.to[Set]
+          val expected = Set("sbol" :# "Identified", "sbol" :# "TopLevel", "sbol" :# "Collection")
+          assert(cids == expected)
+        }
+
+        'classHierarchy - {
+          val h = r.classHierarchy
+          val e = Map(
+            ("sbol" :# "TopLevel") -> List("sbol" :# "Identified"),
+            ("sbol" :# "Collection") -> List("sbol" :# "TopLevel"))
+          assert(h == e)
+        }
+
+        'flatHierarchy - {
+          val h = r.flatHierarchy
+          val e = Map(
+            ("sbol" :# "Identified") -> Set("sbol" :# "Identified"),
+            ("sbol" :# "TopLevel") -> Set("sbol" :# "TopLevel", "sbol" :# "Identified"),
+            ("sbol" :# "Collection") -> Set("sbol" :# "Collection", "sbol" :# "TopLevel", "sbol" :# "Identified"))
+
+          assert(h == e)
+        }
 
         r
       }
 
-      'valType - {
-        'withCorrectType - {
-          val r = typecheck(
-            """
-              |x : sbol:Identified
-              |  sbol:persistentIdentity : prov:Entity
-            """.stripMargin,
-            ontologyCtxt)
+      'onIdentified - {
+        'valType - {
+          'withCorrectType - {
+            val r = typecheck(
+              """
+                |x : sbol:Identified
+                |  sbol:persistentIdentity : prov:Entity
+              """.stripMargin,
+              ontologyCtxt)
 
-          assert(r.isSuccess)
+            assert(r.isSuccess)
+          }
+
+          'withIncorrectType -{
+            val r = typecheck(
+              """
+                |x : sbol:Identified
+                |  sbol:persistentIdentity : prov:Agent
+              """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
         }
 
-        'withIncorrectType -{
-          val r = typecheck(
-            """
-              |x : sbol:Identified
-              |  sbol:persistentIdentity : prov:Agent
-            """.stripMargin,
-            ontologyCtxt)
+        'refType {
+          'refWithCorrectType - {
+            val r = typecheck(
+              """
+                |x : sbol:Identified
+                |  sbol:persistentIdentity = xP
+                |
+                |xP : prov:Entity
+              """.stripMargin,
+              ontologyCtxt)
 
-          assert(r.isFailure)
+            assert(r.isSuccess)
+          }
+
+          'refWithIncorrectType -{
+            val r = typecheck(
+              """
+                |x : sbol:Identified
+                |  sbol:persistentIdentity = xP
+                |
+                |xP : prov:Agent
+              """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
+
+          'refWithMissingValue -{
+            val r = typecheck(
+              """
+                |x : sbol:Identified
+                |  sbol:persistentIdentity = xP
+              """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
+        }
+
+        'displayId - {
+          'noString - {
+            val r = typecheck(
+              """
+                |x : sbol:Identified
+              """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isSuccess)
+          }
+
+          'oneString - {
+            val r = typecheck(
+              """
+                |x : sbol:Identified
+                |  sbol:displayId = "aaaa"
+              """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isSuccess)
+          }
+
+          'twoString - {
+            val r = typecheck(
+              """
+                |x : sbol:Identified
+                |  sbol:displayId = "aaaa"
+                |  sbol:displayId = "bbbb"
+                """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
+
+          'oneInteger - {
+            val r = typecheck(
+              """
+                |x : sbol:Identified
+                |  sbol:displayId = 42
+                """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
+
+          'oneDate - {
+            val r = typecheck(
+              """
+                |x : sbol:Identified
+                |  sbol:displayId = "28-01-1976"^^xsd:date
+                """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
         }
       }
 
-      'refType {
-        'refWithCorrectType - {
-          val r = typecheck(
-            """
-              |x : sbol:Identified
-              |  sbol:persistentIdentity = xP
-              |
-              |xP : prov:Entity
-            """.stripMargin,
-            ontologyCtxt)
-
-          assert(r.isSuccess)
-        }
-
-        'refWithIncorrectType -{
-          val r = typecheck(
-            """
-              |x : sbol:Identified
-              |  sbol:persistentIdentity = xP
-              |
-              |xP : prov:Agent
-            """.stripMargin,
-            ontologyCtxt)
-
-          assert(r.isFailure)
-        }
-
-        'refWithMissingValue -{
-          val r = typecheck(
-            """
-              |x : sbol:Identified
-              |  sbol:persistentIdentity = xP
-            """.stripMargin,
-            ontologyCtxt)
-
-          assert(r.isFailure)
-        }
-      }
-
-      'displayId - {
-        'noString - {
-          val r = typecheck(
-            """
-              |x : sbol:Identified
-            """.stripMargin,
-            ontologyCtxt)
-
-          assert(r.isSuccess)
-        }
-
-        'oneString - {
-          val r = typecheck(
-            """
-              |x : sbol:Identified
-              |  sbol:displayId = "aaaa"
-            """.stripMargin,
-            ontologyCtxt)
-
-          assert(r.isSuccess)
-        }
-
-        'twoString - {
-          val r = typecheck(
-            """
-              |x : sbol:Identified
-              |  sbol:displayId = "aaaa"
-              |  sbol:displayId = "bbbb"
+      'onTopLevel - {
+        'valType - {
+          'withCorrectType - {
+            val r = typecheck(
+              """
+                |x : sbol:TopLevel
+                |  sbol:persistentIdentity : prov:Entity
               """.stripMargin,
-            ontologyCtxt)
+              ontologyCtxt)
 
-          assert(r.isFailure)
+            assert(r.isSuccess)
+          }
+
+          'withIncorrectType -{
+            val r = typecheck(
+              """
+                |x : sbol:TopLevel
+                |  sbol:persistentIdentity : prov:Agent
+              """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
         }
 
-        'oneInteger - {
-          val r = typecheck(
-            """
-              |x : sbol:Identified
-              |  sbol:displayId = 42
+        'refType {
+          'refWithCorrectType - {
+            val r = typecheck(
+              """
+                |x : sbol:TopLevel
+                |  sbol:persistentIdentity = xP
+                |
+                |xP : prov:Entity
               """.stripMargin,
-            ontologyCtxt)
+              ontologyCtxt)
 
-          assert(r.isFailure)
+            assert(r.isSuccess)
+          }
+
+          'refWithIncorrectType -{
+            val r = typecheck(
+              """
+                |x : sbol:TopLevel
+                |  sbol:persistentIdentity = xP
+                |
+                |xP : prov:Agent
+              """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
+
+          'refWithMissingValue -{
+            val r = typecheck(
+              """
+                |x : sbol:TopLevel
+                |  sbol:persistentIdentity = xP
+              """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
         }
 
-        'oneDate - {
-          val r = typecheck(
-            """
-              |x : sbol:Identified
-              |  sbol:displayId = "28-01-1976"^^xsd:date
+        'displayId - {
+          'noString - {
+            val r = typecheck(
+              """
+                |x : sbol:TopLevel
               """.stripMargin,
-            ontologyCtxt)
+              ontologyCtxt)
 
-          assert(r.isFailure)
+            assert(r.isSuccess)
+          }
+
+          'oneString - {
+            val r = typecheck(
+              """
+                |x : sbol:TopLevel
+                |  sbol:displayId = "aaaa"
+              """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isSuccess)
+          }
+
+          'twoString - {
+            val r = typecheck(
+              """
+                |x : sbol:TopLevel
+                |  sbol:displayId = "aaaa"
+                |  sbol:displayId = "bbbb"
+                """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
+
+          'oneInteger - {
+            val r = typecheck(
+              """
+                |x : sbol:TopLevel
+                |  sbol:displayId = 42
+                """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
+
+          'oneDate - {
+            val r = typecheck(
+              """
+                |x : sbol:TopLevel
+                |  sbol:displayId = "28-01-1976"^^xsd:date
+                """.stripMargin,
+              ontologyCtxt)
+
+            assert(r.isFailure)
+          }
         }
       }
     }
