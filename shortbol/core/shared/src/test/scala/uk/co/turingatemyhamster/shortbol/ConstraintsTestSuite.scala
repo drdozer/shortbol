@@ -12,19 +12,19 @@ import utest._
   */
 object ConstraintsTestSuite extends TestSuite {
 
-  def success[A](cr: ConstraintRule[A], a: A): Unit = {
+  def success[A](cr: Constraint[A], a: A): Unit = {
     cr(a).fold(
       unexpectedFailure => assert(cr == null, unexpectedFailure == null),
       va => assert(va == a)
     )
   }
 
-  def failure[A](cr: ConstraintRule[A], a: A): Unit = {
+  def failure[A](cr: Constraint[A], a: A): Unit = {
     cr(a).fold(nel => (),
       unexpectedSuccess => assert(cr == null, unexpectedSuccess == null))
   }
 
-  def failure[A](cr: ConstraintRule[A], a: A, cv: ConstraintViolation[A]): Unit = {
+  def failure[A](cr: Constraint[A], a: A, cv: ConstraintViolation[A]): Unit = {
     cr(a).fold(
       nel => assert(nel.head == cv),
       unexpectedSuccess => assert(cr == null, unexpectedSuccess == null))
@@ -50,26 +50,26 @@ object ConstraintsTestSuite extends TestSuite {
         'onlyIf - {
           "success onlyIf success" - {
             success(
-              ConstraintRule.success[Int] onlyIf ConstraintRule.success[Int],
+              Constraint.success[Int] onlyIf Constraint.success[Int],
               42)
           }
 
           "success onlyIf fail" - {
             success(
-              ConstraintRule.success[Int] onlyIf ConstraintRule.fail[Int],
+              Constraint.success[Int] onlyIf Constraint.fail[Int],
               42)
           }
 
           "fail onlyIf success" - {
             failure(
-              ConstraintRule.fail[Int] onlyIf ConstraintRule.success[Int],
+              Constraint.fail[Int] onlyIf Constraint.success[Int],
               42,
-              ConstraintViolation.failure(ConstraintRule.fail[Int], 42))
+              ConstraintViolation.failure(Constraint.fail[Int], 42))
           }
 
           "fail onlyIf fail" - {
             success(
-              ConstraintRule.fail[Int] onlyIf ConstraintRule.fail[Int],
+              Constraint.fail[Int] onlyIf Constraint.fail[Int],
               42)
           }
         }
@@ -77,27 +77,27 @@ object ConstraintsTestSuite extends TestSuite {
         'unless - {
           "success unless success" - {
             success(
-              ConstraintRule.success[Int] unless ConstraintRule.success[Int],
+              Constraint.success[Int] unless Constraint.success[Int],
               42)
           }
 
           "success unless fail" - {
             success(
-              ConstraintRule.success[Int] unless ConstraintRule.fail[Int],
+              Constraint.success[Int] unless Constraint.fail[Int],
               42)
           }
 
           "fail unless success" - {
             success(
-              ConstraintRule.fail[Int] unless ConstraintRule.success[Int],
+              Constraint.fail[Int] unless Constraint.success[Int],
               42)
           }
 
           "fail unless fail" - {
             failure(
-              ConstraintRule.fail[Int] unless ConstraintRule.fail[Int],
+              Constraint.fail[Int] unless Constraint.fail[Int],
               42,
-              ConstraintViolation.failure(ConstraintRule.fail[Int], 42))
+              ConstraintViolation.failure(Constraint.fail[Int], 42))
           }
         }
       }
@@ -137,14 +137,14 @@ object ConstraintsTestSuite extends TestSuite {
       'sizeNotLessThan - {
         'greater - {
           success(
-            At('size, NotLessThan(2))((_: List[Int]).size),
+            Constraint.at('size, NotLessThan(2)) following ((_: List[Int]).size),
             List(1, 2, 3, 4)
           )
         }
 
         'lesser - {
           failure(
-            At('size, NotLessThan(2))((_: List[Int]).size),
+            Constraint.at('size, NotLessThan(2)) following ((_: List[Int]).size),
             List(1),
             ViolationAt(List(1), 'size, ConstraintViolation.failure(NotLessThan(2), 1)))
         }
@@ -334,8 +334,9 @@ object ConstraintsTestSuite extends TestSuite {
             bs,
             ViolationAt(
               bs, 0, ViolationAt(
-                bs(0), 'type, ConstraintViolation.failure(
-                  In("myClass" : Identifier), Set("jane" : Identifier)))))
+                bs(0), 'instance, ViolationAt(
+                  bs(0).asInstanceOf[BodyStmt.InstanceExp].instanceExp, 'type, ConstraintViolation.failure(
+                  In("myClass" : Identifier), Set("jane" : Identifier))))))
         }
 
         'failsWithNonMatchingType1 - {
@@ -354,8 +355,9 @@ object ConstraintsTestSuite extends TestSuite {
             bs,
             ViolationAt(
               bs, 1, ViolationAt(
-                bs(1), 'type, ConstraintViolation.failure(
-                  In("myClass" : Identifier), Set("freddy" : Identifier)))))
+                bs(1), 'instance, ViolationAt(
+                  bs(1).asInstanceOf[BodyStmt.InstanceExp].instanceExp, 'type, ConstraintViolation.failure(
+                    In("myClass" : Identifier), Set("freddy" : Identifier))))))
         }
 
         'multipleRestrictions - {
@@ -447,7 +449,7 @@ object ConstraintsTestSuite extends TestSuite {
       import ShortbolParser.POps
       val ontologyCtxt = ShortbolParser.SBFile.withPositions("_ontology_", ontology).get.value.eval.exec(Fixture.configuredContext)
 
-      def typecheck(sbol: String, c: EvalContext): ConstraintRule.CheckedConstraints[SBEvaluatedFile] =
+      def typecheck(sbol: String, c: EvalContext): Constraint.CheckedConstraints[SBEvaluatedFile] =
         OWL(ShortbolParser.SBFile.withPositions("_test_", sbol).get.value.eval.run(c))
 
       'createsTypes - {

@@ -35,7 +35,7 @@ case class AddingSequences() extends TutorialContent {
               Until now, we have been using inline strings with values protected with quote '${code("\"")}' marks.
               These are convenient for short stretches of text, but quickly become unwieldy for large blocks of text.
               $shortbol supports multi-line quotes to let you spread a long block of text over many lines.
-              We could have written the previous sequence instance like this:
+              We could have attempted to write the previous sequence instance like this:
         """),
       aceExample(
         """lacITSeq : DnaSequence({
@@ -51,10 +51,11 @@ case class AddingSequences() extends TutorialContent {
                 """),
       Paragraph(
         v"""
-           The $sbol standard expects DNA sequences to be written with no spaces or newlines.
+           The previous example would actually fail to load into $sbol tooling.
+           This is because the $sbol standard expects DNA sequences to be written with no spaces or newlines.
            However, typically you will be copy-pasting the sequence string from another format, such as fasta or
             genbank.
-           You can tell $shortbol that the string is a fasta string by tagging it with teh type for fasta.
+           You can tell $shortbol that the string is a fasta string by tagging it with the type for fasta.
            In this case, the type for fasta is ${code("edam:fasta")}. Strings are tagged with a type by folowing them
            with ${code("^^")} and then the type.
          """),

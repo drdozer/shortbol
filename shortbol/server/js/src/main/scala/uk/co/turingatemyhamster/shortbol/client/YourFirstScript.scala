@@ -34,7 +34,7 @@ case class YourFirstScript() extends TutorialContent {
               We are going to describe the design of the $TetR_gene inverter using $shortbol.
           """),
         aceExample(
-          """@import <stdlib:sbol>
+          """@import stdlib:sbol
             |
             |pTetR : Promoter
             |
@@ -56,7 +56,7 @@ case class YourFirstScript() extends TutorialContent {
               This script, without the newlines means exactly the same thing.
           """),
         aceExample(
-          """@import <stdlib:sbol>
+          """@import stdlib:sbol
             |pTetR : Promoter
             |LacI : CDS""".stripMargin),
         Paragraph(
@@ -68,7 +68,7 @@ case class YourFirstScript() extends TutorialContent {
               """),
         aceExample(
           """# Import the SBOL standard library
-            |@import <stdlib:sbol>
+            |@import stdlib:sbol
             |
             |# Declare a promoter named pTetR
             |pTetR : Promoter
