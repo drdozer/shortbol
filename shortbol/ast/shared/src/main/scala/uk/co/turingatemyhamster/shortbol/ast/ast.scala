@@ -57,16 +57,20 @@ case class Url(url: String) extends Identifier
 
 // literals
 
-case class StringLiteral(string: StringLiteral.Style, datatype: Option[Datatype] = None, language: Option[Language] = None) extends Literal
+case class StringLiteral(style: StringLiteral.Style, datatype: Option[Datatype] = None, language: Option[Language] = None) extends Literal
 
 object StringLiteral {
-  sealed trait Style extends AstNode
-
-  case class SingleLine(s: String, escaped: Boolean = false) extends Style {
-    def isEscaped = escaped || s.contains("\"")
+  sealed trait Style extends AstNode {
+    def asString: String
   }
 
-  case class MultiLine(ss: Seq[String], indent: Int) extends Style
+  case class SingleLine(asString: String, escaped: Boolean = false) extends Style {
+    def isEscaped = escaped || asString.contains("\"")
+  }
+
+  case class MultiLine(ss: Seq[String], indent: Int) extends Style {
+    def asString = ss mkString "\n"
+  }
 }
 
 case class IntegerLiteral(i: Int) extends Literal

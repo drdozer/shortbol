@@ -144,7 +144,7 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   }
 
   implicit lazy val stringLiteral: PrintApp[StringLiteral] = PrintApp.using { str =>
-    str.string.append
+    str.style.append
     str.datatype.foreach(_.append)
     str.language.foreach(_.append)
   }
@@ -152,11 +152,11 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   implicit lazy val singleLine: PrintApp[StringLiteral.SingleLine] = PrintApp.using { str =>
     if(str.isEscaped) {
       "{".append
-      str.s.append
+      str.asString.append
       "}".append
     } else {
       "\"".append
-      str.s.append
+      str.asString.append
       "\"".append
     }
   }
