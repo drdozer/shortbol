@@ -2,12 +2,11 @@ package uk.co.turingatemyhamster.shortbol
 
 import fastparse.all._
 import fastparse.core.Parsed.{Failure, Success}
-import uk.co.turingatemyhamster.shortbol
 import uk.co.turingatemyhamster.shortbol.ast._
+import uk.co.turingatemyhamster.shortbol.ast.sugar._
+import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
 import uk.co.turingatemyhamster.shortbol.ops.{AllNodes, ShortbolParser, ShortbolParsers}
 import utest._
-import ast.sugar._
-import ShortbolParser.POps
 
 /**
   * Created by chris on 17/07/15.
@@ -404,6 +403,55 @@ object ParserTestSuite extends TestSuite{
       )
     }
 
+    'InfixConstructorApp - {
+      * - shouldParse(
+        "lacI sameOrientationAs tetR",
+        ShortbolParsers.InfixConstructorApp,
+        ConstructorApp(
+          TpeConstructor1(
+            "sameOrientationAs",
+            Seq("lacI":ValueExp, "tetR":ValueExp)),
+          Nil)
+      )
+
+      * - shouldParse(
+        "constraint = lacI sameOrientationAs tetR",
+        ShortbolParsers.InfixAssignment,
+        InstanceExp(
+          "constraint",
+          ConstructorApp(
+            TpeConstructor1(
+              "sameOrientationAs",
+              Seq("lacI":ValueExp, "tetR":ValueExp)),
+            Nil)))
+
+
+      * - shouldParse(
+        "sequenceConstraint = pTetR   precedes lacIRbs",
+        ShortbolParsers.InfixAssignment,
+        InstanceExp(
+          "sequenceConstraint",
+          ConstructorApp(
+            TpeConstructor1(
+              "precedes",
+              Seq("pTetR":ValueExp, "lacIRbs":ValueExp)),
+            Nil)))
+
+
+      * - shouldParse(
+        "sequenceConstraint = pTetR   precedes lacIRbs",
+        ShortbolParser.bodyStmt.InfixAssignment,
+        BodyStmt.InstanceExp(
+          InstanceExp(
+            "sequenceConstraint",
+            ConstructorApp(
+              TpeConstructor1(
+                "precedes",
+                Seq("pTetR":ValueExp, "lacIRbs":ValueExp)),
+              Nil))))
+
+    }
+
     'InstanceExp - {
       * - shouldParse(
         "foo : bar", ShortbolParser.InstanceExp,
@@ -420,9 +468,6 @@ object ParserTestSuite extends TestSuite{
           )
         )
       )
-    }
-
-    'InstanceExp - {
 
       'accepts - {
 
@@ -743,6 +788,36 @@ object ParserTestSuite extends TestSuite{
                 TpeConstructor1("d", Seq()),
                 Seq()
               ))
+            )
+          )
+        )
+
+        * - shouldParse(
+          """tetRInverter : DnaComponent
+            |  sequenceConstraint = pTetR   precedes lacIRbs""".stripMargin,
+          ShortbolParser.TopLevels,
+          Seq(
+            TopLevel.InstanceExp(
+              InstanceExp(
+                "tetRInverter",
+                ConstructorApp(
+                  TpeConstructor1("DnaComponent", Seq()),
+                  Seq(
+                    BodyStmt.InstanceExp(
+                      InstanceExp(
+                        "sequenceConstraint",
+                        ConstructorApp(
+                          TpeConstructor1(
+                            "precedes",
+                            Seq("pTetR" : ValueExp, "lacIRbs" : ValueExp)
+                          ),
+                          Seq()
+                        )
+                      )
+                    )
+                  )
+                )
+              )
             )
           )
         )

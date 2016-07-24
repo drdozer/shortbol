@@ -348,10 +348,8 @@ object LibsboljTestSuite extends TestSuite {
               |@defaultPrefix tutorial
               |
               |dc : DnaComponent
-              |
               |  # using infix notation
               |  sequenceConstraint = promoter precedes open_reading_frame
-              |
               |  # the same thing, but using a constructor
               |  sequenceConstraint : precedes(promoter, open_reading_frame)
             """.stripMargin

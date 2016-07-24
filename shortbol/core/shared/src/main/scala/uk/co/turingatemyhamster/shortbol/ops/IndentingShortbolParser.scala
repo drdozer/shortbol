@@ -98,7 +98,7 @@ object ShortbolParsers {
   lazy val IntegerLiteral = P((DigitSign.? ~ Digit.rep(1)).!.map(_.toInt).map(ast.IntegerLiteral))
   lazy val Literal: Parser[ast.Literal] = StringLiteral.noCut | IntegerLiteral
 
-  lazy val Assignment: Parser[ast.Assignment] = P(Identifier ~ Space.rep ~ Eq ~/ Space.rep ~ ValueExp map
+  lazy val Assignment: Parser[ast.Assignment] = P(Identifier ~ Space.rep ~ Eq ~ Space.rep ~ ValueExp map
     (ast.Assignment.apply _ tupled))
 
   object valueExp {
@@ -125,6 +125,9 @@ object ShortbolParsers {
     (ca => {
       ca.cstr.region = ca.region
       ca})
+
+  lazy val InfixAssignment: Parser[ast.InstanceExp] = P(Identifier ~ Space.rep ~ Eq ~ Space.rep ~ InfixConstructorApp map
+    (ast.InstanceExp.apply _ tupled))
 
   lazy val Comment: Parser[ast.Comment] = P(Hash ~/ (!Nl ~ AnyChar).rep.! map
     ast.Comment.apply)
@@ -155,13 +158,13 @@ sealed class IndentingShortbolParser(indent: Int) {
     val BlankLine = P(ShortbolParsers.BlankLine map ast.BodyStmt.BlankLine)
     val Comment = P(ShortbolParsers.Comment map ast.BodyStmt.Comment)
     val InstanceExp = P(self.InstanceExp map ast.BodyStmt.InstanceExp)
-    val ConstructorApp = P(ShortbolParsers.InfixConstructorApp map ast.BodyStmt.ConstructorApp)
+    val InfixAssignment = P(ShortbolParsers.InfixAssignment map ast.BodyStmt.InstanceExp)
   }
 
   lazy val BodyStmt: Parser[ast.BodyStmt] =
-    bodyStmt.Assignment |
+    bodyStmt.InfixAssignment |
+      bodyStmt.Assignment |
       bodyStmt.InstanceExp |
-      bodyStmt.ConstructorApp |
       bodyStmt.Comment |
       bodyStmt.BlankLine //log "body statement"
 
