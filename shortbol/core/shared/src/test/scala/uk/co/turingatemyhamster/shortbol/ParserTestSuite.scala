@@ -1018,6 +1018,18 @@ object ParserTestSuite extends TestSuite{
 
     }
 
+    'BodyStmt - {
+      * - shouldParse(
+        "sbol:role = <http://identifiers.org/so/SO:0000167>",
+        ShortbolParser.bodyStmt.Assignment,
+        BodyStmt.Assignment(Assignment("sbol" :# "role", Url("http://identifiers.org/so/SO:0000167"))))
+
+      * - shouldParse(
+        "sbol:role = <http://identifiers.org/so/SO:0000167>",
+        ShortbolParser.BodyStmt,
+        BodyStmt.Assignment(Assignment("sbol" :# "role", Url("http://identifiers.org/so/SO:0000167"))))
+    }
+
     'TopLevel - {
 
       * - shouldParse(

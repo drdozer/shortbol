@@ -96,5 +96,9 @@ object LiteralConversionTestSuite extends TestSuite {
         matchingStrings(c, expected)
       }
     }
+
+//    'badType - {
+//      OWL.byType
+//    }
   }
 }

@@ -12,8 +12,8 @@ trait LiteralConversion {
 object LiteralConversion {
   def apply(c: LiteralConversion*): LiteralConversion = new LiteralConversion {
     override def apply(lit: Literal,
-                       requiredType: Identifier) =
-      c.foldLeft(None: Option[Literal])((o, c) => if(o.isDefined) o else c(lit, requiredType))
+                       reqTpe: Identifier) =
+      c.foldLeft(None: Option[Literal])((o, c) => if(o.isDefined) o else c(lit, reqTpe))
   }
 
   def apply(f: PartialFunction[(Literal, Identifier), Literal]): LiteralConversion = new LiteralConversion {

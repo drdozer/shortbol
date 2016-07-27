@@ -4,11 +4,17 @@ package ops
 import ast._
 import sugar._
 
-import scalaz._
+import scalaz.{Scalaz, \/, Validation, ValidationNel, IList, NonEmptyList}
 import Scalaz._
+import monocle._
+import monocle.macros._
+
 
 trait ConstraintViolation[A] {
-  def at[X, K](in: X, at: K): ConstraintViolation[X] = ViolationAt[X, K, A](in, at, this)
+  def in[X, K](in: X, key: K, prism: Prism[X, A]): ConstraintViolation[X] = ViolationInPrism[X, K, A](in, key, this)(prism)
+  def in[X, K](in: X, key: K, lens: Lens[X, A]): ConstraintViolation[X] = ViolationInLens[X, K, A](in, key, this)(lens)
+  def in[X, K](in: X, key: K, optional: Optional[X, A]): ConstraintViolation[X] = ViolationInOptional[X, K, A](in, key, this)(optional)
+  def in[X, K](in: X, key: K, getter: Getter[X, A]): ConstraintViolation[X] = ViolationInGetter[X, K, A](in, key, this)(getter)
 
   def prettyPrint: String
 }
@@ -22,12 +28,40 @@ case class ConstraintFailure[A](rule: Constraint[A], at: A) extends ConstraintVi
   override def prettyPrint: String = s"failed(${rule.prettyPrint} at $at"
 }
 
-case class ViolationAt[A, K, B](in: A, at: K, because: ConstraintViolation[B]) extends ConstraintViolation[A] {
+case class ViolationInPrism[A, K, B](in: A, key: K, because: ConstraintViolation[B])
+                                       (val prism: Prism[A, B]) extends ConstraintViolation[A] {
   def prettyIn: String = {
     val s = in.toString
     if(s.length > 40) s.substring(0, 36) + " ..." else s
   }
-  override def prettyPrint: String = s"violation($at of $prettyIn because ${because.prettyPrint})"
+  override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
+}
+
+case class ViolationInLens[A, K, B](in: A, key: K, because: ConstraintViolation[B])
+                                       (val lens: Lens[A, B]) extends ConstraintViolation[A] {
+  def prettyIn: String = {
+    val s = in.toString
+    if(s.length > 40) s.substring(0, 36) + " ..." else s
+  }
+  override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
+}
+
+case class ViolationInOptional[A, K, B](in: A, key: K, because: ConstraintViolation[B])
+                                       (val optional: Optional[A, B]) extends ConstraintViolation[A] {
+  def prettyIn: String = {
+    val s = in.toString
+    if(s.length > 40) s.substring(0, 36) + " ..." else s
+  }
+  override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
+}
+
+case class ViolationInGetter[A, K, B](in: A, key: K, because: ConstraintViolation[B])
+                                     (val getter: Getter[A, B]) extends ConstraintViolation[A] {
+  def prettyIn: String = {
+    val s = in.toString
+    if(s.length > 40) s.substring(0, 36) + " ..." else s
+  }
+  override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
 }
 
 trait Constraint[A] {
@@ -39,7 +73,39 @@ trait Constraint[A] {
   def requires(c: Constraint[A]) = If(c, this, Constraint.fail)
   def rejecting(c: Constraint[A]) = If(c, Constraint.fail, this)
 
+
+  def @: [O, X](o: O)(implicit ocb: OpticConstraintBuilder[O, X, A]): Constraint[X] = this match {
+    case AlwaysSucceed() => Constraint.success[X]
+    case c => ocb(o, c)
+  }
+
   def prettyPrint: String
+}
+
+trait OpticConstraintBuilder[O, A, B] {
+  def apply(o: O, c: Constraint[B]): Constraint[A]
+}
+
+object OpticConstraintBuilder {
+  implicit def prismBuilder[A, B, K] = new OpticConstraintBuilder[(K, Prism[A, B]), A, B] {
+    override def apply(o: (K, Prism[A, B]), c: Constraint[B]) = InPrism[A, B, K](o._1, c)(o._2)
+  }
+
+  implicit def lensBuilder[A, B, K] = new OpticConstraintBuilder[(K, Lens[A, B]), A, B] {
+    override def apply(o: (K, Lens[A, B]), c: Constraint[B]) = InLens[A, B, K](o._1, c)(o._2)
+  }
+
+  implicit def optionalBuilder[A, B, K] = new OpticConstraintBuilder[(K, Optional[A, B]), A, B] {
+    override def apply(o: (K, Optional[A, B]), c: Constraint[B]) = InOptional[A, B, K](o._1, c)(o._2)
+  }
+
+  implicit def getterBuilder[A, B, K] = new OpticConstraintBuilder[(K, Getter[A, B]), A, B] {
+    override def apply(o: (K, Getter[A, B]), c: Constraint[B]) = InGetter[A, B, K](o._1, c)(o._2)
+  }
+
+  implicit def functionBuilder[A, B, K] = new OpticConstraintBuilder[(K, A => B), A, B] {
+    override def apply(o: (K, A => B), c: Constraint[B]) = InGetter[A, B, K](o._1, c)(Getter(o._2))
+  }
 }
 
 object Constraint {
@@ -62,21 +128,10 @@ object Constraint {
       case css => ApplyAll(css)
     }
 
-  def forEvery[A](c: Constraint[A]): Constraint[List[A]] =
-    c match {
-      case AlwaysSucceed() => success[List[A]]
-      case _ => ForEvery(c)
-    }
-
-  def at[B, K](key: K, bc: Constraint[B]) = new {
-    def following[A](f: A => B): Constraint[A] = bc match {
-      case AlwaysSucceed() => Constraint.success[A]
-      case _ => At[A, B, K](key, bc)(f)
-    }
+  def forEvery[A](c: Constraint[A]): Constraint[List[A]] = c match {
+    case AlwaysSucceed() => success[List[A]]
+    case _ => ForEvery(c)
   }
-
-  def switch[A](default: Constraint[A])(fc: PartialFunction[A, Constraint[A]]) =
-    Switch(default)(fc)
 }
 
 case class AlwaysSucceed[A]() extends Constraint[A] {
@@ -113,8 +168,9 @@ case class ForEvery[A](c: Constraint[A]) extends Constraint[List[A]] {
     case Nil =>
       as.successNel
     case _ =>
+      val idx = monocle.std.list.listIndex[A]
       (NonEmptyList.nel(as.head, IList.fromList(as.tail)).zipWithIndex map { case(a, i) =>
-        c apply a leftMap (e => e map (_.at(as, i))) }
+        c apply a leftMap (e => e map (_.in(as, i, idx.index(i)))) }
         ).sequenceU map (_.list.toList)
   }
 
@@ -128,7 +184,7 @@ case class EqualTo[A](eA: A) extends Constraint[A] {
   override def prettyPrint: String = s"($eA == _)"
 }
 
-case class In[A](a: A) extends Constraint[Set[A]] {
+case class MemberOf[A](a: A) extends Constraint[Set[A]] {
   override def apply(as: Set[A]) =
     if(as contains a) as.successNel else ConstraintViolation.failure(this, as).failureNel
 
@@ -149,18 +205,42 @@ case class NotGreaterThan[A](max: Int) extends Constraint[Int] {
   override def prettyPrint: String = s"(_ <= $max)"
 }
 
-case class At[A, B, K](key: K, bC: Constraint[B])(f: A => B) extends Constraint[A] {
+case class InPrism[A, B, K](key: K, bC: Constraint[B])(prism: Prism[A, B]) extends Constraint[A] {
   override def apply(a: A) =
-    bC(f(a)).leftMap(_.map(_.at(a, key))).map(_ => a)
+    prism.getOption(a) match {
+      case Some(b) =>
+        bC(b).leftMap(_.map(_.in(a, key, prism))).map(_ => a)
+      case None =>
+        a.successNel
+    }
 
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
 
-case class Switch[A](default: Constraint[A])(fc: PartialFunction[A, Constraint[A]]) extends Constraint[A] {
-  override def apply(a: A): ValidationNel[ConstraintViolation[A], A] =
-    fc.applyOrElse(a, (_: A) => default)(a)
+case class InLens[A, B, K](key: K, bC: Constraint[B])(lens: Lens[A, B]) extends Constraint[A] {
+  override def apply(a: A) =
+    bC(lens.get(a)).leftMap(_.map(_.in(a, key, lens))).map(_ => a)
 
-  override def prettyPrint: String = s"switch()"
+  override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
+}
+
+case class InOptional[A, B, K](key: K, bC: Constraint[B])(optional: Optional[A, B]) extends Constraint[A] {
+  override def apply(a: A) =
+    optional.getOption(a) match {
+      case Some(b) =>
+        bC(b).leftMap(_.map(_.in(a, key, optional))).map(_ => a)
+      case None =>
+        a.successNel
+    }
+
+  override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
+}
+
+case class InGetter[A, B, K](key: K, bC: Constraint[B])(getter: Getter[A, B]) extends Constraint[A] {
+  override def apply(a: A) =
+    bC(getter.get(a)).leftMap(_.map(_.in(a, key, getter))).map(_ => a)
+
+  override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
 
 trait ConstraintSystem {
@@ -174,6 +254,60 @@ object ConstraintSystem {
   def apply(cs: ConstraintSystem*) = new ConstraintSystem {
     override def fromContext(ctxt: EvalContext) =
       Constraint.applyAll(cs.to[List] map (_.fromContext(ctxt)))
+  }
+}
+
+object optics {
+
+  def seqListIso[A] = Iso[Seq[A], List[A]](_.to[List])(_.to[Seq])
+
+  object instanceExp {
+    val id = GenLens[InstanceExp](_.id)
+    val cstrApp = GenLens[InstanceExp](_.cstrApp)
+  }
+
+  object constructorApp {
+    val cstr = GenLens[ConstructorApp](_.cstr)
+    val body = GenLens[ConstructorApp](_.body) composeIso seqListIso[BodyStmt]
+  }
+
+  object bodyStmt {
+    val assignment = GenPrism[BodyStmt, BodyStmt.Assignment] composeLens
+      GenLens[BodyStmt.Assignment](_.assignment)
+    val blankLine = GenPrism[BodyStmt, BodyStmt.BlankLine] composeLens
+      GenLens[BodyStmt.BlankLine](_.blankLine)
+    val comment = GenPrism[BodyStmt, BodyStmt.Comment] composeLens
+      GenLens[BodyStmt.Comment](_.comment)
+    val instanceExp = GenPrism[BodyStmt, BodyStmt.InstanceExp] composeLens
+      GenLens[BodyStmt.InstanceExp](_.instanceExp)
+    val constructorApp = GenPrism[BodyStmt, BodyStmt.ConstructorApp] composeLens
+      GenLens[BodyStmt.ConstructorApp](_.constructorApp)
+  }
+
+  object assignment {
+    val property = GenLens[Assignment](_.property)
+    val value = GenLens[Assignment](_.value)
+  }
+
+  object valueExp {
+    val identifier = GenPrism[ValueExp, ValueExp.Identifier] composeLens
+      GenLens[ValueExp.Identifier](_.identifier)
+    val literal = GenPrism[ValueExp, ValueExp.Literal] composeLens
+      GenLens[ValueExp.Literal](_.literal)
+  }
+
+  object topLevel {
+    object instanceExp {
+      val instanceExp = GenLens[TopLevel.InstanceExp](_.instanceExp)
+    }
+  }
+
+  object sbFile {
+    val tops = GenLens[SBFile](_.tops) composeIso seqListIso[TopLevel]
+  }
+
+  object sbEvaluatedFile {
+    val tops = GenLens[SBEvaluatedFile](_.tops) composeIso seqListIso[TopLevel.InstanceExp]
   }
 }
 
@@ -205,7 +339,7 @@ object OWL extends ConstraintSystem {
     }
   }
 
-  def bySize[T](c: Constraint[Int]) = Constraint.at('size, c) following ((_:List[T]).size)
+  def bySize[T](c: Constraint[Int]) = ('size, Getter((_:List[T]).size)) @: c
 
   def minCardinalityConstraint(propRes: BodyStmt): Option[Constraint[List[BodyStmt]]] =
     propRes match {
@@ -246,28 +380,29 @@ object OWL extends ConstraintSystem {
 
 
     def byType[A](tpe: Identifier)(implicit ty: Typer[A]) =
-      Constraint.at('type, In(tpe)) following ((a: A) => {
+      ('type, Getter((a: A) => {
         ty exactTypeOf a flatMap (ta =>
           flatHierarchy.getOrElse(ta, Set(ta)))
-      })
+      })) @: MemberOf(tpe)
 
 
     def allValuesFromConstraint(propRes: BodyStmt): Option[Constraint[List[BodyStmt]]] =
       propRes match {
         case BodyStmt.Assignment(Assignment(`owl_allValuesFrom`, ValueExp.Identifier(tpe))) =>
           Constraint.forEvery(
-            Constraint.switch[BodyStmt](Constraint.success) {
-              case b : BodyStmt.InstanceExp =>
-                Constraint.at('instance, byType[InstanceExp](tpe)) following (_ => b.instanceExp)
-              case a : BodyStmt.Assignment =>
-                Constraint.at('value, Constraint.switch[ValueExp](Constraint.fail) {
-                  case i : ValueExp.Identifier =>
-                    Constraint.at('identifier, byType[Identifier](tpe)) following (_ => i.identifier)
-                  case l : ValueExp.Literal =>
-                    Constraint.at('literal, byType[Literal](tpe)) following (_ => l.literal)
-                }
-                ) following (_ => a.assignment.value)
-            }).some
+            Constraint.applyAll(
+              List(
+                ('instance, optics.bodyStmt.instanceExp) @: byType[InstanceExp](tpe),
+                ('assignment, optics.bodyStmt.assignment) @:
+                  ('value, optics.assignment.value) @: Constraint.applyAll(
+                  List(
+                    ('identifier, optics.valueExp.identifier) @: byType[Identifier](tpe),
+                    ('literal, optics.valueExp.literal) @: byType[Literal](tpe)
+                  )
+                )
+              )
+            )
+          ).some
         case _ =>
           none
       }
@@ -285,10 +420,10 @@ object OWL extends ConstraintSystem {
 
     def restrictionInstance(i: InstanceExp): Option[Constraint[List[BodyStmt]]] = i match {
       case InstanceExp(propId, ConstructorApp(TpeConstructor1(`owl_propertyRestriction`, _), restrs)) =>
-        (Constraint.at(propId, restrictions(restrs)) following ((_: List[BodyStmt]) collect {
-          case b@BodyStmt.Assignment(Assignment(p, _)) if p == propId => b
-          case b@BodyStmt.InstanceExp(InstanceExp(p, _)) if p == propId => b
-        })).some
+        ((propId, Getter((_: List[BodyStmt]) collect {
+          case b@BodyStmt.Assignment(Assignment(p, _)) if p == propId => b : BodyStmt
+          case b@BodyStmt.InstanceExp(InstanceExp(p, _)) if p == propId => b : BodyStmt
+        })) @: restrictions(restrs)).some
       case _ => None
     }
 
@@ -300,7 +435,8 @@ object OWL extends ConstraintSystem {
               case BodyStmt.InstanceExp(i) => restrictionInstance(i)
               case _ => Nil
             })
-          (Constraint.at('properties, rs) following ((_:InstanceExp).cstrApp.body.to[List]) onlyIf byType[InstanceExp](clsId)).some
+          ((('properties, optics.instanceExp.cstrApp composeLens optics.constructorApp.body) @: rs) onlyIf
+            byType[InstanceExp](clsId)).some
         case _ =>
           none
       }
@@ -358,16 +494,18 @@ object OWL extends ConstraintSystem {
 
     val flatClasses = flatHierarchy.values map (tps => Constraint.applyAll(tps.to[List] map allOwlClasses))
 
-    val allContext =
-      Constraint.at('instances, Constraint.forEvery(Constraint.applyAll(flatClasses.to[List]))) following ((_: SBEvaluatedFile).tops.to[List] collect {
-        case TopLevel.InstanceExp(i) =>
-          i
-      })
+    val tcInstanceExp = Constraint.applyAll(flatClasses.to[List])
+
+    val tcTopLevel = ('instanceExp, optics.topLevel.instanceExp.instanceExp) @: tcInstanceExp
+
+    val tcAllTops: Constraint[List[TopLevel.InstanceExp]] = ForEvery(tcTopLevel)
+
+    val tcSBFile: Constraint[SBEvaluatedFile] = ('tops, optics.sbEvaluatedFile.tops) @: tcAllTops
 
     override def apply(a: SBEvaluatedFile) =
-      allContext apply a
+      tcSBFile apply a
 
-    override def prettyPrint: String = allContext.prettyPrint
+    override def prettyPrint: String = tcSBFile.prettyPrint
   }
 
   override def fromContext(ctxt: EvalContext): ContextConstraints = new ContextConstraints(ctxt)

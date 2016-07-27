@@ -66,7 +66,7 @@ object ShortbolParsers {
   lazy val UrlReserved = P( Bang | Star | SQuote | LEllipse | REllipse | SemiColon | Colon | At | Amph | Eq | Plus | Dollar |
     Coma | Question | Percent | Hash | LBox | RBox | BackSlash)
 
-  lazy val Url = P( Lt ~/ (UrlUnreserved | UrlReserved).rep.! ~/ Gt map ast.Url)
+  lazy val Url = P( Lt ~ (UrlUnreserved | UrlReserved).rep.! ~ Gt map ast.Url)
 
   lazy val Identifier: Parser[ast.Identifier] = P( Url | QName | LocalName)
 

@@ -4,6 +4,7 @@ import ast._
 import sugar._
 import ops._
 import utest._
+import monocle._
 
 /**
   *
@@ -137,16 +138,16 @@ object ConstraintsTestSuite extends TestSuite {
       'sizeNotLessThan - {
         'greater - {
           success(
-            Constraint.at('size, NotLessThan(2)) following ((_: List[Int]).size),
+            ('size, (_: List[Int]).size) @: NotLessThan(2),
             List(1, 2, 3, 4)
           )
         }
 
         'lesser - {
           failure(
-            Constraint.at('size, NotLessThan(2)) following ((_: List[Int]).size),
+            ('size, (_: List[Int]).size) @: NotLessThan(2),
             List(1),
-            ViolationAt(List(1), 'size, ConstraintViolation.failure(NotLessThan(2), 1)))
+            ViolationInGetter(List(1), 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
         }
       }
 
@@ -205,7 +206,7 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             cc,
             bs,
-            ViolationAt(bs, 'size, ConstraintViolation.failure(NotLessThan(2), 1)))
+            ViolationInGetter(bs, 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
         }
 
       }
@@ -228,7 +229,7 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             cc,
             bs,
-            ViolationAt(bs, 'size, ConstraintViolation.failure(NotGreaterThan(2), 3)))
+            ViolationInGetter(bs, 'size, ConstraintViolation.failure(NotGreaterThan(2), 3))(null))
         }
 
         'succeedsWithExact - {
@@ -269,7 +270,7 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             cc,
             bs,
-            ViolationAt(bs, 'size, ConstraintViolation.failure(NotGreaterThan(2), 3)))
+            ViolationInGetter(bs, 'size, ConstraintViolation.failure(NotGreaterThan(2), 3))(null))
         }
 
         'succeedsWithExact - {
@@ -291,7 +292,7 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             cc,
             bs,
-            ViolationAt(bs, 'size, ConstraintViolation.failure(NotLessThan(2), 1)))
+            ViolationInGetter(bs, 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
         }
       }
 
@@ -332,11 +333,11 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             tc,
             bs,
-            ViolationAt(
-              bs, 0, ViolationAt(
-                bs(0), 'instance, ViolationAt(
+            ViolationInOptional(
+              bs, 0, ViolationInOptional(
+                bs(0), 'instance, ViolationInGetter(
                   bs(0).asInstanceOf[BodyStmt.InstanceExp].instanceExp, 'type, ConstraintViolation.failure(
-                  In("myClass" : Identifier), Set("jane" : Identifier))))))
+                  MemberOf("myClass" : Identifier), Set("jane" : Identifier)))(null))(null))(null))
         }
 
         'failsWithNonMatchingType1 - {
@@ -353,11 +354,11 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             tc,
             bs,
-            ViolationAt(
-              bs, 1, ViolationAt(
-                bs(1), 'instance, ViolationAt(
+            ViolationInOptional(
+              bs, 1, ViolationInOptional(
+                bs(1), 'instance, ViolationInGetter(
                   bs(1).asInstanceOf[BodyStmt.InstanceExp].instanceExp, 'type, ConstraintViolation.failure(
-                    In("myClass" : Identifier), Set("freddy" : Identifier))))))
+                    MemberOf("myClass" : Identifier), Set("freddy" : Identifier)))(null))(null))(null))
         }
 
         'multipleRestrictions - {

@@ -26,7 +26,8 @@ object IntegrationTestSuite extends TestSuite {
         parse_instances_eval(
           """p : sbol:ComponentDefinition
             |  sbol:type = biopax:DnaRegion
-            |  sbol:role = <http://identifiers.org/so/SO:0000167>""".stripMargin) in ⊥
+            |  sbol:role = <http://identifiers.org/so/SO:0000167>
+            |""".stripMargin) in ⊥
     }
 
     'dnaSequence_url - {
@@ -39,7 +40,8 @@ object IntegrationTestSuite extends TestSuite {
         parse_instances_eval(
           """test:seq : sbol:Sequence
             |  sbol:encoding = <http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html>
-            |  sbol:elements = "agct"""".stripMargin) in ⊥
+            |  sbol:elements = "agct"
+            |""".stripMargin) in ⊥
 
     }
 
@@ -58,7 +60,8 @@ object IntegrationTestSuite extends TestSuite {
         parse_instances_eval(
           """test:seq : sbol:Sequence
             |  sbol:encoding = sbol:IUPACDNA
-            |  sbol:elements = "agct"""".stripMargin) in ⊥
+            |  sbol:elements = "agct"
+            |""".stripMargin) in ⊥
 
     }
 
