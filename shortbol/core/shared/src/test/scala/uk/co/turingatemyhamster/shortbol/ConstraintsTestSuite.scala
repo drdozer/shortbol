@@ -27,7 +27,10 @@ object ConstraintsTestSuite extends TestSuite {
 
   def failure[A](cr: Constraint[A], a: A, cv: ConstraintViolation[A]): Unit = {
     cr(a).fold(
-      nel => assert(nel.head == cv),
+      nel => {
+        val obs = nel.head
+        assert(obs == cv)
+      },
       unexpectedSuccess => assert(cr == null, unexpectedSuccess == null))
   }
 
@@ -147,7 +150,7 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             ('size, (_: List[Int]).size) @: NotLessThan(2),
             List(1),
-            ViolationInGetter(List(1), 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
+            NestedViolation(List(1), 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
         }
       }
 
@@ -206,7 +209,7 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             cc,
             bs,
-            ViolationInGetter(bs, 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
+            NestedViolation(bs, 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
         }
 
       }
@@ -229,7 +232,7 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             cc,
             bs,
-            ViolationInGetter(bs, 'size, ConstraintViolation.failure(NotGreaterThan(2), 3))(null))
+            NestedViolation(bs, 'size, ConstraintViolation.failure(NotGreaterThan(2), 3))(null))
         }
 
         'succeedsWithExact - {
@@ -270,7 +273,7 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             cc,
             bs,
-            ViolationInGetter(bs, 'size, ConstraintViolation.failure(NotGreaterThan(2), 3))(null))
+            NestedViolation(bs, 'size, ConstraintViolation.failure(NotGreaterThan(2), 3))(null))
         }
 
         'succeedsWithExact - {
@@ -292,7 +295,7 @@ object ConstraintsTestSuite extends TestSuite {
           failure(
             cc,
             bs,
-            ViolationInGetter(bs, 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
+            NestedViolation(bs, 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
         }
       }
 
@@ -316,49 +319,70 @@ object ConstraintsTestSuite extends TestSuite {
             BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "myClass"))).get
           val bs = BodyStmt.InstanceExp(InstanceExp(
             "rod",
-            ConstructorApp(TpeConstructor1("myClass", Seq()), Seq()))) :: List.empty[BodyStmt]
+            ConstructorApp(TpeConstructor1("myClass", Seq()), Seq()))) : BodyStmt
 
           success(
             tc,
             bs)
         }
 
-        'failsWithNonMatchingType - {
-          val tc = OWLC.allValuesFromConstraint(
-            BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "myClass"))).get
-          val bs = BodyStmt.InstanceExp(InstanceExp(
-            "rod",
-            ConstructorApp(TpeConstructor1("jane", Seq()), Seq()))) :: List.empty[BodyStmt]
+        'withInstance - {
+          'failsWithNonMatchingType - {
+            val tc = OWLC.allValuesFromConstraint(
+              BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "myClass"))).get
+            val bs = BodyStmt.InstanceExp(InstanceExp(
+              "rod",
+              ConstructorApp(TpeConstructor1("jane", Seq()), Seq()))) : BodyStmt
 
-          failure(
-            tc,
-            bs,
-            ViolationInOptional(
-              bs, 0, ViolationInOptional(
-                bs(0), 'instance, ViolationInGetter(
-                  bs(0).asInstanceOf[BodyStmt.InstanceExp].instanceExp, 'type, ConstraintViolation.failure(
-                  MemberOf("myClass" : Identifier), Set("jane" : Identifier)))(null))(null))(null))
+            failure(
+              tc,
+              bs,
+              NestedViolation(
+                bs, 'instance, NestedViolation(
+                  bs.asInstanceOf[BodyStmt.InstanceExp].instanceExp, 'type, ConstraintViolation.failure(
+                    MemberOf("myClass" : Identifier), Set("jane" : Identifier)))(null))(null))
+          }
+
+          'failsWithNonMatchingType1 - {
+            val tc = OWLC.allValuesFromConstraint(
+              BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "myClass"))).get
+            val bs =
+              BodyStmt.InstanceExp(InstanceExp(
+                "rod",
+                ConstructorApp(TpeConstructor1("myClass", Seq()), Seq()))) ::
+                BodyStmt.InstanceExp(InstanceExp(
+                  "jane",
+                  ConstructorApp(TpeConstructor1("freddy", Seq()), Seq()))) :: List.empty[BodyStmt]
+
+            failure(
+              Constraint.forEvery(tc),
+              bs,
+              NestedViolation(
+                bs, 1, NestedViolation(
+                  bs(1), 'instance, NestedViolation(
+                    bs(1).asInstanceOf[BodyStmt.InstanceExp].instanceExp, 'type, ConstraintViolation.failure(
+                      MemberOf("myClass" : Identifier), Set("freddy" : Identifier)))(null))(null))(null))
+          }
         }
 
-        'failsWithNonMatchingType1 - {
-          val tc = OWLC.allValuesFromConstraint(
-            BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "myClass"))).get
-          val bs =
-            BodyStmt.InstanceExp(InstanceExp(
-              "rod",
-              ConstructorApp(TpeConstructor1("myClass", Seq()), Seq()))) ::
-              BodyStmt.InstanceExp(InstanceExp(
-                "jane",
-                ConstructorApp(TpeConstructor1("freddy", Seq()), Seq()))) :: List.empty[BodyStmt]
+        'withLiteral - {
+          'failsWithNonMatchingType - {
+            val tc = OWLC.allValuesFromConstraint(
+              BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "xsd" :# "integer"))).get
+            val bs = BodyStmt.Assignment(Assignment(
+              "age", slLit("42"))) : BodyStmt
 
-          failure(
-            tc,
-            bs,
-            ViolationInOptional(
-              bs, 1, ViolationInOptional(
-                bs(1), 'instance, ViolationInGetter(
-                  bs(1).asInstanceOf[BodyStmt.InstanceExp].instanceExp, 'type, ConstraintViolation.failure(
-                    MemberOf("myClass" : Identifier), Set("freddy" : Identifier)))(null))(null))(null))
+            failure(
+              tc,
+              bs,
+              NestedViolation(bs, 'assignment,
+                NestedViolation(bs.asInstanceOf[BodyStmt.Assignment].assignment, 'value,
+                  NestedViolation(slLit("42") : ValueExp, 'literal,
+                   NestedViolation(slLit("42"), 'type,
+                     ConstraintViolation.failure(
+                       MemberOf("xsd" :# "integer" : Identifier),
+                       Set("xsd" :# "string" : Identifier)))(null))(null))(null))(null))
+          }
         }
 
         'multipleRestrictions - {

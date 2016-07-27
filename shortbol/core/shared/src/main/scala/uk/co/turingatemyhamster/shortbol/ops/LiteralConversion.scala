@@ -51,4 +51,21 @@ object DNAFormatConversion {
         None,
         None)
   } : PartialFunction [(Literal, Identifier), Literal])
+
+
+  def conversionAsRecovery(litC: LiteralConversion, cv: ConstraintViolation[Literal]): Option[Literal] = cv match {
+    case vig : NestedViolation[Literal, Symbol, Set[Identifier]] =>
+      vig match {
+        case NestedViolation(lit, 'type, cf) =>
+          cf match {
+            case ConstraintFailure(MemberOf(expectedT : Identifier), observedT : Set[Identifier]) =>
+              litC.apply(lit, expectedT)
+            case _ => None
+          }
+        case _ =>
+          None
+      }
+    case _ =>
+      None
+  }
 }

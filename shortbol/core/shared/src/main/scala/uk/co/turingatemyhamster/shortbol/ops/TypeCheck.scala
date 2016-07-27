@@ -1,67 +1,67 @@
 package uk.co.turingatemyhamster.shortbol
 package ops
 
+import scala.reflect.runtime.universe.TypeTag
+
 import ast._
 import sugar._
 
-import scalaz.{Scalaz, \/, Validation, ValidationNel, IList, NonEmptyList}
+import scalaz.{IList, NonEmptyList, Scalaz, Validation, ValidationNel, \/}
 import Scalaz._
 import monocle._
 import monocle.macros._
 
 
-trait ConstraintViolation[A] {
-  def in[X, K](in: X, key: K, prism: Prism[X, A]): ConstraintViolation[X] = ViolationInPrism[X, K, A](in, key, this)(prism)
-  def in[X, K](in: X, key: K, lens: Lens[X, A]): ConstraintViolation[X] = ViolationInLens[X, K, A](in, key, this)(lens)
-  def in[X, K](in: X, key: K, optional: Optional[X, A]): ConstraintViolation[X] = ViolationInOptional[X, K, A](in, key, this)(optional)
-  def in[X, K](in: X, key: K, getter: Getter[X, A]): ConstraintViolation[X] = ViolationInGetter[X, K, A](in, key, this)(getter)
+sealed trait ConstraintViolation[A] {
+  def at: A
+
+  def in[X, K](in: X, key: K, setter: Option[Setter[X, A]])
+              (implicit aTpe: TypeTag[X], kTpe: TypeTag[K], bTpe: TypeTag[A]): ConstraintViolation[X] =
+    NestedViolation[X, K, A](in, key, this)(setter)
 
   def prettyPrint: String
+
+  def recoverWith[C <: ConstraintViolation[X], X](f: C => Option[X])(implicit cTT: TypeTag[C], xTT: TypeTag[X]): Option[A]
 }
 
 object ConstraintViolation {
-  def failure[A](rule: Constraint[A], at: A): ConstraintViolation[A] =
+  def failure[A](rule: Constraint[A], at: A)(implicit aTT: TypeTag[A]): ConstraintViolation[A] =
     ConstraintFailure(rule, at)
 }
 
-case class ConstraintFailure[A](rule: Constraint[A], at: A) extends ConstraintViolation[A] {
+case class ConstraintFailure[A](rule: Constraint[A], at: A)
+                               (implicit cfaTT: TypeTag[ConstraintFailure[A]], aTT: TypeTag[A]) extends ConstraintViolation[A] {
   override def prettyPrint: String = s"failed(${rule.prettyPrint} at $at"
+
+  override def recoverWith[C <: ConstraintViolation[X], X](f: C => Option[X])
+                                                          (implicit cTT: TypeTag[C], xTT: TypeTag[X]) = {
+    if(cfaTT.tpe <:< cTT.tpe && aTT.tpe <:< xTT.tpe) {
+      f(this.asInstanceOf[C]).map(_.asInstanceOf[A])
+    } else {
+      None
+    }
+  }
 }
 
-case class ViolationInPrism[A, K, B](in: A, key: K, because: ConstraintViolation[B])
-                                       (val prism: Prism[A, B]) extends ConstraintViolation[A] {
+case class NestedViolation[A, K, B](at: A, key: K, because: ConstraintViolation[B])(setter: Option[Setter[A, B]])
+                                   (implicit val nvTT: TypeTag[NestedViolation[A, K, B]], aTT: TypeTag[A]) extends ConstraintViolation[A] {
   def prettyIn: String = {
-    val s = in.toString
+    val s = at.toString
     if(s.length > 40) s.substring(0, 36) + " ..." else s
   }
   override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
-}
 
-case class ViolationInLens[A, K, B](in: A, key: K, because: ConstraintViolation[B])
-                                       (val lens: Lens[A, B]) extends ConstraintViolation[A] {
-  def prettyIn: String = {
-    val s = in.toString
-    if(s.length > 40) s.substring(0, 36) + " ..." else s
+  override def recoverWith[C <: ConstraintViolation[X], X](f: C => Option[X])
+                                                          (implicit cTT: TypeTag[C], xTT: TypeTag[X]) = {
+    if(nvTT.tpe <:< cTT.tpe && aTT.tpe <:< xTT.tpe) {
+      f(this.asInstanceOf[C]).map(_.asInstanceOf[A])
+    } else {
+      for {
+        s <- setter
+        b <- because.recoverWith(f)
+      } yield s.set(b)(at)
+    }
   }
-  override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
-}
-
-case class ViolationInOptional[A, K, B](in: A, key: K, because: ConstraintViolation[B])
-                                       (val optional: Optional[A, B]) extends ConstraintViolation[A] {
-  def prettyIn: String = {
-    val s = in.toString
-    if(s.length > 40) s.substring(0, 36) + " ..." else s
-  }
-  override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
-}
-
-case class ViolationInGetter[A, K, B](in: A, key: K, because: ConstraintViolation[B])
-                                     (val getter: Getter[A, B]) extends ConstraintViolation[A] {
-  def prettyIn: String = {
-    val s = in.toString
-    if(s.length > 40) s.substring(0, 36) + " ..." else s
-  }
-  override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
 }
 
 trait Constraint[A] {
@@ -70,8 +70,8 @@ trait Constraint[A] {
   def onlyIf(c: Constraint[A]) = If(c, this, Constraint.success)
   def unless(c: Constraint[A]) = If(c, Constraint.success, this)
 
-  def requires(c: Constraint[A]) = If(c, this, Constraint.fail)
-  def rejecting(c: Constraint[A]) = If(c, Constraint.fail, this)
+  def requires(c: Constraint[A])(implicit aTT: TypeTag[A]) = If(c, this, Constraint.fail[A])
+  def rejecting(c: Constraint[A])(implicit aTT: TypeTag[A]) = If(c, Constraint.fail[A], this)
 
 
   def @: [O, X](o: O)(implicit ocb: OpticConstraintBuilder[O, X, A]): Constraint[X] = this match {
@@ -87,23 +87,23 @@ trait OpticConstraintBuilder[O, A, B] {
 }
 
 object OpticConstraintBuilder {
-  implicit def prismBuilder[A, B, K] = new OpticConstraintBuilder[(K, Prism[A, B]), A, B] {
+  implicit def prismBuilder[A, B, K](implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) = new OpticConstraintBuilder[(K, Prism[A, B]), A, B] {
     override def apply(o: (K, Prism[A, B]), c: Constraint[B]) = InPrism[A, B, K](o._1, c)(o._2)
   }
 
-  implicit def lensBuilder[A, B, K] = new OpticConstraintBuilder[(K, Lens[A, B]), A, B] {
+  implicit def lensBuilder[A, B, K](implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) = new OpticConstraintBuilder[(K, Lens[A, B]), A, B] {
     override def apply(o: (K, Lens[A, B]), c: Constraint[B]) = InLens[A, B, K](o._1, c)(o._2)
   }
 
-  implicit def optionalBuilder[A, B, K] = new OpticConstraintBuilder[(K, Optional[A, B]), A, B] {
+  implicit def optionalBuilder[A, B, K](implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) = new OpticConstraintBuilder[(K, Optional[A, B]), A, B] {
     override def apply(o: (K, Optional[A, B]), c: Constraint[B]) = InOptional[A, B, K](o._1, c)(o._2)
   }
 
-  implicit def getterBuilder[A, B, K] = new OpticConstraintBuilder[(K, Getter[A, B]), A, B] {
+  implicit def getterBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Getter[A, B]), A, B] {
     override def apply(o: (K, Getter[A, B]), c: Constraint[B]) = InGetter[A, B, K](o._1, c)(o._2)
   }
 
-  implicit def functionBuilder[A, B, K] = new OpticConstraintBuilder[(K, A => B), A, B] {
+  implicit def functionBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, A => B), A, B] {
     override def apply(o: (K, A => B), c: Constraint[B]) = InGetter[A, B, K](o._1, c)(Getter(o._2))
   }
 }
@@ -114,10 +114,10 @@ object Constraint {
   type CheckedConstraints[A] = ValidationNel[ConstraintViolation[A], A]
 
   def success[A] = AlwaysSucceed[A]()
-  def fail[A] = AlwaysFail[A](none)
+  def fail[A](implicit aTT: TypeTag[A]) = AlwaysFail[A](none)
 
 
-  def applyAll[A](cs: List[Constraint[A]]): Constraint[A] =
+  def applyAll[A](cs: List[Constraint[A]])(implicit aTT: TypeTag[A]): Constraint[A] =
     cs flatMap {
       case AlwaysSucceed() => Nil
       case ApplyAll(xx) => xx
@@ -128,7 +128,7 @@ object Constraint {
       case css => ApplyAll(css)
     }
 
-  def forEvery[A](c: Constraint[A]): Constraint[List[A]] = c match {
+  def forEvery[A](c: Constraint[A])(implicit aTT: TypeTag[A]): Constraint[List[A]] = c match {
     case AlwaysSucceed() => success[List[A]]
     case _ => ForEvery(c)
   }
@@ -141,7 +141,7 @@ case class AlwaysSucceed[A]() extends Constraint[A] {
 }
 
 
-case class AlwaysFail[A](msg: Option[String]) extends Constraint[A] {
+case class AlwaysFail[A](msg: Option[String])(implicit aTT: TypeTag[A]) extends Constraint[A] {
   override def apply(a: A) = ConstraintViolation.failure(this, a).failureNel[A]
 
   override def prettyPrint: String = "failure"
@@ -163,28 +163,28 @@ case class ApplyAll[A](cs: List[Constraint[A]]) extends Constraint[A] {
   override def prettyPrint: String = s"applyAll(${cs map (_.prettyPrint) mkString " "})"
 }
 
-case class ForEvery[A](c: Constraint[A]) extends Constraint[List[A]] {
+case class ForEvery[A](c: Constraint[A])(implicit aTT: TypeTag[A]) extends Constraint[List[A]] {
   override def apply(as: List[A]) = as match {
     case Nil =>
       as.successNel
     case _ =>
       val idx = monocle.std.list.listIndex[A]
       (NonEmptyList.nel(as.head, IList.fromList(as.tail)).zipWithIndex map { case(a, i) =>
-        c apply a leftMap (e => e map (_.in(as, i, idx.index(i)))) }
+        c apply a leftMap (e => e map (_.in(as, i, idx.index(i).asSetter.some))) }
         ).sequenceU map (_.list.toList)
   }
 
   override def prettyPrint: String = s"forEvery(${c.prettyPrint})"
 }
 
-case class EqualTo[A](eA: A) extends Constraint[A] {
+case class EqualTo[A](eA: A)(implicit aTT: TypeTag[A]) extends Constraint[A] {
   override def apply(a: A) =
     if(eA == a) a.successNel else ConstraintViolation.failure(this, a).failureNel
 
   override def prettyPrint: String = s"($eA == _)"
 }
 
-case class MemberOf[A](a: A) extends Constraint[Set[A]] {
+case class MemberOf[A](a: A)(implicit aTT: TypeTag[A]) extends Constraint[Set[A]] {
   override def apply(as: Set[A]) =
     if(as contains a) as.successNel else ConstraintViolation.failure(this, as).failureNel
 
@@ -205,11 +205,13 @@ case class NotGreaterThan[A](max: Int) extends Constraint[Int] {
   override def prettyPrint: String = s"(_ <= $max)"
 }
 
-case class InPrism[A, B, K](key: K, bC: Constraint[B])(prism: Prism[A, B]) extends Constraint[A] {
+case class InPrism[A, B, K](key: K, bC: Constraint[B])
+                           (prism: Prism[A, B])
+                           (implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) extends Constraint[A] {
   override def apply(a: A) =
     prism.getOption(a) match {
       case Some(b) =>
-        bC(b).leftMap(_.map(_.in(a, key, prism))).map(_ => a)
+        bC(b).leftMap(_.map(_.in(a, key, prism.asSetter.some))).map(_ => a)
       case None =>
         a.successNel
     }
@@ -217,18 +219,22 @@ case class InPrism[A, B, K](key: K, bC: Constraint[B])(prism: Prism[A, B]) exten
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
 
-case class InLens[A, B, K](key: K, bC: Constraint[B])(lens: Lens[A, B]) extends Constraint[A] {
+case class InLens[A, B, K](key: K, bC: Constraint[B])
+                          (lens: Lens[A, B])
+                          (implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) extends Constraint[A] {
   override def apply(a: A) =
-    bC(lens.get(a)).leftMap(_.map(_.in(a, key, lens))).map(_ => a)
+    bC(lens.get(a)).leftMap(_.map(_.in(a, key, lens.asSetter.some))).map(_ => a)
 
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
 
-case class InOptional[A, B, K](key: K, bC: Constraint[B])(optional: Optional[A, B]) extends Constraint[A] {
+case class InOptional[A, B, K](key: K, bC: Constraint[B])
+                              (optional: Optional[A, B])
+                              (implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) extends Constraint[A] {
   override def apply(a: A) =
     optional.getOption(a) match {
       case Some(b) =>
-        bC(b).leftMap(_.map(_.in(a, key, optional))).map(_ => a)
+        bC(b).leftMap(_.map(_.in(a, key, optional.asSetter.some))).map(_ => a)
       case None =>
         a.successNel
     }
@@ -236,9 +242,11 @@ case class InOptional[A, B, K](key: K, bC: Constraint[B])(optional: Optional[A, 
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
 
-case class InGetter[A, B, K](key: K, bC: Constraint[B])(getter: Getter[A, B]) extends Constraint[A] {
+case class InGetter[A, B, K](key: K, bC: Constraint[B])
+                            (getter: Getter[A, B])
+                            (implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) extends Constraint[A] {
   override def apply(a: A) =
-    bC(getter.get(a)).leftMap(_.map(_.in(a, key, getter))).map(_ => a)
+    bC(getter.get(a)).leftMap(_.map(_.in(a, key, none))).map(_ => a)
 
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
@@ -339,7 +347,7 @@ object OWL extends ConstraintSystem {
     }
   }
 
-  def bySize[T](c: Constraint[Int]) = ('size, Getter((_:List[T]).size)) @: c
+  def bySize[T](c: Constraint[Int])(implicit tTpe: TypeTag[T]) = ('size, Getter((_:List[T]).size)) @: c
 
   def minCardinalityConstraint(propRes: BodyStmt): Option[Constraint[List[BodyStmt]]] =
     propRes match {
@@ -379,26 +387,24 @@ object OWL extends ConstraintSystem {
     }
 
 
-    def byType[A](tpe: Identifier)(implicit ty: Typer[A]) =
+    def byType[A](tpe: Identifier)(implicit ty: Typer[A], aTpe: TypeTag[A]) =
       ('type, Getter((a: A) => {
         ty exactTypeOf a flatMap (ta =>
           flatHierarchy.getOrElse(ta, Set(ta)))
       })) @: MemberOf(tpe)
 
 
-    def allValuesFromConstraint(propRes: BodyStmt): Option[Constraint[List[BodyStmt]]] =
+    def allValuesFromConstraint(propRes: BodyStmt): Option[Constraint[BodyStmt]] =
       propRes match {
         case BodyStmt.Assignment(Assignment(`owl_allValuesFrom`, ValueExp.Identifier(tpe))) =>
-          Constraint.forEvery(
-            Constraint.applyAll(
-              List(
-                ('instance, optics.bodyStmt.instanceExp) @: byType[InstanceExp](tpe),
-                ('assignment, optics.bodyStmt.assignment) @:
-                  ('value, optics.assignment.value) @: Constraint.applyAll(
-                  List(
-                    ('identifier, optics.valueExp.identifier) @: byType[Identifier](tpe),
-                    ('literal, optics.valueExp.literal) @: byType[Literal](tpe)
-                  )
+          Constraint.applyAll(
+            List(
+              ('instance, optics.bodyStmt.instanceExp) @: byType[InstanceExp](tpe),
+              ('assignment, optics.bodyStmt.assignment) @:
+                ('value, optics.assignment.value) @: Constraint.applyAll(
+                List(
+                  ('identifier, optics.valueExp.identifier) @: byType[Identifier](tpe),
+                  ('literal, optics.valueExp.literal) @: byType[Literal](tpe)
                 )
               )
             )
@@ -414,7 +420,7 @@ object OWL extends ConstraintSystem {
             minCardinalityConstraint(r) ++
             maxCardinalityConstraint(r) ++
             exactCardinalityConstraint(r) ++
-            allValuesFromConstraint(r)
+            (allValuesFromConstraint(r).to[List] map Constraint.forEvery)
         }
       )
 

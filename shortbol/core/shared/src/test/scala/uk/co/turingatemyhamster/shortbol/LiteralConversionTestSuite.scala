@@ -24,7 +24,7 @@ object LiteralConversionTestSuite extends TestSuite {
         |}^^edam:genbank""".stripMargin).get.value
 
     val expected = ShortbolParsers.StringLiteral.parse(
-      "{ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa}").get.value
+      "\"ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa\"").get.value
 
     def matchingStrings(observed: Option[Literal], expected: StringLiteral) =
       assert(observed exists (_.asInstanceOf[StringLiteral].style.asString == expected.style.asString))
@@ -97,8 +97,33 @@ object LiteralConversionTestSuite extends TestSuite {
       }
     }
 
-//    'badType - {
-//      OWL.byType
-//    }
+    'typeError- {
+      val ontology =
+        """
+          |Sequence : owl:Class
+          |  encoding : owl:propertyRestriction
+          |    owl:allValuesFrom = xsd:string
+        """.stripMargin
+      import ast.sugar._
+      import Eval.EvalOps
+      import ShortbolParser.POps
+      val ontologyCtxt = ShortbolParser.SBFile.withPositions("_ontology_", ontology).get.value.eval.exec(Fixture.configuredContext)
+
+      val owl = OWL.fromContext(ontologyCtxt)
+
+      val litConv = LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA)
+
+      'typeStringLiteral - {
+        val expRec = Assignment("encoding", expected) : BodyStmt
+        val cstr = owl.allValuesFromConstraint(Assignment("owl" :# "allValuesFrom", "xsd" :# "string"))
+        val tpeCheck = cstr.get.apply(Assignment("encoding", fastaString) : BodyStmt)
+        val recovered = tpeCheck.leftMap(_.map(_.recoverWith(
+          (cv: ConstraintViolation[Literal]) => DNAFormatConversion.conversionAsRecovery(litConv, cv))))
+
+        recovered.fold(
+          nel => assert(nel.head.contains(expRec)),
+          a => assert(a != a))
+      }
+    }
   }
 }
