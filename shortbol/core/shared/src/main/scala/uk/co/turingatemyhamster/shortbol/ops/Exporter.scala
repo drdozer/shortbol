@@ -61,6 +61,10 @@ trait ExporterEnv[DT <: Datatree] {
   implicit def seqExporter[T, E](implicit ev: Exporter[T, E]): Exporter[Seq[T], Seq[E]] =
     Exporter { _ map ev.export }
 
+  def identityFor(i: sa.InstanceExp) = i.cstrApp.body.collectFirst {
+    case sa.BodyStmt.Assignment(sa.Assignment(`rdf_about`, sa.ValueExp.Identifier(v))) => v.export[DT#Uri]
+  }
+
   implicit val topLevel_instances: Exporter[Seq[sa.TopLevel.InstanceExp], DT#DocumentRoot] =
     Exporter { (ts: Seq[sa.TopLevel.InstanceExp]) =>
       DocumentRoot(ZeroMany(nsBindings :_*), ZeroMany(ts map (_.export) :_*))
@@ -70,7 +74,7 @@ trait ExporterEnv[DT <: Datatree] {
     Exporter { (t: sa.TopLevel.InstanceExp) =>
       TopLevelDocument(
         ZeroMany(),
-        ZeroOne(t.instanceExp.id.export[DT#Uri]),
+        ZeroOne.fromOption(identityFor(t.instanceExp) orElse Some(t.instanceExp.id.export[DT#Uri])),
         One(t.instanceExp.cstrApp.cstr.export),
         ZeroMany(t.instanceExp.cstrApp.body.export.flatten :_*))
   }
@@ -80,7 +84,7 @@ trait ExporterEnv[DT <: Datatree] {
       (t.id.export[DT#QName],
         NestedDocument(
           ZeroMany(),
-          ZeroOne(),
+          ZeroOne.fromOption(identityFor(t)),
           One(t.cstrApp.cstr.export),
           ZeroMany(t.cstrApp.body.export.flatten :_*))
         )
@@ -124,6 +128,8 @@ trait ExporterEnv[DT <: Datatree] {
   implicit val bodyStmtExporter: Exporter[sa.BodyStmt, Option[DT#NamedProperty]] =
     Exporter { (b: sa.BodyStmt) =>
       b match {
+        case sa.BodyStmt.Assignment(sa.Assignment(`rdf_about`, _)) =>
+          None
         case sa.BodyStmt.Assignment(a) =>
           Some(a.export)
         case sa.BodyStmt.InstanceExp(i) =>
@@ -171,4 +177,7 @@ trait ExporterEnv[DT <: Datatree] {
           txts.mkString
       }
     }
+
+  import sa.sugar._
+  val rdf_about = "rdf" :# "about"
 }
