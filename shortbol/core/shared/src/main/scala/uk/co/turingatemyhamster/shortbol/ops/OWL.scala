@@ -91,15 +91,15 @@ object OWL extends ConstraintSystem {
 
   class ContextConstraints(ctxt: EvalContext) extends Constraint[TopLevel.InstanceExp] {
 
-    implicit val identifierTyper: Typer[Identifier] = new Typer[Identifier] {
-      override def exactTypeOf(a: Identifier) =
-        for {
-          eqA <- equIds.getOrElse(a, Set(a))
-          is <- ctxt.insts.get(eqA).to[Set]
-          i <- is
-          t <- implicitly[Typer[InstanceExp]] exactTypeOf i
-        } yield t
-    }
+//    implicit val identifierTyper: Typer[Identifier] = new Typer[Identifier] {
+//      override def exactTypeOf(a: Identifier) =
+//        for {
+//          eqA <- equIds.getOrElse(a, Set(a))
+//          is <- ctxt.insts.get(eqA).to[Set]
+//          i <- is
+//          t <- implicitly[Typer[InstanceExp]] exactTypeOf i
+//        } yield t
+//    }
 
 
     def byType[A](tpe: Identifier)(implicit ty: Typer[A], aTpe: TypeTag[A]) =
@@ -119,7 +119,17 @@ object OWL extends ConstraintSystem {
                 ('assignment, second[(Identifier, optics.bodyStmt.PropValue), optics.bodyStmt.PropValue] composePrism stdLeft)
                   @: Constraint.applyAll(
                   List(
-                    ('identifier, optics.valueExp.identifier) @: byType[Identifier](tpe) log "identifier",
+                    ('identifier, optics.valueExp.identifier) @:
+                      ('resolveIdentifier, Getter { (i: Identifier) =>
+                        for {
+                          eqA <- (equIds.getOrElse(i, Set(i))).to[List]
+                          ie <- ctxt.insts get eqA flatMap (_.headOption)
+                        } yield {
+                          println(s"resolved $i to $ie")
+                          ie
+                        }
+                      }
+                      ) @: Constraint.forAny(byType[InstanceExp](tpe) log "identifier") log "forAnyInstanceByIdentifier",
                     ('literal, optics.valueExp.literal) @: byType[Literal](tpe) log "literal"
                   )
                 ) log "assignment",

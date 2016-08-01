@@ -659,7 +659,7 @@ object ConstraintsTestSuite extends TestSuite {
               """.stripMargin,
               ontologyCtxt)
 
-            assert(r.isFailure)
+            assert(r.isSuccess)
           }
         }
 
@@ -781,7 +781,7 @@ object ConstraintsTestSuite extends TestSuite {
               """.stripMargin,
               ontologyCtxt)
 
-            assert(r.isFailure)
+            assert(r.isSuccess)
           }
         }
 

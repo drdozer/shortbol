@@ -138,6 +138,11 @@ object Constraint {
     case AlwaysSucceed() => success[List[A]]
     case _ => ForEvery(c)
   }
+
+  def forAny[A](c: Constraint[A])(implicit aTT: TypeTag[A]): Constraint[List[A]] = c match {
+    case AlwaysSucceed() => success[List[A]]
+    case _ => ForAny(c)
+  }
 }
 
 trait OpticConstraintBuilder[O, A, B] {
@@ -164,17 +169,23 @@ object OpticConstraintBuilder {
   implicit def functionBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, A => B), A, B] {
     override def apply(o: (K, A => B), c: Constraint[B]) = InGetter[A, B, K](o._1, c)(Getter(o._2))
   }
-
-  implicit def traversalBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Traversal[A, B]), A, B] {
-    override def apply(o: (K, Traversal[A, B]),
-                       c: Constraint[B]) = ???
-  }
+//
+//  implicit def traversalBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Traversal[A, B]), A, B] {
+//    override def apply(o: (K, Traversal[A, B]),
+//                       c: Constraint[B]) = ???
+//  }
 
   implicit def traversalAllBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Traversal[A, B]), A, List[B]] {
 
     override def apply(o: (K, Traversal[A, B]),
                        c: Constraint[List[B]]) = (o._1, o._2.getAll _) @: c
   }
+//
+//  implicit def foldBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Fold[A, B]), A, B] {
+//
+//    override def apply(o: (K, Fold[A, B]),
+//                       c: Constraint[B]) = (o._1, o._2.getAll _) @: c
+//  }
 }
 
 case class AlwaysSucceed[A]() extends Constraint[A] {
@@ -230,6 +241,24 @@ case class ForEvery[A](c: Constraint[A])(implicit aTT: TypeTag[A]) extends Const
   }
 
   override def prettyPrint: String = s"forEvery(${c.prettyPrint})"
+}
+
+case class ForAny[A](c: Constraint[A])(implicit aTT: TypeTag[A]) extends Constraint[List[A]] {
+  override def apply(as: List[A]) = as match {
+    case Nil =>
+      as.successNel
+    case _ => // fixme: we're loosing logging here
+      val idx = monocle.std.list.listIndex[A]
+      val apps = as map c.apply
+      apps.filter(_.isSuccess) headOption match {
+        case Some(s) =>
+          as.successNel
+        case None =>
+          ConstraintViolation.failure(this, as).failureNel
+      }
+  }
+
+  override def prettyPrint = s"forAny(${c.prettyPrint}"
 }
 
 case class EqualTo[A](eA: A)(implicit aTT: TypeTag[A]) extends Constraint[A] {
