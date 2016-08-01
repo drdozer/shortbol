@@ -25,11 +25,11 @@ object ConstraintsTestSuite extends TestSuite {
       unexpectedSuccess => assert(cr == null, unexpectedSuccess == null))
   }
 
-  def failure[A](cr: Constraint[A], a: A, cv: ConstraintViolation[A]): Unit = {
+  def failure[A](cr: Constraint[A], a: A, exp: ConstraintViolation[A]): Unit = {
     cr(a).fold(
       nel => {
         val obs = nel.head
-        assert(obs == cv)
+        assert(obs == exp)
       },
       unexpectedSuccess => assert(cr == null, unexpectedSuccess == null))
   }
@@ -176,76 +176,112 @@ object ConstraintsTestSuite extends TestSuite {
       'minCardinality - {
         'isUndefinedForNotMin - {
           val cc = OWL.minCardinalityConstraint(
+            "at",
             BodyStmt.Assignment(Assignment(OWL.owl_maxCardinality, 2)))
           assert(cc.isEmpty)
         }
 
         'isDefinedForMin - {
           val cc = OWL.minCardinalityConstraint(
+            "at",
             BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2)))
           assert(cc.isDefined)
         }
 
         'succeedsWithMore - {
-          val cc = OWL.minCardinalityConstraint(BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2))).get
+          val cc = OWL.minCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2))).get
 
           success(
             cc,
-            BodyStmt.BlankLine(BlankLine()) :: BodyStmt.BlankLine(BlankLine()) :: BodyStmt.BlankLine(BlankLine()) :: Nil)
+            BodyStmt.Assignment(Assignment("at", 1)) ::
+              BodyStmt.Assignment(Assignment("at", 2)) ::
+              BodyStmt.Assignment(Assignment("at", 3)) ::
+              Nil)
         }
 
         'succeedsWithExact - {
-          val cc = OWL.minCardinalityConstraint(BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2))).get
+          val cc = OWL.minCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2))).get
 
           success(
             cc,
-            BodyStmt.BlankLine(BlankLine()) :: BodyStmt.BlankLine(BlankLine()) :: Nil)
+            BodyStmt.Assignment(Assignment("at", 1)) ::
+              BodyStmt.Assignment(Assignment("at", 2)) ::
+              Nil)
         }
 
         'failsWithFewer - {
-          val cc = OWL.minCardinalityConstraint(BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2))).get
-          val bs = BodyStmt.BlankLine(BlankLine()) :: List.empty[BodyStmt]
+          val cc = OWL.minCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2))).get
+          val bs = BodyStmt.Assignment(Assignment("at", 1)) ::
+            List.empty[BodyStmt]
 
           failure(
             cc,
             bs,
-            NestedViolation(bs, 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
+            NestedViolation(bs, "at" : Identifier,
+              NestedViolation(("at": Identifier, Left(1 : ValueExp)) :: Nil, 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))(null))
         }
 
       }
 
       'maxCardinality - {
         'isUndefinedForNotMax - {
-          val cc = OWL.maxCardinalityConstraint(BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2)))
+          val cc = OWL.maxCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2)))
           assert(cc.isEmpty)
         }
 
         'isDefinedForMax - {
-          val cc = OWL.maxCardinalityConstraint(BodyStmt.Assignment(Assignment(OWL.owl_maxCardinality, 2)))
+          val cc = OWL.maxCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_maxCardinality, 2)))
           assert(cc.isDefined)
         }
 
         'failsWithMore - {
-          val cc = OWL.maxCardinalityConstraint(BodyStmt.Assignment(Assignment(OWL.owl_maxCardinality, 2))).get
-          val bs = BodyStmt.BlankLine(BlankLine()) :: BodyStmt.BlankLine(BlankLine()) :: BodyStmt.BlankLine(BlankLine()) :: List.empty[BodyStmt]
+          val cc = OWL.maxCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_maxCardinality, 2))).get
+          val bs = BodyStmt.Assignment(Assignment("at", 1)) ::
+            BodyStmt.Assignment(Assignment("at", 2)) ::
+            BodyStmt.Assignment(Assignment("at", 3)) ::
+            List.empty[BodyStmt]
 
           failure(
             cc,
             bs,
-            NestedViolation(bs, 'size, ConstraintViolation.failure(NotGreaterThan(2), 3))(null))
+            NestedViolation(bs, "at" : Identifier,
+              NestedViolation(
+                ("at" : Identifier, Left(1 : ValueExp)) ::
+                  ("at" : Identifier, Left(2 : ValueExp)) ::
+                  ("at" : Identifier, Left(3 : ValueExp)) :: Nil,
+                'size, ConstraintViolation.failure(NotGreaterThan(2), 3))(null))(null))
         }
 
         'succeedsWithExact - {
-          val cc = OWL.maxCardinalityConstraint(BodyStmt.Assignment(Assignment(OWL.owl_maxCardinality, 2))).get
+          val cc = OWL.maxCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_maxCardinality, 2))).get
 
           success(
             cc,
-            BodyStmt.BlankLine(BlankLine()) :: BodyStmt.BlankLine(BlankLine()) :: Nil)
+            BodyStmt.Assignment(Assignment("at", 1)) ::
+              BodyStmt.Assignment(Assignment("at", 2)) ::
+              Nil)
         }
 
         'succeedsWithTooFew - {
-          val cc = OWL.maxCardinalityConstraint(BodyStmt.Assignment(Assignment(OWL.owl_maxCardinality, 2))).get
-          val bs = BodyStmt.BlankLine(BlankLine()) :: List.empty[BodyStmt]
+          val cc = OWL.maxCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_maxCardinality, 2))).get
+          val bs = BodyStmt.Assignment(Assignment("at", 1)) ::
+            List.empty[BodyStmt]
 
           success(
             cc,
@@ -255,47 +291,65 @@ object ConstraintsTestSuite extends TestSuite {
 
       'exactCardinality - {
         'isUndefinedForNotExact - {
-          val cc = OWL.exactCardinalityConstraint(BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2)))
+          val cc = OWL.exactCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2)))
           assert(cc.isEmpty)
         }
 
         'isDefinedForExact - {
-          val cc = OWL.exactCardinalityConstraint(BodyStmt.Assignment(Assignment(OWL.owl_exactCardinality, 2)))
+          val cc = OWL.exactCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_exactCardinality, 2)))
           assert(cc.nonEmpty)
         }
 
         'failsWithMore - {
-          val cc = ApplyAll(
-            OWL.exactCardinalityConstraint(
-              BodyStmt.Assignment(Assignment(OWL.owl_exactCardinality, 2))))
-          val bs = BodyStmt.BlankLine(BlankLine()) :: BodyStmt.BlankLine(BlankLine()) :: BodyStmt.BlankLine(BlankLine()) :: List.empty[BodyStmt]
+          val cc = OWL.exactCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_exactCardinality, 2))).get
+          val bs = BodyStmt.Assignment(Assignment("at", 1)) ::
+            BodyStmt.Assignment(Assignment("at", 2)) ::
+            BodyStmt.Assignment(Assignment("at", 3)) ::
+            List.empty[BodyStmt]
 
           failure(
             cc,
             bs,
-            NestedViolation(bs, 'size, ConstraintViolation.failure(NotGreaterThan(2), 3))(null))
+            NestedViolation(bs, "at" : Identifier,
+              NestedViolation(
+                ("at" : Identifier, Left(1 : ValueExp)) ::
+                  ("at" : Identifier, Left(2 : ValueExp)) ::
+                  ("at" : Identifier, Left(3 : ValueExp)) :: Nil,
+                'size, ConstraintViolation.failure(NotGreaterThan(2), 3))(null))(null))
         }
 
         'succeedsWithExact - {
-          val cc = ApplyAll(
-            OWL.exactCardinalityConstraint(
-              BodyStmt.Assignment(Assignment(OWL.owl_exactCardinality, 2))))
+          val cc = OWL.exactCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_exactCardinality, 2))).get
 
           success(
             cc,
-            BodyStmt.BlankLine(BlankLine()) :: BodyStmt.BlankLine(BlankLine()) :: Nil)
+            BodyStmt.Assignment(Assignment("at", 1)) ::
+              BodyStmt.Assignment(Assignment("at", 2)) ::
+              Nil)
         }
 
         'failsWithFewer - {
-          val cc = ApplyAll(
-            OWL.exactCardinalityConstraint(
-              BodyStmt.Assignment(Assignment(OWL.owl_exactCardinality, 2))))
-          val bs = BodyStmt.BlankLine(BlankLine()) :: List.empty[BodyStmt]
+          val cc = OWL.exactCardinalityConstraint(
+            "at",
+            BodyStmt.Assignment(Assignment(OWL.owl_exactCardinality, 2))).get
+          val bs = BodyStmt.Assignment(Assignment("at", 1)) ::
+            List.empty[BodyStmt]
 
           failure(
             cc,
             bs,
-            NestedViolation(bs, 'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))
+            NestedViolation(bs, "at" : Identifier,
+              NestedViolation(
+                ("at" : Identifier, Left(1 : ValueExp)) :: Nil,
+                'size, ConstraintViolation.failure(NotLessThan(2), 1))(null))(null))
         }
       }
 
@@ -304,18 +358,21 @@ object ConstraintsTestSuite extends TestSuite {
 
         'isUndefinedForNotAllValuesFrom - {
           val tc = OWLC.allValuesFromConstraint(
+            "at",
             BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, "myClass")))
           assert(tc.isEmpty)
         }
 
         'isDefinedForAllValuesFrom - {
           val tc = OWLC.allValuesFromConstraint(
+            "at",
             BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "myClass")))
           assert(tc.isDefined)
         }
 
         'succeedsWithMatchingType - {
           val tc = OWLC.allValuesFromConstraint(
+            "rod",
             BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "myClass"))).get
           val bs = BodyStmt.InstanceExp(InstanceExp(
             "rod",
@@ -329,6 +386,7 @@ object ConstraintsTestSuite extends TestSuite {
         'withInstance - {
           'failsWithNonMatchingType - {
             val tc = OWLC.allValuesFromConstraint(
+              "rod",
               BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "myClass"))).get
             val bs = BodyStmt.InstanceExp(InstanceExp(
               "rod",
@@ -338,36 +396,61 @@ object ConstraintsTestSuite extends TestSuite {
               tc,
               bs,
               NestedViolation(
-                bs, 'instance, NestedViolation(
-                  bs.asInstanceOf[BodyStmt.InstanceExp].instanceExp, 'type, ConstraintViolation.failure(
-                    MemberOf("myClass" : Identifier), Set("jane" : Identifier)))(null))(null))
+                bs,
+                "rod" : Identifier,
+                NestedViolation(
+                  ("rod" : Identifier, Right(ConstructorApp(TpeConstructor1("jane", Seq()), Seq()))),
+                  'instance,
+                  NestedViolation(
+                    ConstructorApp(TpeConstructor1("jane", Seq()), Seq()),
+                    'type,
+                    ConstraintViolation.failure(
+                      MemberOf("myClass" : Identifier),
+                      Set("jane" : Identifier)
+                    )
+                  )(null)
+                )(null)
+              )(null)
+            )
           }
 
           'failsWithNonMatchingType1 - {
             val tc = OWLC.allValuesFromConstraint(
+              "rod",
               BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "myClass"))).get
-            val bs =
+            val bs = List(
               BodyStmt.InstanceExp(InstanceExp(
                 "rod",
-                ConstructorApp(TpeConstructor1("myClass", Seq()), Seq()))) ::
-                BodyStmt.InstanceExp(InstanceExp(
-                  "jane",
-                  ConstructorApp(TpeConstructor1("freddy", Seq()), Seq()))) :: List.empty[BodyStmt]
+                ConstructorApp(TpeConstructor1("myClass", Seq()), Seq()))),
+              BodyStmt.InstanceExp(InstanceExp(
+                "rod",
+                ConstructorApp(TpeConstructor1("freddy", Seq()), Seq()))) : BodyStmt
+            )
 
             failure(
               Constraint.forEvery(tc),
               bs,
               NestedViolation(
-                bs, 1, NestedViolation(
-                  bs(1), 'instance, NestedViolation(
-                    bs(1).asInstanceOf[BodyStmt.InstanceExp].instanceExp, 'type, ConstraintViolation.failure(
-                      MemberOf("myClass" : Identifier), Set("freddy" : Identifier)))(null))(null))(null))
+                bs,
+                1,
+                NestedViolation(
+                  bs(1),
+                  "rod" : Identifier,
+                  NestedViolation(
+                    ("rod" : Identifier, Right(ConstructorApp(TpeConstructor1("freddy", Seq()), Seq()))),
+                    'instance,
+                    NestedViolation(
+                      ConstructorApp(TpeConstructor1("freddy", Seq()), Seq()),
+                      'type,
+                      ConstraintViolation.failure(
+                        MemberOf("myClass" : Identifier), Set("freddy" : Identifier)))(null))(null))(null))(null))
           }
         }
 
         'withLiteral - {
           'failsWithNonMatchingType - {
             val tc = OWLC.allValuesFromConstraint(
+              "age",
               BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "xsd" :# "integer"))).get
             val bs = BodyStmt.Assignment(Assignment(
               "age", slLit("42"))) : BodyStmt
@@ -375,18 +458,27 @@ object ConstraintsTestSuite extends TestSuite {
             failure(
               tc,
               bs,
-              NestedViolation(bs, 'assignment,
-                NestedViolation(bs.asInstanceOf[BodyStmt.Assignment].assignment, 'value,
-                  NestedViolation(slLit("42") : ValueExp, 'literal,
-                   NestedViolation(slLit("42"), 'type,
-                     ConstraintViolation.failure(
-                       MemberOf("xsd" :# "integer" : Identifier),
-                       Set("xsd" :# "string" : Identifier)))(null))(null))(null))(null))
+              NestedViolation(
+                bs,
+                "age" : Identifier,
+                NestedViolation(
+                  ("age" : Identifier, Left(slLit("42") : ValueExp)),
+                  'assignment,
+                  NestedViolation(
+                    slLit("42") : ValueExp,
+                    'literal,
+                    NestedViolation(
+                      slLit("42"),
+                      'type,
+                      ConstraintFailure(
+                        MemberOf("xsd" :# "integer" : Identifier),
+                        Set("xsd" :# "string" : Identifier)))(null))(null))(null))(null))
           }
         }
 
         'multipleRestrictions - {
           val r = OWLC.restrictions(
+            "prov" :# "wasAttributedTo",
             BodyStmt.Assignment(Assignment(OWL.owl_minCardinality, 2)) ::
               BodyStmt.Assignment(Assignment(OWL.owl_maxCardinality, 4)) ::
               BodyStmt.Assignment(Assignment(OWL.owl_allValuesFrom, "prov" :# "Agent")) ::
@@ -474,8 +566,8 @@ object ConstraintsTestSuite extends TestSuite {
       import ShortbolParser.POps
       val ontologyCtxt = ShortbolParser.SBFile.withPositions("_ontology_", ontology).get.value.eval.exec(Fixture.configuredContext)
 
-      def typecheck(sbol: String, c: EvalContext): Constraint.CheckedConstraints[SBEvaluatedFile] =
-        OWL(ShortbolParser.SBFile.withPositions("_test_", sbol).get.value.eval.run(c))
+      def typecheck(sbol: String, c: EvalContext): Constraint.ValidatedConstraints[SBEvaluatedFile] =
+        ConstraintSystem(OWL)()(ShortbolParser.SBFile.withPositions("_test_", sbol).get.value.eval.run(c))
 
       'createsTypes - {
         val r = OWL fromContext ontologyCtxt
@@ -515,7 +607,7 @@ object ConstraintsTestSuite extends TestSuite {
                 |x : sbol:Identified
                 |  sbol:persistentIdentity : prov:Entity
               """.stripMargin,
-              ontologyCtxt)
+              ontologyCtxt).leftMap(_.map(_.prettyPrint))
 
             assert(r.isSuccess)
           }

@@ -26,24 +26,32 @@ object LibsboljTestSuite extends TestSuite {
     val sb = ShortbolParser.SBFile.withPositions("_test_", shortbol).get.value
     val (c, v) = sb.eval.run(Fixture.configuredContext)
 
-    val tc = OWL((c, v))
-    if(tc.isFailure) {
-      val errs = tc.leftMap(_ map (_.prettyPrint))
-      assert(errs.isSuccess)
-    } else {
-      val doc = Exporter[datatree.ast.AstDatatree](c).apply(v)
+    ConstraintSystem(OWL)(
+      LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA)
+    )(c)(v).fold(
+      errs => {
+        val ep = errs.map(_.prettyPrint)
+        assert(ep == null)
+      },
+      s => {
+        val doc = Exporter[datatree.ast.AstDatatree](c).apply(s)
 
-      val rdfIo = RdfIo.rdfIo[datatree.ast.AstDatatree]
-      val xmlText = new StringWriter()
-      val xtw = xof.createXMLStreamWriter(xmlText)
-      RdfIo.write[datatree.ast.AstDatatree](xtw, doc)
+        val rdfIo = RdfIo.rdfIo[datatree.ast.AstDatatree]
+        val xmlText = new StringWriter()
+        val xtw = xof.createXMLStreamWriter(xmlText)
+        RdfIo.write[datatree.ast.AstDatatree](xtw, doc)
 
-      val sbolDoc = new SBOLDocument()
-      SBOLFactory.setSBOLDocument(sbolDoc)
-      SBOLFactory.read(new ByteArrayInputStream(xmlText.toString.getBytes(StandardCharsets.UTF_8)))
+        println("--- xml ---")
+        println(xmlText)
+        println("--- xml ---")
 
-      sbolDoc
-    }
+        val sbolDoc = new SBOLDocument()
+        SBOLFactory.setSBOLDocument(sbolDoc)
+        SBOLFactory.read(new ByteArrayInputStream(xmlText.toString.getBytes(StandardCharsets.UTF_8)))
+
+        sbolDoc
+      }
+    )
   }
 
 

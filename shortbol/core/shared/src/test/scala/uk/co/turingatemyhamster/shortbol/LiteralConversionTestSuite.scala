@@ -101,7 +101,7 @@ object LiteralConversionTestSuite extends TestSuite {
       val ontology =
         """
           |Sequence : owl:Class
-          |  encoding : owl:propertyRestriction
+          |  elements : owl:propertyRestriction
           |    owl:allValuesFrom = xsd:string
         """.stripMargin
       import ast.sugar._
@@ -114,11 +114,10 @@ object LiteralConversionTestSuite extends TestSuite {
       val litConv = LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA)
 
       'typeStringLiteral - {
-        val expRec = Assignment("encoding", expected) : BodyStmt
-        val cstr = owl.allValuesFromConstraint(Assignment("owl" :# "allValuesFrom", "xsd" :# "string"))
-        val tpeCheck = cstr.get.apply(Assignment("encoding", fastaString) : BodyStmt)
-        val recovered = tpeCheck.leftMap(_.map(_.recoverWith(
-          (cv: ConstraintViolation[Literal]) => DNAFormatConversion.conversionAsRecovery(litConv, cv))))
+        val expRec = Assignment("elements", expected) : BodyStmt
+        val cstr = owl.allValuesFromConstraint("elements", Assignment("owl" :# "allValuesFrom", "xsd" :# "string"))
+        val tpeCheck = cstr.get.apply(Assignment("elements", fastaString) : BodyStmt)
+        val recovered = tpeCheck.leftMap(_.map(_.recoverWith(litConv)))
 
         recovered.fold(
           nel => assert(nel.head.contains(expRec)),

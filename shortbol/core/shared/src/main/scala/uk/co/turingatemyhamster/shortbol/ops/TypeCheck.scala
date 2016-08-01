@@ -2,13 +2,13 @@ package uk.co.turingatemyhamster.shortbol
 package ops
 
 import scala.reflect.runtime.universe.TypeTag
-
 import ast._
 import sugar._
 
-import scalaz.{IList, NonEmptyList, Scalaz, Validation, ValidationNel, \/}
+import scalaz.{-\/, Applicative, IList, NonEmptyList, Scalaz, Validation, ValidationNel, \/, \/-}
 import Scalaz._
 import monocle._
+import monocle.function.FilterIndex
 import monocle.macros._
 
 
@@ -21,8 +21,10 @@ sealed trait ConstraintViolation[A] {
 
   def prettyPrint: String
 
-  def recoverWith[C <: ConstraintViolation[X], X](f: C => Option[X])(implicit cTT: TypeTag[C], xTT: TypeTag[X]): Option[A]
+  def recoverWith[C <: ConstraintViolation[X], X](r: Recovery[C, X]): Option[A]
 }
+
+case class Recovery[C <: ConstraintViolation[X], X](f: C => Option[X])(implicit val cTT: TypeTag[C], val xTT: TypeTag[X])
 
 object ConstraintViolation {
   def failure[A](rule: Constraint[A], at: A)(implicit aTT: TypeTag[A]): ConstraintViolation[A] =
@@ -33,10 +35,17 @@ case class ConstraintFailure[A](rule: Constraint[A], at: A)
                                (implicit cfaTT: TypeTag[ConstraintFailure[A]], aTT: TypeTag[A]) extends ConstraintViolation[A] {
   override def prettyPrint: String = s"failed(${rule.prettyPrint} at $at"
 
-  override def recoverWith[C <: ConstraintViolation[X], X](f: C => Option[X])
-                                                          (implicit cTT: TypeTag[C], xTT: TypeTag[X]) = {
-    if(cfaTT.tpe <:< cTT.tpe && aTT.tpe <:< xTT.tpe) {
-      f(this.asInstanceOf[C]).map(_.asInstanceOf[A])
+  override def recoverWith[C <: ConstraintViolation[X], X](r: Recovery[C, X]) = {
+    println("Failure:")
+    println(cfaTT)
+    println(r.cTT)
+    println(aTT)
+    println(r.xTT)
+    if(cfaTT.tpe <:< r.cTT.tpe && aTT.tpe <:< r.xTT.tpe) {
+      println("Applying matching recovery:")
+      val x = r.f(this.asInstanceOf[C]).map(_.asInstanceOf[A])
+      println(s"Recovered to: $x")
+      x
     } else {
       None
     }
@@ -51,35 +60,84 @@ case class NestedViolation[A, K, B](at: A, key: K, because: ConstraintViolation[
   }
   override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
 
-  override def recoverWith[C <: ConstraintViolation[X], X](f: C => Option[X])
-                                                          (implicit cTT: TypeTag[C], xTT: TypeTag[X]) = {
-    if(nvTT.tpe <:< cTT.tpe && aTT.tpe <:< xTT.tpe) {
-      f(this.asInstanceOf[C]).map(_.asInstanceOf[A])
+  override def recoverWith[C <: ConstraintViolation[X], X](r: Recovery[C, X]) = {
+    println("Nested failure:")
+    println(nvTT)
+    println(r.cTT)
+    println(aTT)
+    println(r.xTT)
+    if(nvTT.tpe <:< r.cTT.tpe && aTT.tpe <:< r.xTT.tpe) {
+      println("Applying matching recovery:")
+      val x = r.f(this.asInstanceOf[C]).map(_.asInstanceOf[A])
+      println(s"Recovered to: $x")
+      x
     } else {
+      if(setter.isEmpty) println(s"Stopping here as we have no setter to traverse $key into ${because.prettyPrint}.")
       for {
         s <- setter
-        b <- because.recoverWith(f)
+        b <- because.recoverWith(r)
       } yield s.set(b)(at)
     }
   }
 }
 
+import Constraint.ValidatedConstraints
+
 trait Constraint[A] {
-  def apply(a: A): ValidationNel[ConstraintViolation[A], A]
+  self =>
 
-  def onlyIf(c: Constraint[A]) = If(c, this, Constraint.success)
-  def unless(c: Constraint[A]) = If(c, Constraint.success, this)
+  def apply(a: A): ValidatedConstraints[A]
 
-  def requires(c: Constraint[A])(implicit aTT: TypeTag[A]) = If(c, this, Constraint.fail[A])
-  def rejecting(c: Constraint[A])(implicit aTT: TypeTag[A]) = If(c, Constraint.fail[A], this)
+  final def onlyIf(c: Constraint[A]) = If(c, this, Constraint.success)
+  final def unless(c: Constraint[A]) = If(c, Constraint.success, this)
 
+  final def requires(c: Constraint[A])(implicit aTT: TypeTag[A]) = If(c, this, Constraint.fail[A])
+  final def rejecting(c: Constraint[A])(implicit aTT: TypeTag[A]) = If(c, Constraint.fail[A], this)
 
-  def @: [O, X](o: O)(implicit ocb: OpticConstraintBuilder[O, X, A]): Constraint[X] = this match {
+  final def @: [O, X](o: O)(implicit ocb: OpticConstraintBuilder[O, X, A]): Constraint[X] = this match {
     case AlwaysSucceed() => Constraint.success[X]
     case c => ocb(o, c)
   }
 
   def prettyPrint: String
+
+  def log(msg: String): Constraint[A] = new Constraint[A] {
+    override def apply(a: A) = {
+      println(s"--> $msg: $a")
+      val v = self(a)
+      println(s"<-- $msg: $a ~> $v")
+      v
+    }
+
+    override def prettyPrint = self.prettyPrint
+
+    override def log(msg: String) = self
+  }
+}
+
+object Constraint {
+
+  type ValidatedConstraints[A] = ValidationNel[ConstraintViolation[A], A]
+
+  def success[A] = AlwaysSucceed[A]()
+  def fail[A](implicit aTT: TypeTag[A]) = AlwaysFail[A](none)
+
+
+  def applyAll[A](cs: List[Constraint[A]])(implicit aTT: TypeTag[A]): Constraint[A] =
+    cs flatMap {
+      case AlwaysSucceed() => Nil
+      case ApplyAll(xx) => xx
+      case x => x :: Nil
+    } match {
+      case Nil => success[A]
+      case h::Nil => h
+      case css => ApplyAll(css)
+    }
+
+  def forEvery[A](c: Constraint[A])(implicit aTT: TypeTag[A]): Constraint[List[A]] = c match {
+    case AlwaysSucceed() => success[List[A]]
+    case _ => ForEvery(c)
+  }
 }
 
 trait OpticConstraintBuilder[O, A, B] {
@@ -106,31 +164,16 @@ object OpticConstraintBuilder {
   implicit def functionBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, A => B), A, B] {
     override def apply(o: (K, A => B), c: Constraint[B]) = InGetter[A, B, K](o._1, c)(Getter(o._2))
   }
-}
 
-object Constraint {
+  implicit def traversalBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Traversal[A, B]), A, B] {
+    override def apply(o: (K, Traversal[A, B]),
+                       c: Constraint[B]) = ???
+  }
 
-  type CheckedConstraint[A] = Validation[ConstraintViolation[A], A]
-  type CheckedConstraints[A] = ValidationNel[ConstraintViolation[A], A]
+  implicit def traversalAllBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Traversal[A, B]), A, List[B]] {
 
-  def success[A] = AlwaysSucceed[A]()
-  def fail[A](implicit aTT: TypeTag[A]) = AlwaysFail[A](none)
-
-
-  def applyAll[A](cs: List[Constraint[A]])(implicit aTT: TypeTag[A]): Constraint[A] =
-    cs flatMap {
-      case AlwaysSucceed() => Nil
-      case ApplyAll(xx) => xx
-      case x => x :: Nil
-    } match {
-      case Nil => success[A]
-      case h::Nil => h
-      case css => ApplyAll(css)
-    }
-
-  def forEvery[A](c: Constraint[A])(implicit aTT: TypeTag[A]): Constraint[List[A]] = c match {
-    case AlwaysSucceed() => success[List[A]]
-    case _ => ForEvery(c)
+    override def apply(o: (K, Traversal[A, B]),
+                       c: Constraint[List[B]]) = (o._1, o._2.getAll _) @: c
   }
 }
 
@@ -157,8 +200,20 @@ case class If[A](condition: Constraint[A], ifTrue: Constraint[A], ifFalse: Const
 }
 
 case class ApplyAll[A](cs: List[Constraint[A]]) extends Constraint[A] {
-  override def apply(a: A) =
-    (NonEmptyList.nel(cs.head, IList.fromList(cs.tail)) map (_ apply a)).sequenceU map (_.head)
+  override def apply(a: A) = {
+    val (aa, errs) = cs.foldLeft((a, List.empty[ConstraintViolation[A]]))(applyConstraint)
+
+    errs match {
+      case h::t => NonEmptyList(h, t :_*).failure[A]
+      case Nil => aa.successNel[ConstraintViolation[A]]
+    }
+  }
+
+  def applyConstraint(ae: (A, List[ConstraintViolation[A]]), c: Constraint[A]): (A, List[ConstraintViolation[A]]) =
+    c(ae._1).fold(
+      e => (ae._1, ae._2 ++ e.toList),
+      s => (s, ae._2)
+    )
 
   override def prettyPrint: String = s"applyAll(${cs map (_.prettyPrint) mkString " "})"
 }
@@ -211,7 +266,7 @@ case class InPrism[A, B, K](key: K, bC: Constraint[B])
   override def apply(a: A) =
     prism.getOption(a) match {
       case Some(b) =>
-        bC(b).leftMap(_.map(_.in(a, key, prism.asSetter.some))).map(_ => a)
+        bC(b).leftMap(_.map(_.in(a, key, prism.asSetter.some))).map(b => prism.set(b)(a))
       case None =>
         a.successNel
     }
@@ -223,7 +278,7 @@ case class InLens[A, B, K](key: K, bC: Constraint[B])
                           (lens: Lens[A, B])
                           (implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) extends Constraint[A] {
   override def apply(a: A) =
-    bC(lens.get(a)).leftMap(_.map(_.in(a, key, lens.asSetter.some))).map(_ => a)
+    bC(lens.get(a)).leftMap(_.map(_.in(a, key, lens.asSetter.some))).map(b => lens.set(b)(a))
 
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
@@ -234,7 +289,7 @@ case class InOptional[A, B, K](key: K, bC: Constraint[B])
   override def apply(a: A) =
     optional.getOption(a) match {
       case Some(b) =>
-        bC(b).leftMap(_.map(_.in(a, key, optional.asSetter.some))).map(_ => a)
+        bC(b).leftMap(_.map(_.in(a, key, optional.asSetter.some))).map(b => optional.set(b)(a))
       case None =>
         a.successNel
     }
@@ -252,16 +307,55 @@ case class InGetter[A, B, K](key: K, bC: Constraint[B])
 }
 
 trait ConstraintSystem {
-  def fromContext(ctxt: EvalContext): Constraint[SBEvaluatedFile]
-
-  final def apply(cf: (EvalContext, SBEvaluatedFile)) =
-    fromContext(cf._1).apply(cf._2)
+  def fromContext(ctxt: EvalContext): Constraint[TopLevel.InstanceExp]
 }
 
 object ConstraintSystem {
-  def apply(cs: ConstraintSystem*) = new ConstraintSystem {
-    override def fromContext(ctxt: EvalContext) =
-      Constraint.applyAll(cs.to[List] map (_.fromContext(ctxt)))
+  def apply(cs: ConstraintSystem*) = new {
+    def apply(recovery: Recovery[_, _]*) = new {
+      def apply(ctxt: EvalContext) = new Constraint[SBEvaluatedFile] {
+        val allConstraints = Constraint.applyAll(cs.to[List] map (_.fromContext(ctxt)))
+
+        val recoveringConstraint = new Constraint[TopLevel.InstanceExp] {
+          override def apply(a: TopLevel.InstanceExp): ValidatedConstraints[TopLevel.InstanceExp] =
+            applyWithRecovery(a).validationNel
+
+          def applyWithRecovery(a: TopLevel.InstanceExp): ConstraintViolation[TopLevel.InstanceExp] \/ TopLevel.InstanceExp =
+            allConstraints(a).fold(
+                        err => {
+                          println(s"*** applyWithRecovery *** at $a for error ${err.head.prettyPrint}")
+                          val ar = attemptRecovery(err.head)
+                          println(s"*** recovered *** to ${ar.fold(_.prettyPrint, _.toString)}")
+                          val aar = ar flatMap applyWithRecovery
+                          println(s"*** finally *** $aar")
+                          aar
+                        },
+                        \/-(_)
+                      )
+
+          def attemptRecovery(cv: ConstraintViolation[TopLevel.InstanceExp]): ConstraintViolation[TopLevel.InstanceExp] \/ TopLevel.InstanceExp =
+            recovery.flatMap(
+              cv recoverWith _.asInstanceOf[Recovery[ConstraintViolation[Any], Any]] // type hack -- should do better
+            ).headOption \/> cv
+
+          override def prettyPrint = allConstraints.prettyPrint
+        } log "recoveringConstraint"
+
+        val sbEFConstraint = (
+          ('tops, optics.sbEvaluatedFile.tops) @:
+          (ForEvery(
+            recoveringConstraint
+          ) log "tops")
+          ) log "sbEFConstraint"
+
+        def apply(sev: SBEvaluatedFile) = sbEFConstraint(sev)
+
+        override def prettyPrint = sbEFConstraint.prettyPrint
+      }
+
+      def apply(cf : (EvalContext, SBEvaluatedFile))
+      : ValidatedConstraints[SBEvaluatedFile] = apply(cf._1)(cf._2)
+    }
   }
 }
 
@@ -274,12 +368,40 @@ object optics {
     val cstrApp = GenLens[InstanceExp](_.cstrApp)
   }
 
+
   object constructorApp {
     val cstr = GenLens[ConstructorApp](_.cstr)
     val body = GenLens[ConstructorApp](_.body) composeIso seqListIso[BodyStmt]
+
+//    def propertyFilter(property: Identifier) = new PTraversal[ConstructorApp, ConstructorApp, PropValue, PropValue] {
+//      override def modifyF[F[_] : Applicative](f: (PropValue) => F[PropValue])
+//                                              (s: ConstructorApp) =
+//      {
+//        body.modifyF[F](
+//          _.traverse {
+//            case a@BodyStmt.Assignment(Assignment(p, v)) =>
+//              if(p == property)
+//                f(Left(v) : PropValue) map {
+//                  case Left(vv) => BodyStmt.Assignment(Assignment(p, vv))
+//                }
+//              else
+//                Applicative[F].point(a)
+//            case ie@BodyStmt.InstanceExp(InstanceExp(i, c)) =>
+//              if(i == property)
+//                f(Right(c) : PropValue) map {
+//                  case Right(cc) => BodyStmt.InstanceExp(InstanceExp(i, cc))
+//                }
+//              else
+//                Applicative[F].point(ie)
+//          }
+//        )(s)
+//      }
+//    }
   }
 
   object bodyStmt {
+    type PropValue = Either[ValueExp, ConstructorApp]
+
     val assignment = GenPrism[BodyStmt, BodyStmt.Assignment] composeLens
       GenLens[BodyStmt.Assignment](_.assignment)
     val blankLine = GenPrism[BodyStmt, BodyStmt.BlankLine] composeLens
@@ -290,6 +412,39 @@ object optics {
       GenLens[BodyStmt.InstanceExp](_.instanceExp)
     val constructorApp = GenPrism[BodyStmt, BodyStmt.ConstructorApp] composeLens
       GenLens[BodyStmt.ConstructorApp](_.constructorApp)
+
+    val property: Optional[BodyStmt, (Identifier, PropValue)] = new POptional[BodyStmt, BodyStmt, (Identifier, PropValue), (Identifier, PropValue)] {
+      override def getOrModify(s: BodyStmt) = {
+        s match {
+          case BodyStmt.Assignment(Assignment(p, v)) =>
+            \/-(p -> (Left(v) : PropValue))
+          case BodyStmt.InstanceExp(InstanceExp(i, c)) =>
+            \/-(i -> (Right(c) : PropValue))
+          case bs =>
+            -\/(bs)
+        }
+      }
+
+      override def set(b: (Identifier, PropValue)) = s => b match {
+        case (p, Left(v)) =>
+          BodyStmt.Assignment(Assignment(p, v))
+        case (i, Right(c)) =>
+          BodyStmt.InstanceExp(InstanceExp(i, c))
+      }
+
+      override def getOption(s: BodyStmt) = getOrModify(s) fold (
+       _ => None,
+        Some(_)
+      )
+      def modifyF[F[_]: Applicative](f: ((Identifier, PropValue)) => F[(Identifier, PropValue)])(s: BodyStmt): F[BodyStmt] =
+        getOption(s).fold(
+          Applicative[F].point(s))(
+          a => Applicative[F].map(f(a))(set(_)(s))
+        )
+
+      def modify(f: ((Identifier, PropValue)) => (Identifier, PropValue)): BodyStmt => BodyStmt =
+        s => getOption(s).fold(s)(a => set(f(a))(s))
+    }
   }
 
   object assignment {
@@ -317,203 +472,27 @@ object optics {
   object sbEvaluatedFile {
     val tops = GenLens[SBEvaluatedFile](_.tops) composeIso seqListIso[TopLevel.InstanceExp]
   }
+
+  object list {
+
+    implicit def listSublist[A] = Optional({(lse: (List[A], Int, Int)) =>
+      val (list, start, end) = lse
+      val sublist = list.slice(start, end)
+      if(sublist.length == end - start)
+        Some(sublist)
+      else
+        None
+    })({sublist => lse =>
+      val (list, start, end) = lse
+      val (pfx, tail) = list splitAt end
+      val (head, dead) = pfx splitAt start
+      (head ::: sublist ::: tail, start, (end - pfx.length + sublist.length))
+    })
+  }
+
+  def unsafeSelect[A](predicate: A => Boolean): Prism[A, A] =
+    Prism[A, A](a => if (predicate(a)) Some(a) else None)(a => a)
 }
 
-object OWL extends ConstraintSystem {
-  val owl = "owl" : NSPrefix
-  val owl_class = owl :# "Class"
-  val owl_propertyRestriction = owl :# "propertyRestriction"
-  val owl_minCardinality = owl :# "minCardinality"
-  val owl_maxCardinality = owl :# "maxCardinality"
-  val owl_exactCardinality = owl :# "exactCardinality"
-  val owl_allValuesFrom = owl :# "allValuesFrom"
-  val owl_subClassOf = owl :# "subClassOf"
 
-  trait Typer[A] {
-    def exactTypeOf(a: A): Set[Identifier]
-  }
-
-  implicit val instanceExpTyper: Typer[InstanceExp] = new Typer[InstanceExp] {
-    override def exactTypeOf(a: InstanceExp) = a match {
-      case InstanceExp(_, ConstructorApp(TpeConstructor1(t, _), _)) => Set(t)
-      case _ => Set()
-    }
-  }
-
-  implicit val literalTyper: Typer[Literal] = new Typer[Literal] {
-    override def exactTypeOf(a: Literal) = a match {
-      case IntegerLiteral(_) => Set("xsd":#"integer")
-      case StringLiteral(_, dt, _) => dt map (d => Set(d.tpe)) getOrElse Set("xsd":#"string")
-    }
-  }
-
-  def bySize[T](c: Constraint[Int])(implicit tTpe: TypeTag[T]) = ('size, Getter((_:List[T]).size)) @: c
-
-  def minCardinalityConstraint(propRes: BodyStmt): Option[Constraint[List[BodyStmt]]] =
-    propRes match {
-      case BodyStmt.Assignment(Assignment(`owl_minCardinality`, ValueExp.Literal(IntegerLiteral(c)))) =>
-        bySize[BodyStmt](NotLessThan(c)).some
-      case _ =>
-        none
-    }
-
-  def maxCardinalityConstraint(propRes: BodyStmt): Option[Constraint[List[BodyStmt]]] =
-    propRes match {
-      case BodyStmt.Assignment(Assignment(`owl_maxCardinality`, ValueExp.Literal(IntegerLiteral(c)))) =>
-        bySize[BodyStmt](NotGreaterThan(c)).some
-      case _ =>
-        none
-    }
-
-  def exactCardinalityConstraint(propRes: BodyStmt): List[Constraint[List[BodyStmt]]] =
-    propRes match {
-      case BodyStmt.Assignment(Assignment(`owl_exactCardinality`, ValueExp.Literal(IntegerLiteral(c)))) =>
-        bySize[BodyStmt](NotLessThan(c)) :: bySize[BodyStmt](NotGreaterThan(c)) :: Nil
-      case _ =>
-        Nil
-    }
-
-
-  class ContextConstraints(ctxt: EvalContext) extends Constraint[SBEvaluatedFile] {
-
-    implicit val identifierTyper: Typer[Identifier] = new Typer[Identifier] {
-      override def exactTypeOf(a: Identifier) =
-        for {
-          eqA <- equIds.getOrElse(a, Set(a))
-          is <- ctxt.insts.get(eqA).to[Set]
-          i <- is
-          t <- implicitly[Typer[InstanceExp]] exactTypeOf i
-        } yield t
-    }
-
-
-    def byType[A](tpe: Identifier)(implicit ty: Typer[A], aTpe: TypeTag[A]) =
-      ('type, Getter((a: A) => {
-        ty exactTypeOf a flatMap (ta =>
-          flatHierarchy.getOrElse(ta, Set(ta)))
-      })) @: MemberOf(tpe)
-
-
-    def allValuesFromConstraint(propRes: BodyStmt): Option[Constraint[BodyStmt]] =
-      propRes match {
-        case BodyStmt.Assignment(Assignment(`owl_allValuesFrom`, ValueExp.Identifier(tpe))) =>
-          Constraint.applyAll(
-            List(
-              ('instance, optics.bodyStmt.instanceExp) @: byType[InstanceExp](tpe),
-              ('assignment, optics.bodyStmt.assignment) @:
-                ('value, optics.assignment.value) @: Constraint.applyAll(
-                List(
-                  ('identifier, optics.valueExp.identifier) @: byType[Identifier](tpe),
-                  ('literal, optics.valueExp.literal) @: byType[Literal](tpe)
-                )
-              )
-            )
-          ).some
-        case _ =>
-          none
-      }
-
-    def restrictions(restrs: Seq[BodyStmt]): Constraint[List[BodyStmt]] =
-      Constraint.applyAll(
-        restrs.to[List] flatMap { r =>
-          List.empty ++
-            minCardinalityConstraint(r) ++
-            maxCardinalityConstraint(r) ++
-            exactCardinalityConstraint(r) ++
-            (allValuesFromConstraint(r).to[List] map Constraint.forEvery)
-        }
-      )
-
-    def restrictionInstance(i: InstanceExp): Option[Constraint[List[BodyStmt]]] = i match {
-      case InstanceExp(propId, ConstructorApp(TpeConstructor1(`owl_propertyRestriction`, _), restrs)) =>
-        ((propId, Getter((_: List[BodyStmt]) collect {
-          case b@BodyStmt.Assignment(Assignment(p, _)) if p == propId => b : BodyStmt
-          case b@BodyStmt.InstanceExp(InstanceExp(p, _)) if p == propId => b : BodyStmt
-        })) @: restrictions(restrs)).some
-      case _ => None
-    }
-
-    def owlClassConstraint(cl: InstanceExp): Option[Constraint[InstanceExp]] =
-      cl match {
-        case InstanceExp(clsId, ConstructorApp(TpeConstructor1(`owl_class`, _), clsBdy)) =>
-          val rs = Constraint.applyAll(
-            clsBdy.to[List].flatMap {
-              case BodyStmt.InstanceExp(i) => restrictionInstance(i)
-              case _ => Nil
-            })
-          ((('properties, optics.instanceExp.cstrApp composeLens optics.constructorApp.body) @: rs) onlyIf
-            byType[InstanceExp](clsId)).some
-        case _ =>
-          none
-      }
-
-    val equIds = {
-      var clusters = Map.empty[Identifier, Set[Identifier]]
-
-      for {
-        (i, js) <- ctxt.vlxps
-        _ = if(js.size != 1) throw new IllegalStateException(s"Expected one value for $i but found $js")
-        ValueExp.Identifier(j) <- js
-      } {
-        val iS = clusters.getOrElse(i, Set(i))
-        val jS = clusters.getOrElse(j, Set(j))
-        val ijS = iS ++ jS
-        clusters += (i -> ijS)
-        clusters += (j -> ijS)
-      }
-
-      clusters
-    }
-
-    val allClassIds = for {
-          is <- ctxt.insts.values.to[List]
-          _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.id}")
-          InstanceExp(clsId, ConstructorApp(TpeConstructor1(`owl_class`, _), _)) <- is
-    } yield clsId
-
-    val classHierarchy = (for {
-      is <- ctxt.insts.values.to[List]
-      _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.id}")
-      InstanceExp(clsId, ConstructorApp(TpeConstructor1(`owl_class`, _), clsBdy)) <- is
-      BodyStmt.Assignment(Assignment(`owl_subClassOf`, ValueExp.Identifier(superType))) <- clsBdy
-    } yield clsId -> superType)
-      .foldLeft(Map.empty[Identifier, List[Identifier]])((m, ii) => m + (ii._1 -> (ii._2 :: m.getOrElse(ii._1, Nil))))
-
-    val flatHierarchy = {
-      val cache = scala.collection.mutable.Map.empty[Identifier, Set[Identifier]]
-
-      def unwrap(i: Identifier): Set[Identifier] = cache.getOrElseUpdate(
-        i,
-        Set(i) ++ (classHierarchy.getOrElse(i, Nil) flatMap unwrap))
-
-      allClassIds foreach unwrap
-
-      Map(cache.to[Seq] :_*)
-    }
-
-    val allOwlClasses = (for {
-      is <- ctxt.insts.values.to[List]
-      _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.id}")
-      i <- is
-      c <- owlClassConstraint(i)
-    } yield i.id -> c).toMap
-
-    val flatClasses = flatHierarchy.values map (tps => Constraint.applyAll(tps.to[List] map allOwlClasses))
-
-    val tcInstanceExp = Constraint.applyAll(flatClasses.to[List])
-
-    val tcTopLevel = ('instanceExp, optics.topLevel.instanceExp.instanceExp) @: tcInstanceExp
-
-    val tcAllTops: Constraint[List[TopLevel.InstanceExp]] = ForEvery(tcTopLevel)
-
-    val tcSBFile: Constraint[SBEvaluatedFile] = ('tops, optics.sbEvaluatedFile.tops) @: tcAllTops
-
-    override def apply(a: SBEvaluatedFile) =
-      tcSBFile apply a
-
-    override def prettyPrint: String = tcSBFile.prettyPrint
-  }
-
-  override def fromContext(ctxt: EvalContext): ContextConstraints = new ContextConstraints(ctxt)
-}
 
