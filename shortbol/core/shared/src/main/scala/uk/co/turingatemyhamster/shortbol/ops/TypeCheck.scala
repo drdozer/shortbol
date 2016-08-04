@@ -8,7 +8,7 @@ import sugar._
 import scalaz.{-\/, Applicative, IList, NonEmptyList, Scalaz, Validation, ValidationNel, \/, \/-}
 import Scalaz._
 import monocle._
-import monocle.function.FilterIndex
+import Monocle.{none => _, _}
 import monocle.macros._
 
 
@@ -88,11 +88,11 @@ trait Constraint[A] {
 
   def apply(a: A): ValidatedConstraints[A]
 
-  final def onlyIf(c: Constraint[A]) = If(c, this, Constraint.success)
-  final def unless(c: Constraint[A]) = If(c, Constraint.success, this)
+  final def onlyIf(c: => Constraint[A]) = If(c, this, Constraint.success)
+  final def unless(c: => Constraint[A]) = If(c, Constraint.success, this)
 
-  final def requires(c: Constraint[A])(implicit aTT: TypeTag[A]) = If(c, this, Constraint.fail[A])
-  final def rejecting(c: Constraint[A])(implicit aTT: TypeTag[A]) = If(c, Constraint.fail[A], this)
+  final def requires(c: => Constraint[A])(implicit aTT: TypeTag[A]) = If(c, this, Constraint.fail[A])
+  final def rejecting(c: => Constraint[A])(implicit aTT: TypeTag[A]) = If(c, Constraint.fail[A], this)
 
   final def @: [O, X](o: O)(implicit ocb: OpticConstraintBuilder[O, X, A]): Constraint[X] = this match {
     case AlwaysSucceed() => Constraint.success[X]
@@ -169,23 +169,17 @@ object OpticConstraintBuilder {
   implicit def functionBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, A => B), A, B] {
     override def apply(o: (K, A => B), c: Constraint[B]) = InGetter[A, B, K](o._1, c)(Getter(o._2))
   }
-//
-//  implicit def traversalBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Traversal[A, B]), A, B] {
-//    override def apply(o: (K, Traversal[A, B]),
-//                       c: Constraint[B]) = ???
-//  }
+
+  implicit def traversalBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Traversal[A, B]), A, B] {
+    override def apply(o: (K, Traversal[A, B]),
+                       c: Constraint[B]) = InTraversal[A, B, K](o._1, c)(o._2)
+  }
 
   implicit def traversalAllBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Traversal[A, B]), A, List[B]] {
 
     override def apply(o: (K, Traversal[A, B]),
                        c: Constraint[List[B]]) = (o._1, o._2.getAll _) @: c
   }
-//
-//  implicit def foldBuilder[A, B, K](implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) = new OpticConstraintBuilder[(K, Fold[A, B]), A, B] {
-//
-//    override def apply(o: (K, Fold[A, B]),
-//                       c: Constraint[B]) = (o._1, o._2.getAll _) @: c
-//  }
 }
 
 case class AlwaysSucceed[A]() extends Constraint[A] {
@@ -201,13 +195,18 @@ case class AlwaysFail[A](msg: Option[String])(implicit aTT: TypeTag[A]) extends 
   override def prettyPrint: String = "failure"
 }
 
-case class If[A](condition: Constraint[A], ifTrue: Constraint[A], ifFalse: Constraint[A]) extends Constraint[A] {
+class If[A](condition: => Constraint[A], ifTrue: => Constraint[A], ifFalse: => Constraint[A]) extends Constraint[A] {
   override def apply(a: A) = condition(a).fold(
     _ => ifFalse(a),
     _ => ifTrue(a)
   )
 
   override def prettyPrint: String = s"if(${condition.prettyPrint} then ${ifTrue.prettyPrint} else ${ifFalse.prettyPrint})"
+}
+
+object If {
+  def apply[A](condition: => Constraint[A], ifTrue: => Constraint[A], ifFalse: => Constraint[A]) =
+    new If(condition, ifTrue, ifFalse)
 }
 
 case class ApplyAll[A](cs: List[Constraint[A]]) extends Constraint[A] {
@@ -326,6 +325,22 @@ case class InOptional[A, B, K](key: K, bC: Constraint[B])
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
 
+case class InTraversal[A, B, K](key: K, bC: Constraint[B])
+                               (traversal: Traversal[A, B])
+                               (implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) extends Constraint[A] {
+  override def apply(a: A) =
+    traversal.getAll(a) match {
+      case Nil =>
+        a.successNel
+      case bs =>
+        (NonEmptyList.nel(bs.head, IList.fromList(bs.tail)) map { b =>
+                bC apply b leftMap (e => e map (_.in(a, b, (traversal composePrism optics.unsafeSelect((_: B) == b)).asSetter.some))) }
+                ).sequenceU map (_ => a) // nasty - dropping the modified b's on the floor
+    }
+
+  override def prettyPrint = s"at($key -> ${bC.prettyPrint}"
+}
+
 case class InGetter[A, B, K](key: K, bC: Constraint[B])
                             (getter: Getter[A, B])
                             (implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) extends Constraint[A] {
@@ -388,140 +403,7 @@ object ConstraintSystem {
   }
 }
 
-object optics {
 
-  def seqListIso[A] = Iso[Seq[A], List[A]](_.to[List])(_.to[Seq])
-
-  object instanceExp {
-    val id = GenLens[InstanceExp](_.id)
-    val cstrApp = GenLens[InstanceExp](_.cstrApp)
-  }
-
-
-  object constructorApp {
-    val cstr = GenLens[ConstructorApp](_.cstr)
-    val body = GenLens[ConstructorApp](_.body) composeIso seqListIso[BodyStmt]
-
-//    def propertyFilter(property: Identifier) = new PTraversal[ConstructorApp, ConstructorApp, PropValue, PropValue] {
-//      override def modifyF[F[_] : Applicative](f: (PropValue) => F[PropValue])
-//                                              (s: ConstructorApp) =
-//      {
-//        body.modifyF[F](
-//          _.traverse {
-//            case a@BodyStmt.Assignment(Assignment(p, v)) =>
-//              if(p == property)
-//                f(Left(v) : PropValue) map {
-//                  case Left(vv) => BodyStmt.Assignment(Assignment(p, vv))
-//                }
-//              else
-//                Applicative[F].point(a)
-//            case ie@BodyStmt.InstanceExp(InstanceExp(i, c)) =>
-//              if(i == property)
-//                f(Right(c) : PropValue) map {
-//                  case Right(cc) => BodyStmt.InstanceExp(InstanceExp(i, cc))
-//                }
-//              else
-//                Applicative[F].point(ie)
-//          }
-//        )(s)
-//      }
-//    }
-  }
-
-  object bodyStmt {
-    type PropValue = Either[ValueExp, ConstructorApp]
-
-    val assignment = GenPrism[BodyStmt, BodyStmt.Assignment] composeLens
-      GenLens[BodyStmt.Assignment](_.assignment)
-    val blankLine = GenPrism[BodyStmt, BodyStmt.BlankLine] composeLens
-      GenLens[BodyStmt.BlankLine](_.blankLine)
-    val comment = GenPrism[BodyStmt, BodyStmt.Comment] composeLens
-      GenLens[BodyStmt.Comment](_.comment)
-    val instanceExp = GenPrism[BodyStmt, BodyStmt.InstanceExp] composeLens
-      GenLens[BodyStmt.InstanceExp](_.instanceExp)
-    val constructorApp = GenPrism[BodyStmt, BodyStmt.ConstructorApp] composeLens
-      GenLens[BodyStmt.ConstructorApp](_.constructorApp)
-
-    val property: Optional[BodyStmt, (Identifier, PropValue)] = new POptional[BodyStmt, BodyStmt, (Identifier, PropValue), (Identifier, PropValue)] {
-      override def getOrModify(s: BodyStmt) = {
-        s match {
-          case BodyStmt.Assignment(Assignment(p, v)) =>
-            \/-(p -> (Left(v) : PropValue))
-          case BodyStmt.InstanceExp(InstanceExp(i, c)) =>
-            \/-(i -> (Right(c) : PropValue))
-          case bs =>
-            -\/(bs)
-        }
-      }
-
-      override def set(b: (Identifier, PropValue)) = s => b match {
-        case (p, Left(v)) =>
-          BodyStmt.Assignment(Assignment(p, v))
-        case (i, Right(c)) =>
-          BodyStmt.InstanceExp(InstanceExp(i, c))
-      }
-
-      override def getOption(s: BodyStmt) = getOrModify(s) fold (
-       _ => None,
-        Some(_)
-      )
-      def modifyF[F[_]: Applicative](f: ((Identifier, PropValue)) => F[(Identifier, PropValue)])(s: BodyStmt): F[BodyStmt] =
-        getOption(s).fold(
-          Applicative[F].point(s))(
-          a => Applicative[F].map(f(a))(set(_)(s))
-        )
-
-      def modify(f: ((Identifier, PropValue)) => (Identifier, PropValue)): BodyStmt => BodyStmt =
-        s => getOption(s).fold(s)(a => set(f(a))(s))
-    }
-  }
-
-  object assignment {
-    val property = GenLens[Assignment](_.property)
-    val value = GenLens[Assignment](_.value)
-  }
-
-  object valueExp {
-    val identifier = GenPrism[ValueExp, ValueExp.Identifier] composeLens
-      GenLens[ValueExp.Identifier](_.identifier)
-    val literal = GenPrism[ValueExp, ValueExp.Literal] composeLens
-      GenLens[ValueExp.Literal](_.literal)
-  }
-
-  object topLevel {
-    object instanceExp {
-      val instanceExp = GenLens[TopLevel.InstanceExp](_.instanceExp)
-    }
-  }
-
-  object sbFile {
-    val tops = GenLens[SBFile](_.tops) composeIso seqListIso[TopLevel]
-  }
-
-  object sbEvaluatedFile {
-    val tops = GenLens[SBEvaluatedFile](_.tops) composeIso seqListIso[TopLevel.InstanceExp]
-  }
-
-  object list {
-
-    implicit def listSublist[A] = Optional({(lse: (List[A], Int, Int)) =>
-      val (list, start, end) = lse
-      val sublist = list.slice(start, end)
-      if(sublist.length == end - start)
-        Some(sublist)
-      else
-        None
-    })({sublist => lse =>
-      val (list, start, end) = lse
-      val (pfx, tail) = list splitAt end
-      val (head, dead) = pfx splitAt start
-      (head ::: sublist ::: tail, start, (end - pfx.length + sublist.length))
-    })
-  }
-
-  def unsafeSelect[A](predicate: A => Boolean): Prism[A, A] =
-    Prism[A, A](a => if (predicate(a)) Some(a) else None)(a => a)
-}
 
 
 

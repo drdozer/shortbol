@@ -2,7 +2,7 @@ package uk.co.turingatemyhamster.shortbol
 package ops
 
 import scala.reflect.runtime.universe.TypeTag
-import monocle.{Monocle, Getter, Traversal, Iso}
+import monocle.{Monocle, Getter}
 import Monocle.{none => _, _}
 
 import ast._
@@ -10,24 +10,12 @@ import ast.sugar._
 
 import scalaz.Scalaz._
 
-/**
-  *
-  *
-  * @author Matthew Pocock
-  */
-object OWL extends ConstraintSystem {
-  val owl = "owl": NSPrefix
-  val owl_class = owl :# "Class"
-  val owl_propertyRestriction = owl :# "propertyRestriction"
-  val owl_minCardinality = owl :# "minCardinality"
-  val owl_maxCardinality = owl :# "maxCardinality"
-  val owl_exactCardinality = owl :# "exactCardinality"
-  val owl_allValuesFrom = owl :# "allValuesFrom"
-  val owl_subClassOf = owl :# "subClassOf"
 
-  trait Typer[A] {
-    def exactTypeOf(a: A): Set[Identifier]
-  }
+trait Typer[A] {
+  def exactTypeOf(a: A): Set[Identifier]
+}
+
+object Typer {
 
   implicit val instanceExpTyper: Typer[InstanceExp] = new Typer[InstanceExp] {
     override def exactTypeOf(a: InstanceExp) = implicitly[Typer[ConstructorApp]].exactTypeOf(a.cstrApp)
@@ -47,16 +35,69 @@ object OWL extends ConstraintSystem {
     }
   }
 
+}
+
+case class OwlTyper(ctxt: EvalContext) {
+
+  val allClassIds = for {
+        is <- ctxt.insts.values.to[List]
+        _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.id}")
+        InstanceExp(clsId, ConstructorApp(TpeConstructor1(OWL.`owl_class`, _), _)) <- is
+  } yield clsId
+
+  val classHierarchy = (for {
+    is <- ctxt.insts.values.to[List]
+    _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.id}")
+    InstanceExp(clsId, ConstructorApp(TpeConstructor1(OWL.`owl_class`, _), clsBdy)) <- is
+    BodyStmt.Assignment(Assignment(OWL.`owl_subClassOf`, ValueExp.Identifier(superType))) <- clsBdy
+  } yield clsId -> superType)
+    .foldLeft(Map.empty[Identifier, List[Identifier]])((m, ii) => m + (ii._1 -> (ii._2 :: m.getOrElse(ii._1, Nil))))
+
+  val flatHierarchy = {
+    val cache = scala.collection.mutable.Map.empty[Identifier, Set[Identifier]]
+
+    def unwrap(i: Identifier): Set[Identifier] = cache.getOrElseUpdate(
+      i,
+      Set(i) ++ (classHierarchy.getOrElse(i, Nil) flatMap unwrap))
+
+    allClassIds foreach unwrap
+
+    Map(cache.to[Seq] :_*)
+  }
+
+  def byType[A](tpe: Identifier)(implicit ty: Typer[A], aTpe: TypeTag[A]) =
+    ('type, Getter((a: A) => {
+      ty exactTypeOf a flatMap (ta =>
+        flatHierarchy.getOrElse(ta, Set(ta)))
+    })) @: MemberOf(tpe)
+
+}
+
+
+
+/**
+  *
+  *
+  * @author Matthew Pocock
+  */
+object OWL extends ConstraintSystem {
+  val owl = "owl": NSPrefix
+  val owl_class = owl :# "Class"
+  val owl_propertyRestriction = owl :# "propertyRestriction"
+  val owl_minCardinality = owl :# "minCardinality"
+  val owl_maxCardinality = owl :# "maxCardinality"
+  val owl_exactCardinality = owl :# "exactCardinality"
+  val owl_allValuesFrom = owl :# "allValuesFrom"
+  val owl_subClassOf = owl :# "subClassOf"
+
   def bySize[T](c: Constraint[Int])(implicit tTpe: TypeTag[T]) = ('size, Getter((_: List[T]).size)) @: c
 
   def minCardinalityConstraint(propId: Identifier, propRes: BodyStmt): Option[Constraint[List[BodyStmt]]] =
     propRes match {
       case BodyStmt.Assignment(Assignment(`owl_minCardinality`, ValueExp.Literal(IntegerLiteral(c)))) =>
         ((propId,
-          each[List[BodyStmt], BodyStmt] composeOptional
-            optics.bodyStmt.property composePrism
-            optics.unsafeSelect(_._1 == propId) ) @:
-          ('size, Getter(each[List[(Identifier, optics.bodyStmt.PropValue)], (Identifier, optics.bodyStmt.PropValue)].length)) @:
+          each[List[BodyStmt], BodyStmt] composeOptional optics.bodyStmt.propValue(propId) ) @:
+          ('size, Getter((_: List[optics.bodyStmt.PropValue]).length)) @:
             NotLessThan(c)).some
       case _ =>
         none
@@ -66,10 +107,8 @@ object OWL extends ConstraintSystem {
     propRes match {
       case BodyStmt.Assignment(Assignment(`owl_maxCardinality`, ValueExp.Literal(IntegerLiteral(c)))) =>
         ((propId,
-          each[List[BodyStmt], BodyStmt] composeOptional
-            optics.bodyStmt.property composePrism
-            optics.unsafeSelect(_._1 == propId) ) @:
-          ('size, Getter(each[List[(Identifier, optics.bodyStmt.PropValue)], (Identifier, optics.bodyStmt.PropValue)].length)) @:
+          each[List[BodyStmt], BodyStmt] composeOptional optics.bodyStmt.propValue(propId) ) @:
+          ('size, Getter((_: List[optics.bodyStmt.PropValue]).length)) @:
             NotGreaterThan(c)).some
       case _ =>
         none
@@ -79,10 +118,8 @@ object OWL extends ConstraintSystem {
     propRes match {
       case BodyStmt.Assignment(Assignment(`owl_exactCardinality`, ValueExp.Literal(IntegerLiteral(c)))) =>
         ((propId,
-          each[List[BodyStmt], BodyStmt] composeOptional
-            optics.bodyStmt.property composePrism
-            optics.unsafeSelect(_._1 == propId) ) @:
-          ('size, Getter(each[List[(Identifier, optics.bodyStmt.PropValue)], (Identifier, optics.bodyStmt.PropValue)].length)) @:
+          each[List[BodyStmt], BodyStmt] composeOptional optics.bodyStmt.propValue(propId) ) @:
+          ('size, Getter((_: List[optics.bodyStmt.PropValue]).length)) @:
           Constraint.applyAll(NotLessThan(c) :: NotGreaterThan(c) :: Nil)).some
       case _ =>
         none
@@ -90,53 +127,37 @@ object OWL extends ConstraintSystem {
 
 
   class ContextConstraints(ctxt: EvalContext) extends Constraint[TopLevel.InstanceExp] {
-
-//    implicit val identifierTyper: Typer[Identifier] = new Typer[Identifier] {
-//      override def exactTypeOf(a: Identifier) =
-//        for {
-//          eqA <- equIds.getOrElse(a, Set(a))
-//          is <- ctxt.insts.get(eqA).to[Set]
-//          i <- is
-//          t <- implicitly[Typer[InstanceExp]] exactTypeOf i
-//        } yield t
-//    }
-
-
-    def byType[A](tpe: Identifier)(implicit ty: Typer[A], aTpe: TypeTag[A]) =
-      ('type, Getter((a: A) => {
-        ty exactTypeOf a flatMap (ta =>
-          flatHierarchy.getOrElse(ta, Set(ta)))
-      })) @: MemberOf(tpe)
+    val typer = OwlTyper(ctxt)
 
 
     def allValuesFromConstraint(propId: Identifier, propRes: BodyStmt): Option[Constraint[BodyStmt]] =
       propRes match {
         case BodyStmt.Assignment(Assignment(`owl_allValuesFrom`, ValueExp.Identifier(tpe))) =>
-          ((propId, optics.bodyStmt.property composePrism
-            optics.unsafeSelect(_._1 == propId)) @:
-            Constraint.applyAll(
-              List(
-                ('assignment, second[(Identifier, optics.bodyStmt.PropValue), optics.bodyStmt.PropValue] composePrism stdLeft)
-                  @: Constraint.applyAll(
-                  List(
-                    ('identifier, optics.valueExp.identifier) @:
-                      ('resolveIdentifier, Getter { (i: Identifier) =>
-                        for {
-                          eqA <- (equIds.getOrElse(i, Set(i))).to[List]
-                          ie <- ctxt.insts get eqA flatMap (_.headOption)
-                        } yield {
-                          println(s"resolved $i to $ie")
-                          ie
+          (
+            (propId, optics.bodyStmt.propValue(propId)) @:
+              Constraint.applyAll(
+                List(
+                  ('assignment, stdLeft[ValueExp, ConstructorApp])
+                    @: Constraint.applyAll(
+                    List(
+                      ('identifier, optics.valueExp.identifier) @:
+                        ('resolveIdentifier, Getter { (i: Identifier) =>
+                          for {
+                            eqA <- (equIds.getOrElse(i, Set(i))).to[List]
+                            ie <- ctxt.insts get eqA flatMap (_.headOption)
+                          } yield {
+                            println(s"resolved $i to $ie")
+                            ie
+                          }
                         }
-                      }
-                      ) @: Constraint.forAny(byType[InstanceExp](tpe) log "identifier") log "forAnyInstanceByIdentifier",
-                    ('literal, optics.valueExp.literal) @: byType[Literal](tpe) log "literal"
-                  )
-                ) log "assignment",
-                ('instance, second[(Identifier, optics.bodyStmt.PropValue), optics.bodyStmt.PropValue] composePrism stdRight)
-                  @: byType[ConstructorApp](tpe) log "instance"
-              )
-            ) log s"at property $propId"
+                        ) @: Constraint.forAny(typer.byType[InstanceExp](tpe) log "identifier") log "forAnyInstanceByIdentifier",
+                      ('literal, optics.valueExp.literal) @: typer.byType[Literal](tpe) log "literal"
+                    )
+                  ) log "assignment",
+                  ('instance, stdRight[ValueExp, ConstructorApp])
+                    @: typer.byType[ConstructorApp](tpe) log "instance"
+                )
+              ) log s"at property $propId"
             ).some
         case _ =>
           none
@@ -168,7 +189,7 @@ object OWL extends ConstraintSystem {
               case _ => Nil
             })
           ((('properties, optics.instanceExp.cstrApp composeLens optics.constructorApp.body) @: rs) onlyIf
-            byType[InstanceExp](clsId)).some
+            typer.byType[InstanceExp](clsId)).some
         case _ =>
           none
       }
@@ -191,32 +212,6 @@ object OWL extends ConstraintSystem {
       clusters
     }
 
-    val allClassIds = for {
-          is <- ctxt.insts.values.to[List]
-          _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.id}")
-          InstanceExp(clsId, ConstructorApp(TpeConstructor1(`owl_class`, _), _)) <- is
-    } yield clsId
-
-    val classHierarchy = (for {
-      is <- ctxt.insts.values.to[List]
-      _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.id}")
-      InstanceExp(clsId, ConstructorApp(TpeConstructor1(`owl_class`, _), clsBdy)) <- is
-      BodyStmt.Assignment(Assignment(`owl_subClassOf`, ValueExp.Identifier(superType))) <- clsBdy
-    } yield clsId -> superType)
-      .foldLeft(Map.empty[Identifier, List[Identifier]])((m, ii) => m + (ii._1 -> (ii._2 :: m.getOrElse(ii._1, Nil))))
-
-    val flatHierarchy = {
-      val cache = scala.collection.mutable.Map.empty[Identifier, Set[Identifier]]
-
-      def unwrap(i: Identifier): Set[Identifier] = cache.getOrElseUpdate(
-        i,
-        Set(i) ++ (classHierarchy.getOrElse(i, Nil) flatMap unwrap))
-
-      allClassIds foreach unwrap
-
-      Map(cache.to[Seq] :_*)
-    }
-
     val allOwlClasses = (for {
       is <- ctxt.insts.values.to[List]
       _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.id}")
@@ -224,7 +219,7 @@ object OWL extends ConstraintSystem {
       c <- owlClassConstraint(i)
     } yield i.id -> c).toMap
 
-    val flatClasses = flatHierarchy.values map (tps => Constraint.applyAll(tps.to[List] map allOwlClasses))
+    val flatClasses = typer.flatHierarchy.values map (tps => Constraint.applyAll(tps.to[List] map allOwlClasses))
 
     val tcInstanceExp = Constraint.applyAll(flatClasses.to[List])
 
