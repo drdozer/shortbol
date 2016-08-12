@@ -228,6 +228,8 @@ object OWL extends ConstraintSystem {
     override def apply(a: TopLevel.InstanceExp) =
       tcTopLevel apply a
 
+    override def not = ???
+
     override def prettyPrint: String = tcTopLevel.prettyPrint
   }
 

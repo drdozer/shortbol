@@ -7,6 +7,8 @@ import ast.sugar._
 import uk.co.turingatemyhamster.shortbol.ast.SBEvaluatedFile
 import utest._
 
+import scala.util.Random
+
 /**
   *
   *
@@ -30,6 +32,23 @@ object SbolConstraintTestSuite extends TestSuite {
       nel => {
       },
       success => assert(false)
+    )
+  }
+
+  val randomIdentifier = {
+    val r = new Random()
+    val cs = ('A' to 'Z') ++ ('a' to 'z')
+    val ds = '0' to '9'
+    val as = cs ++ ds
+
+    () => (cs(r.nextInt(cs.size)) :: List.fill(7)(as(r.nextInt(as.size)))).mkString : ast.Identifier
+  }
+
+  def recovers(src: String): Unit = {
+    val (c, v) = ShortbolParser.SBFile.withPositions("_test_", src).get.value.eval.run(Fixture.configuredContext)
+    sbol(SBOLRecovery.nestedAboutRecovery(randomIdentifier))(c)(v).fold(
+      nel => assert(nel == null),
+      success => ()
     )
   }
 
@@ -149,8 +168,18 @@ object SbolConstraintTestSuite extends TestSuite {
       }
 
       'topLevel - {
-        'noAbout - {
+        'noAboutFails - {
           fails(
+            """
+              |x : sbol:TopLevel
+              |  prov:actedOnBehalfOf : sbol:Identified
+              |    foaf:givenName = "bob"
+              |""".stripMargin
+          )
+        }
+
+        'noAboutRecovers - {
+          recovers(
             """
               |x : sbol:TopLevel
               |  prov:actedOnBehalfOf : sbol:Identified

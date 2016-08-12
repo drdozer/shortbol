@@ -13,7 +13,7 @@ import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
 import uk.co.turingatemyhamster.shortbol.ops._
 import utest._
 
-import scala.util.Try
+import scala.util.{Random, Try}
 import scalaz._
 
 /**
@@ -22,12 +22,24 @@ import scalaz._
 object LibsboljTestSuite extends TestSuite {
   val xof = XMLOutputFactory.newInstance()
 
+
+  val randomIdentifier = {
+    val r = new Random()
+    val cs = ('A' to 'Z') ++ ('a' to 'z')
+    val ds = '0' to '9'
+    val as = cs ++ ds
+
+    () => (cs(r.nextInt(cs.size)) :: List.fill(7)(as(r.nextInt(as.size)))).mkString : ast.Identifier
+  }
+
+
   def toLibSBOLj(shortbol: String) = {
     val sb = ShortbolParser.SBFile.withPositions("_test_", shortbol).get.value
     val (c, v) = sb.eval.run(Fixture.configuredContext)
 
-    ConstraintSystem(OWL)(
-      LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA)
+    ConstraintSystem(OWL, SBOL)(
+      LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA),
+      SBOLRecovery.nestedAboutRecovery(randomIdentifier)
     )(c)(v).fold(
       errs => {
         val ep = errs.map(_.prettyPrint)

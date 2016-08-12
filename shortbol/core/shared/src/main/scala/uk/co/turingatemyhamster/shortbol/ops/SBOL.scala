@@ -7,6 +7,8 @@ import monocle._
 import Monocle._
 import uk.co.turingatemyhamster.shortbol.ast.TopLevel.InstanceExp
 import uk.co.turingatemyhamster.shortbol.ast.{ConstructorApp, ValueExp}
+import scalaz._
+import Scalaz._
 
 /**
   *
@@ -52,12 +54,37 @@ object SBOL extends ConstraintSystem {
     lazy val checkNestedCstrs: Constraint[ConstructorApp] =
       ('nestedCstr, nestedCstrs) @: checkAndRecurse
 
+    ('nextedCstr, nestedCstrs) @: instanceOfTopLevel.not
+
     val topConstraint = ('topCstr, topCstr) @: (checkNestedCstrs onlyIf instanceOfTopLevel)
 
     override def apply(a: InstanceExp) = topConstraint apply a
+
+    override def not = ???
 
     override def prettyPrint = topConstraint.prettyPrint
   }
 
   override def fromContext(ctxt: EvalContext) = new ContextConstraint(ctxt)
+}
+
+object SBOLRecovery {
+
+  def nestedAboutRecovery(mkAbout: () => Identifier) = Recovery[NestedViolation[ConstructorApp, Symbol, List[BodyStmt]], ConstructorApp] {
+    case NestedViolation(cApp, 'body, bV) =>
+      bV match {
+        case NestedViolation(body, SBOL.`rdf_about`, sV) =>
+          sV match {
+            case NestedViolation(_, 'size, cF) =>
+              cF.asInstanceOf[ConstraintFailure[Int]] match {
+                case ConstraintFailure(NotLessThan(1), _) =>
+                  cApp.copy(body = (Assignment(SBOL.rdf_about, mkAbout()) : BodyStmt) +: cApp.body).some
+                case _ => Scalaz.none
+              }
+            case _ => Scalaz.none
+          }
+        case _ => Scalaz.none
+      }
+  }
+
 }

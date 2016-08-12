@@ -3,6 +3,7 @@ package ops
 
 import scala.reflect.runtime.universe.TypeTag
 import ast._
+import Eval.EvalOps
 import sugar._
 
 import scalaz.{-\/, Applicative, IList, NonEmptyList, Scalaz, Validation, ValidationNel, \/, \/-}
@@ -67,16 +68,21 @@ case class NestedViolation[A, K, B](at: A, key: K, because: ConstraintViolation[
     println(aTT)
     println(r.xTT)
     if(nvTT.tpe <:< r.cTT.tpe && aTT.tpe <:< r.xTT.tpe) {
-      println("Applying matching recovery:")
+      println("Applying nested matching recovery:")
       val x = r.f(this.asInstanceOf[C]).map(_.asInstanceOf[A])
-      println(s"Recovered to: $x")
+      println(s"Recovered nested to: $x")
       x
     } else {
       if(setter.isEmpty) println(s"Stopping here as we have no setter to traverse $key into ${because.prettyPrint}.")
       for {
         s <- setter
         b <- because.recoverWith(r)
-      } yield s.set(b)(at)
+      } yield {
+        println("Recursing nested recovery:")
+        val ss = s.set(b)(at)
+        println(s"Recovered recursive: $ss")
+        ss
+      }
     }
   }
 }
@@ -88,18 +94,20 @@ trait Constraint[A] {
 
   def apply(a: A): ValidatedConstraints[A]
 
-  final def onlyIf(c: => Constraint[A]) = If(c, this, Constraint.success)
-  final def unless(c: => Constraint[A]) = If(c, Constraint.success, this)
+  final def onlyIf(c: => Constraint[A])(implicit aTT: TypeTag[A]) = If(c, this, Constraint.success)
+  final def unless(c: => Constraint[A])(implicit aTT: TypeTag[A]) = If(c, Constraint.success, this)
 
   final def requires(c: => Constraint[A])(implicit aTT: TypeTag[A]) = If(c, this, Constraint.fail[A])
   final def rejecting(c: => Constraint[A])(implicit aTT: TypeTag[A]) = If(c, Constraint.fail[A], this)
 
-  final def @: [O, X](o: O)(implicit ocb: OpticConstraintBuilder[O, X, A]): Constraint[X] = this match {
+  final def @: [O, X](o: O)(implicit ocb: OpticConstraintBuilder[O, X, A], xTT: TypeTag[X]): Constraint[X] = this match {
     case AlwaysSucceed() => Constraint.success[X]
     case c => ocb(o, c)
   }
 
   def prettyPrint: String
+
+  def not: Constraint[A]
 
   def log(msg: String): Constraint[A] = new Constraint[A] {
     override def apply(a: A) = {
@@ -108,6 +116,8 @@ trait Constraint[A] {
       println(s"<-- $msg: $a ~> $v")
       v
     }
+
+    override def not = ???
 
     override def prettyPrint = self.prettyPrint
 
@@ -119,7 +129,7 @@ object Constraint {
 
   type ValidatedConstraints[A] = ValidationNel[ConstraintViolation[A], A]
 
-  def success[A] = AlwaysSucceed[A]()
+  def success[A](implicit aTT: TypeTag[A]) = AlwaysSucceed[A]()
   def fail[A](implicit aTT: TypeTag[A]) = AlwaysFail[A](none)
 
 
@@ -182,8 +192,10 @@ object OpticConstraintBuilder {
   }
 }
 
-case class AlwaysSucceed[A]() extends Constraint[A] {
+case class AlwaysSucceed[A]()(implicit aTT: TypeTag[A]) extends Constraint[A] {
   override def apply(a: A) = a.successNel
+
+  override def not = AlwaysFail[A](None)
 
   override def prettyPrint: String = "success"
 }
@@ -191,6 +203,8 @@ case class AlwaysSucceed[A]() extends Constraint[A] {
 
 case class AlwaysFail[A](msg: Option[String])(implicit aTT: TypeTag[A]) extends Constraint[A] {
   override def apply(a: A) = ConstraintViolation.failure(this, a).failureNel[A]
+
+  override def not = AlwaysSucceed[A]()
 
   override def prettyPrint: String = "failure"
 }
@@ -200,6 +214,8 @@ class If[A](condition: => Constraint[A], ifTrue: => Constraint[A], ifFalse: => C
     _ => ifFalse(a),
     _ => ifTrue(a)
   )
+
+  override def not = If(condition, ifTrue.not, ifFalse.not)
 
   override def prettyPrint: String = s"if(${condition.prettyPrint} then ${ifTrue.prettyPrint} else ${ifFalse.prettyPrint})"
 }
@@ -225,6 +241,8 @@ case class ApplyAll[A](cs: List[Constraint[A]]) extends Constraint[A] {
       s => (s, ae._2)
     )
 
+  override def not = ApplyAll(cs map (_.not))
+
   override def prettyPrint: String = s"applyAll(${cs map (_.prettyPrint) mkString " "})"
 }
 
@@ -238,6 +256,8 @@ case class ForEvery[A](c: Constraint[A])(implicit aTT: TypeTag[A]) extends Const
         c apply a leftMap (e => e map (_.in(as, i, idx.index(i).asSetter.some))) }
         ).sequenceU map (_.list.toList)
   }
+
+  override def not = ForEvery(c.not)
 
   override def prettyPrint: String = s"forEvery(${c.prettyPrint})"
 }
@@ -257,6 +277,8 @@ case class ForAny[A](c: Constraint[A])(implicit aTT: TypeTag[A]) extends Constra
       }
   }
 
+  override def not = ForAny(c.not)
+
   override def prettyPrint = s"forAny(${c.prettyPrint}"
 }
 
@@ -264,26 +286,71 @@ case class EqualTo[A](eA: A)(implicit aTT: TypeTag[A]) extends Constraint[A] {
   override def apply(a: A) =
     if(eA == a) a.successNel else ConstraintViolation.failure(this, a).failureNel
 
+  override def not = NotEqualTo(eA)
+
   override def prettyPrint: String = s"($eA == _)"
+}
+
+case class NotEqualTo[A](eA: A)(implicit aTT: TypeTag[A]) extends Constraint[A] {
+  override def apply(a: A) =
+    if(eA == a) ConstraintViolation.failure(this, a).failureNel else a.successNel
+
+  override def not = EqualTo(eA)
+
+  override def prettyPrint: String = s"($eA != _)"
 }
 
 case class MemberOf[A](a: A)(implicit aTT: TypeTag[A]) extends Constraint[Set[A]] {
   override def apply(as: Set[A]) =
     if(as contains a) as.successNel else ConstraintViolation.failure(this, as).failureNel
 
+  override def not = NotMemberOf(a)
+
   override def prettyPrint: String = s"($a in _)"
 }
 
-case class NotLessThan[A](min: Int) extends Constraint[Int] {
+case class NotMemberOf[A](a: A)(implicit aTT: TypeTag[A]) extends Constraint[Set[A]] {
+  override def apply(as: Set[A]) =
+    if(as contains a) ConstraintViolation.failure(this, as).failureNel else as.successNel
+
+  override def not = MemberOf(a)
+
+  override def prettyPrint: String = s"($a in _)"
+}
+
+case class LessThan(min: Int) extends Constraint[Int] {
+  override def apply(a: Int) =
+    if(a < min) a.successNel else ConstraintViolation.failure(this, a).failureNel
+
+  override def not = NotLessThan(min)
+
+  override def prettyPrint: String = s"(_ < $min)"
+}
+
+case class NotLessThan(min: Int) extends Constraint[Int] {
   override def apply(a: Int) =
     if(a < min) ConstraintViolation.failure(this, a).failureNel else a.successNel
 
+  override def not = LessThan(min)
+
   override def prettyPrint: String = s"(_ >= $min)"
+}
+
+case class GreaterThan[A](max: Int) extends Constraint[Int] {
+  override def apply(a: Int) =
+    if(a > max) a.successNel else ConstraintViolation.failure(this, a).failureNel
+
+
+  override def not = NotGreaterThan(max)
+
+  override def prettyPrint: String = s"(_ > $max)"
 }
 
 case class NotGreaterThan[A](max: Int) extends Constraint[Int] {
   override def apply(a: Int) =
     if(a > max) ConstraintViolation.failure(this, a).failureNel else a.successNel
+
+  override def not = GreaterThan(max)
 
   override def prettyPrint: String = s"(_ <= $max)"
 }
@@ -299,6 +366,9 @@ case class InPrism[A, B, K](key: K, bC: Constraint[B])
         a.successNel
     }
 
+
+  override def not = InPrism(key, bC.not)(prism)
+
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
 
@@ -307,6 +377,9 @@ case class InLens[A, B, K](key: K, bC: Constraint[B])
                           (implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) extends Constraint[A] {
   override def apply(a: A) =
     bC(lens.get(a)).leftMap(_.map(_.in(a, key, lens.asSetter.some))).map(b => lens.set(b)(a))
+
+
+  override def not = InLens(key, bC.not)(lens)
 
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
@@ -322,6 +395,8 @@ case class InOptional[A, B, K](key: K, bC: Constraint[B])
         a.successNel
     }
 
+  override def not = InOptional(key, bC.not)(optional)
+
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
 
@@ -333,10 +408,13 @@ case class InTraversal[A, B, K](key: K, bC: Constraint[B])
       case Nil =>
         a.successNel
       case bs =>
-        (NonEmptyList.nel(bs.head, IList.fromList(bs.tail)) map { b =>
+        (NonEmptyList(bs.head, bs.tail : _*) map { b =>
                 bC apply b leftMap (e => e map (_.in(a, b, (traversal composePrism optics.unsafeSelect((_: B) == b)).asSetter.some))) }
                 ).sequenceU map (_ => a) // nasty - dropping the modified b's on the floor
     }
+
+
+  override def not = InTraversal(key, bC.not)(traversal)
 
   override def prettyPrint = s"at($key -> ${bC.prettyPrint}"
 }
@@ -346,6 +424,9 @@ case class InGetter[A, B, K](key: K, bC: Constraint[B])
                             (implicit aTpe: TypeTag[A], kTpe: TypeTag[K], bTpe: TypeTag[B]) extends Constraint[A] {
   override def apply(a: A) =
     bC(getter.get(a)).leftMap(_.map(_.in(a, key, none))).map(_ => a)
+
+
+  override def not = InGetter(key, bC.not)(getter)
 
   override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 }
@@ -378,9 +459,19 @@ object ConstraintSystem {
                       )
 
           def attemptRecovery(cv: ConstraintViolation[TopLevel.InstanceExp]): ConstraintViolation[TopLevel.InstanceExp] \/ TopLevel.InstanceExp =
-            recovery.flatMap(
-              cv recoverWith _.asInstanceOf[Recovery[ConstraintViolation[Any], Any]] // type hack -- should do better
+            recovery.flatMap(r =>
+              // type hack -- should do better
+              cv recoverWith r.asInstanceOf[Recovery[ConstraintViolation[Any], Any]] flatMap {tie =>
+                println(s"Overseen recovery to: $tie")
+                val (c,t) = tie.eval.run(ctxt)
+                println("Log messages:")
+                println(c.logms.drop(ctxt.logms.length).map(_.pretty).mkString("\n"))
+                t.headOption
+              }
             ).headOption \/> cv
+
+
+          override def not = ???
 
           override def prettyPrint = allConstraints.prettyPrint
         } log "recoveringConstraint"
@@ -393,6 +484,8 @@ object ConstraintSystem {
           ) log "sbEFConstraint"
 
         def apply(sev: SBEvaluatedFile) = sbEFConstraint(sev)
+
+        override def not = ???
 
         override def prettyPrint = sbEFConstraint.prettyPrint
       }

@@ -59,11 +59,12 @@ object DefaultPrefixPragma {
                   for {
                     _ <- log(LogMessage.info(s"Applying prefix $pfx to $ln", ln.region))
                   } yield {
-                    val lnr = ln.region
                     val nsp = NSPrefix(pfx)
-                    nsp.region = lnr.copy(endsAt = lnr.startsAt)
                     val qn = QName(nsp, ln)
-                    qn.region = lnr
+                    for( lnr <- Option(ln.region) ) {
+                      nsp.region = lnr.copy(endsAt = lnr.startsAt)
+                      qn.region = lnr
+                    }
                     (qn : Identifier).point[EvalState]
                   }
                 case _ =>
