@@ -22,13 +22,13 @@ object LiteralConversion {
   }
 
   implicit def conversionAsRecovery(litC: LiteralConversion):
-  Recovery[NestedViolation[Literal, Symbol, Set[Identifier]], Literal] = Recovery(
+  ConstraintRecovery[NestedViolation[Literal, Symbol, Set[Identifier]], Literal] = ConstraintRecovery(
     (vig : NestedViolation[Literal, Symbol, Set[Identifier]]) =>
       vig match {
         case NestedViolation(lit, 'type, cf) =>
           cf match {
             case ConstraintFailure(MemberOf(expectedT : Identifier), observedT : Set[Identifier]) =>
-              litC.apply(lit, expectedT)
+              litC.apply(lit, expectedT) map (None -> _)
             case _ => None
           }
         case _ =>

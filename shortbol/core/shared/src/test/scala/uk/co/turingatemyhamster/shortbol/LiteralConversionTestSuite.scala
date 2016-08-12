@@ -120,7 +120,7 @@ object LiteralConversionTestSuite extends TestSuite {
         val recovered = tpeCheck.leftMap(_.map(_.recoverWith(litConv)))
 
         recovered.fold(
-          nel => assert(nel.head.contains(expRec)),
+          nel => assert(nel.head.contains(None -> expRec)),
           a => assert(a != a))
       }
     }

@@ -6,7 +6,7 @@ import ast._
 import Eval.EvalOps
 import sugar._
 
-import scalaz.{-\/, Applicative, IList, NonEmptyList, Scalaz, Validation, ValidationNel, \/, \/-}
+import scalaz.{-\/, Applicative, IList, NonEmptyList, Scalaz, Validation, ValidationNel, Writer, \/, \/-}
 import Scalaz._
 import monocle._
 import Monocle.{none => _, _}
@@ -22,10 +22,38 @@ sealed trait ConstraintViolation[A] {
 
   def prettyPrint: String
 
-  def recoverWith[C <: ConstraintViolation[X], X](r: Recovery[C, X]): Option[A]
+  def recoverWith[C <: ConstraintViolation[X], X](r: ConstraintRecovery[C, X]): Option[ConstraintRecovery.Recovered[A]]
 }
 
-case class Recovery[C <: ConstraintViolation[X], X](f: C => Option[X])(implicit val cTT: TypeTag[C], val xTT: TypeTag[X])
+
+/** Attempt to recover a constraint violation.
+  *
+  * If it an recover it, return the recovered value, otherwise return `None`.
+  *
+  * @param recover
+  * @param cTT
+  * @param xTT
+  * @tparam C
+  * @tparam X
+  */
+case class ConstraintRecovery[C <: ConstraintViolation[X], X](recover: C => Option[ConstraintRecovery.Recovered[X]])(implicit val cTT: TypeTag[C], val xTT: TypeTag[X]) {
+  def tryRecover[CC <: ConstraintViolation[XX], XX](cc: CC)(implicit ccTT: TypeTag[CC], xxTT: TypeTag[XX]): Option[ConstraintRecovery.Recovered[XX]] =
+  {
+    println(s"ConstraintRecovery tryRecover @\n\t$ccTT <:< $cTT = ${ccTT.tpe <:< cTT.tpe}\n\t$xTT <:< $xxTT = ${xTT.tpe <:< xxTT.tpe}")
+    if(ccTT.tpe <:< cTT.tpe && xTT.tpe <:< xxTT.tpe) recover(cc.asInstanceOf[C]) map (_.asInstanceOf[ConstraintRecovery.Recovered[XX]])
+    else Scalaz.none
+  }
+}
+
+case class ValueRecovery[X](recover: X => Option[ConstraintRecovery.Recovered[X]])(implicit val xTT: TypeTag[X]) {
+  def tryRecover[XX](xx: XX)(implicit xxTT: TypeTag[XX]): Option[ConstraintRecovery.Recovered[XX]] =
+    if(xTT.tpe <:< xxTT.tpe) recover(xx.asInstanceOf[X]) map (_.asInstanceOf[ConstraintRecovery.Recovered[XX]])
+    else Scalaz.none
+}
+
+object ConstraintRecovery {
+  type Recovered[X] = (Option[ValueRecovery[_]], X)
+}
 
 object ConstraintViolation {
   def failure[A](rule: Constraint[A], at: A)(implicit aTT: TypeTag[A]): ConstraintViolation[A] =
@@ -36,21 +64,8 @@ case class ConstraintFailure[A](rule: Constraint[A], at: A)
                                (implicit cfaTT: TypeTag[ConstraintFailure[A]], aTT: TypeTag[A]) extends ConstraintViolation[A] {
   override def prettyPrint: String = s"failed(${rule.prettyPrint} at $at"
 
-  override def recoverWith[C <: ConstraintViolation[X], X](r: Recovery[C, X]) = {
-    println("Failure:")
-    println(cfaTT)
-    println(r.cTT)
-    println(aTT)
-    println(r.xTT)
-    if(cfaTT.tpe <:< r.cTT.tpe && aTT.tpe <:< r.xTT.tpe) {
-      println("Applying matching recovery:")
-      val x = r.f(this.asInstanceOf[C]).map(_.asInstanceOf[A])
-      println(s"Recovered to: $x")
-      x
-    } else {
-      None
-    }
-  }
+  override def recoverWith[C <: ConstraintViolation[X], X](r: ConstraintRecovery[C, X]) =
+    r tryRecover this
 }
 
 case class NestedViolation[A, K, B](at: A, key: K, because: ConstraintViolation[B])(setter: Option[Setter[A, B]])
@@ -61,27 +76,18 @@ case class NestedViolation[A, K, B](at: A, key: K, because: ConstraintViolation[
   }
   override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
 
-  override def recoverWith[C <: ConstraintViolation[X], X](r: Recovery[C, X]) = {
-    println("Nested failure:")
-    println(nvTT)
-    println(r.cTT)
-    println(aTT)
-    println(r.xTT)
-    if(nvTT.tpe <:< r.cTT.tpe && aTT.tpe <:< r.xTT.tpe) {
-      println("Applying nested matching recovery:")
-      val x = r.f(this.asInstanceOf[C]).map(_.asInstanceOf[A])
-      println(s"Recovered nested to: $x")
-      x
-    } else {
+  override def recoverWith[C <: ConstraintViolation[X], X](r: ConstraintRecovery[C, X]) = {
+    r tryRecover[NestedViolation[A, K, B], A] this orElse {
       if(setter.isEmpty) println(s"Stopping here as we have no setter to traverse $key into ${because.prettyPrint}.")
       for {
         s <- setter
-        b <- because.recoverWith(r)
+        (rr, b) <- because.recoverWith(r)
       } yield {
         println("Recursing nested recovery:")
         val ss = s.set(b)(at)
         println(s"Recovered recursive: $ss")
-        ss
+        rr flatMap (_ tryRecover ss) getOrElse
+          (rr, ss)
       }
     }
   }
@@ -437,7 +443,7 @@ trait ConstraintSystem {
 
 object ConstraintSystem {
   def apply(cs: ConstraintSystem*) = new {
-    def apply(recovery: Recovery[_, _]*) = new {
+    def apply(recovery: ConstraintRecovery[_, _]*) = new {
       def apply(ctxt: EvalContext) = new Constraint[SBEvaluatedFile] {
         val allConstraints = Constraint.applyAll(cs.to[List] map (_.fromContext(ctxt)))
 
@@ -461,8 +467,8 @@ object ConstraintSystem {
           def attemptRecovery(cv: ConstraintViolation[TopLevel.InstanceExp]): ConstraintViolation[TopLevel.InstanceExp] \/ TopLevel.InstanceExp =
             recovery.flatMap(r =>
               // type hack -- should do better
-              cv recoverWith r.asInstanceOf[Recovery[ConstraintViolation[Any], Any]] flatMap {tie =>
-                println(s"Overseen recovery to: $tie")
+              cv recoverWith r.asInstanceOf[ConstraintRecovery[ConstraintViolation[Any], Any]] flatMap { case(r, tie) =>
+                println(s"Overseen recovery to: $tie with recovery: $r")
                 val (c,t) = tie.eval.run(ctxt)
                 println("Log messages:")
                 println(c.logms.drop(ctxt.logms.length).map(_.pretty).mkString("\n"))
