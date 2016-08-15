@@ -5,7 +5,6 @@ import ast._
 import ast.sugar._
 import monocle._
 import Monocle._
-import uk.co.turingatemyhamster.shortbol.ast.TopLevel.InstanceExp
 import uk.co.turingatemyhamster.shortbol.ast.{ConstructorApp, ValueExp}
 import scalaz._
 import Scalaz._
@@ -23,11 +22,13 @@ object SBOL extends ConstraintSystem {
   val topCstr = optics.topLevel.instanceExp.instanceExp composeLens
     optics.instanceExp.cstrApp
 
-  val nestedCstrs = optics.constructorApp.body composeTraversal
-        each composeOptional
-          optics.bodyStmt.property composeLens
-            second composePrism
-              stdRight
+  val nestedCstrs =
+    ('body, optics.constructorApp.body) @:
+    ('property, each[List[BodyStmt], BodyStmt] composeOptional
+      optics.bodyStmt.property composeLens
+      second) @:
+    ('instance, stdRight[ValueExp, ConstructorApp]) @:
+    (_: Constraint[ConstructorApp])
 
   val noRdfAboutExists =
     (rdf_about,
@@ -35,13 +36,14 @@ object SBOL extends ConstraintSystem {
       ('size, Getter((_: List[optics.bodyStmt.PropValue]).length)) @:
       NotLessThan(1)
 
+
   class ContextConstraint(ctxt: EvalContext) extends Constraint[TopLevel.InstanceExp] {
     val typer = OwlTyper(ctxt)
 
     val instanceOfTopLevel = typer.byType[ConstructorApp](sbol_TopLevel)
     val instanceOfIdentified = typer.byType[ConstructorApp](sbol_Identified)
     val rdfAboutMissingInBody = ('body, optics.constructorApp.body) @: noRdfAboutExists
-    val topLevelNotEmbedded = Constraint.fail("Must not embed intances of top-level") onlyIf instanceOfTopLevel
+    val topLevelNotEmbedded = instanceOfTopLevel.not
 
 
     def checkAndRecurse(c: Constraint[ConstructorApp]): Constraint[ConstructorApp] = If(
@@ -54,12 +56,12 @@ object SBOL extends ConstraintSystem {
       ),
       Constraint.success)
 
-    def nested(c: Constraint[ConstructorApp]) = ('nestedCstrs, nestedCstrs) @: c
+    def nested(c: Constraint[ConstructorApp]) = nestedCstrs apply c
 
     val topConstraint = ('topCstr, topCstr) @:
       (nested(checkAndRecurse(Constraint.applyAll(List(topLevelNotEmbedded, rdfAboutMissingInBody)))) onlyIf instanceOfTopLevel)
 
-    override def apply(a: InstanceExp) = topConstraint apply a
+    override def apply(a: TopLevel.InstanceExp) = topConstraint apply a
 
     override def not = ???
 
@@ -71,7 +73,35 @@ object SBOL extends ConstraintSystem {
 
 object SBOLRecovery {
 
-  def nestedAboutRecovery(mkAbout: () => Identifier) = ConstraintRecovery[NestedViolation[ConstructorApp, Symbol, List[BodyStmt]], ConstructorApp] {
+  def addTopLevel(ie: InstanceExp) = ValueRecovery[SBEvaluatedFile] {
+    sef =>
+      (Scalaz.none -> sef.copy(tops = sef.tops :+ TopLevel.InstanceExp(ie))).some
+  }
+
+  def nestedTopLevelRecovery(mkAbout: () => Identifier) = ConstraintRecovery.nested[optics.bodyStmt.PropValue, Symbol, ConstructorApp] {
+    case NestedViolation(pv, 'instance, caV) =>
+      caV match {
+        case NestedViolation(ca, 'type, tV) =>
+          tV.asInstanceOf[ConstraintFailure[Set[Identifier]]] match {
+            case ConstraintFailure(nmo, _) =>
+              nmo match {
+                case NotMemberOf(_) =>
+                  val newId = mkAbout() : Identifier
+                  (addTopLevel(InstanceExp(newId, ca)).some, Left(newId: ValueExp)).some
+                case _ =>
+                  Scalaz.none
+              }
+            case _ =>
+              Scalaz.none
+          }
+        case _ =>
+          Scalaz.none
+      }
+    case _ =>
+      Scalaz.none
+  }
+
+  def nestedAboutRecovery(mkAbout: () => Identifier) = ConstraintRecovery.nested[ConstructorApp, Symbol, optics.bodyStmt.PropValue] {
     case NestedViolation(cApp, 'body, bV) =>
       bV match {
         case NestedViolation(body, SBOL.`rdf_about`, sV) =>
@@ -79,13 +109,19 @@ object SBOLRecovery {
             case NestedViolation(_, 'size, cF) =>
               cF.asInstanceOf[ConstraintFailure[Int]] match {
                 case ConstraintFailure(NotLessThan(1), _) =>
-                  (Scalaz.none, cApp.copy(body = (Assignment(SBOL.rdf_about, mkAbout()) : BodyStmt) +: cApp.body)).some
-                case _ => Scalaz.none
+                  (Scalaz.none ->
+                    cApp.copy(body = (Assignment(SBOL.rdf_about, mkAbout()) : BodyStmt) +: cApp.body)).some
+                case _ =>
+                  Scalaz.none
               }
-            case _ => Scalaz.none
+            case _ =>
+              Scalaz.none
           }
-        case _ => Scalaz.none
+        case _ =>
+          Scalaz.none
       }
+    case _ =>
+      Scalaz.none
   }
 
 }

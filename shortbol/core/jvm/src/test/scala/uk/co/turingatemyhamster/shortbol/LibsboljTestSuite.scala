@@ -39,6 +39,7 @@ object LibsboljTestSuite extends TestSuite {
 
     ConstraintSystem(OWL, SBOL)(
       LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA),
+      SBOLRecovery.nestedTopLevelRecovery(randomIdentifier),
       SBOLRecovery.nestedAboutRecovery(randomIdentifier)
     )(c)(v).fold(
       errs => {

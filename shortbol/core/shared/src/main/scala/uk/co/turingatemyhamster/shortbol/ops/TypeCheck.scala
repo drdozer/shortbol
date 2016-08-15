@@ -45,14 +45,16 @@ case class ConstraintRecovery[C <: ConstraintViolation[X], X](recover: C => Opti
   }
 }
 
+object ConstraintRecovery {
+  type Recovered[X] = (Option[ValueRecovery[_]], X)
+
+  def nested[A, K, B](recover: NestedViolation[A, K, B] => Option[Recovered[A]])(implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) = apply(recover)
+}
+
 case class ValueRecovery[X](recover: X => Option[ConstraintRecovery.Recovered[X]])(implicit val xTT: TypeTag[X]) {
   def tryRecover[XX](xx: XX)(implicit xxTT: TypeTag[XX]): Option[ConstraintRecovery.Recovered[XX]] =
     if(xTT.tpe <:< xxTT.tpe) recover(xx.asInstanceOf[X]) map (_.asInstanceOf[ConstraintRecovery.Recovered[XX]])
     else Scalaz.none
-}
-
-object ConstraintRecovery {
-  type Recovered[X] = (Option[ValueRecovery[_]], X)
 }
 
 object ConstraintViolation {
@@ -322,7 +324,7 @@ case class NotMemberOf[A](a: A)(implicit aTT: TypeTag[A]) extends Constraint[Set
 
   override def not = MemberOf(a)
 
-  override def prettyPrint: String = s"($a in _)"
+  override def prettyPrint: String = s"($a not_in _)"
 }
 
 case class LessThan(min: Int) extends Constraint[Int] {
