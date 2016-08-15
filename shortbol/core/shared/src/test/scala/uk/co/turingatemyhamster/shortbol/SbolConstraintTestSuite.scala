@@ -18,8 +18,14 @@ object SbolConstraintTestSuite extends TestSuite {
 
   val sbol = ConstraintSystem(SBOL)
 
+  val ctxt = ShortbolParser.SBFile.withPositions("_stdlib_",
+    """
+      |sbol:TopLevel : owl:Class
+      |  owl:subClassOf = sbol:Identified
+    """.stripMargin).get.value.eval.exec(Fixture.configuredContext)
+
   def succeeds(src: String): Unit = {
-    val (c, v) = ShortbolParser.SBFile.withPositions("_test_", src).get.value.eval.run(Fixture.configuredContext)
+    val (c, v) = ShortbolParser.SBFile.withPositions("_test_", src).get.value.eval.run(ctxt)
     sbol()(c)(v).fold(
       nel => assert(nel == null),
       success => ()
@@ -27,7 +33,7 @@ object SbolConstraintTestSuite extends TestSuite {
   }
 
   def fails(src: String): Unit = {
-    val (c, v) = ShortbolParser.SBFile.withPositions("_test_", src).get.value.eval.run(Fixture.configuredContext)
+    val (c, v) = ShortbolParser.SBFile.withPositions("_test_", src).get.value.eval.run(ctxt)
     sbol()(c)(v).fold(
       nel => {
       },
@@ -200,6 +206,29 @@ object SbolConstraintTestSuite extends TestSuite {
       }
     }
 
+    'nestedInstances - {
+
+      'nonToplevel - {
+        succeeds(
+          """
+            |x : prov:Agent
+            |  prov:actedOnBehalfOf : sbol:TopLevel
+            |    rdf:about = <http://foo.bar.com/bob>
+          """.stripMargin
+        )
+      }
+
+      'topLevel - {
+        fails(
+          """
+            |x : sbol:TopLevel
+            |  prov:actedOnBehalfOf : sbol:TopLevel
+            |    rdf:about = <http://foo.bar.com/bob>
+          """.stripMargin
+        )
+      }
+
+    }
 
   }
 

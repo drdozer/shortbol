@@ -150,14 +150,14 @@ object OWL extends ConstraintSystem {
                             ie
                           }
                         }
-                        ) @: Constraint.forAny(typer.byType[InstanceExp](tpe) log "identifier") log "forAnyInstanceByIdentifier",
-                      ('literal, optics.valueExp.literal) @: typer.byType[Literal](tpe) log "literal"
+                        ) @: Constraint.forAny(typer.byType[InstanceExp](tpe) ),
+                      ('literal, optics.valueExp.literal) @: typer.byType[Literal](tpe)
                     )
-                  ) log "assignment",
+                  ),
                   ('instance, stdRight[ValueExp, ConstructorApp])
-                    @: typer.byType[ConstructorApp](tpe) log "instance"
+                    @: typer.byType[ConstructorApp](tpe)
                 )
-              ) log s"at property $propId"
+              )
             ).some
         case _ =>
           none
@@ -223,7 +223,7 @@ object OWL extends ConstraintSystem {
 
     val tcInstanceExp = Constraint.applyAll(flatClasses.to[List])
 
-    val tcTopLevel = ('instanceExp, optics.topLevel.instanceExp.instanceExp) @: tcInstanceExp log "tcTopLevel"
+    val tcTopLevel = ('instanceExp, optics.topLevel.instanceExp.instanceExp) @: tcInstanceExp
 
     override def apply(a: TopLevel.InstanceExp) =
       tcTopLevel apply a

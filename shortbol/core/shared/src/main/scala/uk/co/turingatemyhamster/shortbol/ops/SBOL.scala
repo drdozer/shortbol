@@ -38,25 +38,26 @@ object SBOL extends ConstraintSystem {
   class ContextConstraint(ctxt: EvalContext) extends Constraint[TopLevel.InstanceExp] {
     val typer = OwlTyper(ctxt)
 
-    lazy val instanceOfTopLevel = typer.byType[ConstructorApp](sbol_TopLevel)
-    lazy val instanceOfIdentified = typer.byType[ConstructorApp](sbol_Identified)
+    val instanceOfTopLevel = typer.byType[ConstructorApp](sbol_TopLevel)
+    val instanceOfIdentified = typer.byType[ConstructorApp](sbol_Identified)
+    val rdfAboutMissingInBody = ('body, optics.constructorApp.body) @: noRdfAboutExists
+    val topLevelNotEmbedded = Constraint.fail("Must not embed intances of top-level") onlyIf instanceOfTopLevel
 
-    lazy val checkAndRecurse: Constraint[ConstructorApp] = If(
+
+    def checkAndRecurse(c: Constraint[ConstructorApp]): Constraint[ConstructorApp] = If(
       instanceOfIdentified,
       Constraint.applyAll(
         List(
-          ('body, optics.constructorApp.body) @: noRdfAboutExists,
-          checkNestedCstrs
+          c,
+          nested(checkAndRecurse(c))
         )
       ),
       Constraint.success)
 
-    lazy val checkNestedCstrs: Constraint[ConstructorApp] =
-      ('nestedCstr, nestedCstrs) @: checkAndRecurse
+    def nested(c: Constraint[ConstructorApp]) = ('nestedCstrs, nestedCstrs) @: c
 
-    ('nextedCstr, nestedCstrs) @: instanceOfTopLevel.not
-
-    val topConstraint = ('topCstr, topCstr) @: (checkNestedCstrs onlyIf instanceOfTopLevel)
+    val topConstraint = ('topCstr, topCstr) @:
+      (nested(checkAndRecurse(Constraint.applyAll(List(topLevelNotEmbedded, rdfAboutMissingInBody)))) onlyIf instanceOfTopLevel)
 
     override def apply(a: InstanceExp) = topConstraint apply a
 

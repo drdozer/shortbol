@@ -137,6 +137,7 @@ object Constraint {
 
   def success[A](implicit aTT: TypeTag[A]) = AlwaysSucceed[A]()
   def fail[A](implicit aTT: TypeTag[A]) = AlwaysFail[A](none)
+  def fail[A](msg: String)(implicit aTT: TypeTag[A]) = AlwaysFail[A](msg.some)
 
 
   def applyAll[A](cs: List[Constraint[A]])(implicit aTT: TypeTag[A]): Constraint[A] =
