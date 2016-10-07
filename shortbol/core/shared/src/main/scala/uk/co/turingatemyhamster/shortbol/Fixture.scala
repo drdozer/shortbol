@@ -26,7 +26,7 @@ object Fixture {
 
   lazy val bootstrapPragmas = PragmaPragma(
     ImportBaseUrl.apply,
-    ImportPragma(Resolver.fromWeb),
+//    ImportPragma(Resolver.fromWeb),
     DefaultPrefixPragma.apply,
     PrefixPragma.apply
   )

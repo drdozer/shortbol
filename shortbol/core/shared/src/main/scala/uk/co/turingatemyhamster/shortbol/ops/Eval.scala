@@ -212,17 +212,17 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 //  implicit val literal: Aux[Literal, Literal] = identityEval
 //
 //  // fixme: see if this is redundant
-//  implicit val sbFile: Aux[SBFile, SBEvaluatedFile] = new Eval[SBFile] {
-//    override type Result = SBEvaluatedFile
-//
-//    override def apply(t: SBFile) = for {
-//      ts <- t.tops.eval
-//    } yield {
-//      val f = SBEvaluatedFile(ts.flatten)
-//      f.region = t.region
-//      f
-//    }
-//  }
+  implicit val sbFile: Aux[SBFile, SBEvaluatedFile] = new Eval[SBFile] {
+    override type Result = SBEvaluatedFile
+
+    override def apply(t: SBFile) = for {
+      ts <- t.tops.eval
+    } yield {
+      val f = SBEvaluatedFile(ts.flatten)
+      f.region = t.region
+      f
+    }
+  }
 //
 //  implicit val blankLine: Aux[BlankLine, BlankLine] = identityEval
 //
