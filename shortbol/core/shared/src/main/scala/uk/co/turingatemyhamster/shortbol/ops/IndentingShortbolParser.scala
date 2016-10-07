@@ -164,19 +164,19 @@ sealed class IndentingShortbolParser(indent: Int) {
             ast.PropertyValue.Reference(ref)
         }
       )
-    } map ast.BodyStmt.PropertyExp)
+    }) map ast.BodyStmt.PropertyExp
     val BlankLine = P(ShortbolParsers.BlankLine map ast.BodyStmt.BlankLine)
     val Comment = P(ShortbolParsers.Comment map ast.BodyStmt.Comment)
     val InstanceExp = P(self.InstanceExp map { ie =>
       ast.PropertyExp(
         ie.id,
         ast.PropertyValue.Nested(ie.cstrApp))
-    } map ast.BodyStmt.PropertyExp)
+    }) map ast.BodyStmt.PropertyExp
     val InfixAssignment = P(ShortbolParsers.InfixAssignment map { ie =>
       ast.PropertyExp(
         ie.id,
         ast.PropertyValue.Nested(ie.cstrApp))
-    } map ast.BodyStmt.PropertyExp)
+    }) map ast.BodyStmt.PropertyExp
   }
 
   lazy val BodyStmt: Parser[ast.BodyStmt] =
@@ -199,7 +199,7 @@ sealed class IndentingShortbolParser(indent: Int) {
   lazy val IndentedInstanceBody: Parser[Seq[ast.BodyStmt]] = P((SpNl ~ IndentBlock(_.InstanceBody)) | NoBody) //log "indented instance body"
 
   lazy val PrefixConstructorApp: Parser[ast.ConstructorApp] = P(TpeConstructor ~ Space.rep ~ IndentedInstanceBody map
-    (ast.ConstructorApp.apply _ tupled))
+    (ast.ConstructorApp.apply(_ : ast.TpeConstructor, _: Seq[ast.BodyStmt])).tupled)
 
   lazy val InstanceExp: Parser[ast.InstanceExp] =
     P(Identifier ~ Space.rep ~ Colon ~/ Space.rep ~ PrefixConstructorApp map

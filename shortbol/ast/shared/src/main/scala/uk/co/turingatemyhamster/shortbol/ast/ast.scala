@@ -93,6 +93,11 @@ case class Comment(commentText: String) extends AstNode
 case class ConstructorApp(cstr: TpeConstructor,
                           body: Seq[BodyStmt]) extends AstNode
 
+object ConstructorApp {
+  def apply[T](cstr: T, bodys: BodyStmt*)(implicit e: T => TpeConstructor): ConstructorApp =
+    ConstructorApp(e(cstr), bodys)
+}
+
 case class ConstructorDef(id: Identifier,
                             args: Seq[Identifier],
                             cstrApp: ConstructorApp) extends AstNode
@@ -125,12 +130,17 @@ object sugar {
   implicit def tlComment(c: Comment): TopLevel.Comment = TopLevel.Comment(c)
   implicit def tlConstructorDef(c: ConstructorDef): TopLevel.ConstructorDef = TopLevel.ConstructorDef(c)
 
+  implicit def idToTpe[I](i: I)(implicit e: I => Identifier): TpeConstructor1 =
+    TpeConstructor1(i, Nil)
+
+  implicit class IdentifierToTpe[I](_i: I) {
+    def withArgs(ves: ValueExp*)(implicit iE: I => Identifier): TpeConstructor =
+      TpeConstructor1(_i, ves)
+  }
+
   implicit def bsBlankLine(bl: BlankLine): BodyStmt.BlankLine = BodyStmt.BlankLine(bl)
   implicit def bsComment(c: Comment): BodyStmt.Comment = BodyStmt.Comment(c)
   implicit def bsPropertyExp[PE](pe: PE)(implicit peE: PE => PropertyExp): BodyStmt.PropertyExp = BodyStmt.PropertyExp(pe)
-
-  implicit def propertyExp[I, V](iv: (I, V))(implicit iE: I => ast.Identifier, vE: V => PropertyValue) =
-    PropertyExp(iv._1, iv._2)
 
   implicit def pvLiteral[L](l: L)(implicit lE: L => Literal): PropertyValue = PropertyValue.Literal(l)
   implicit def pvReference[R](r: R)(implicit rE: R => Identifier): PropertyValue = PropertyValue.Reference(r)
@@ -151,5 +161,10 @@ object sugar {
 
   implicit class NSPrefixOps[N](val _pfx: N) extends AnyVal {
     def :# (ln: LocalName)(implicit ne: N => NSPrefix): QName = QName(_pfx, ln)
+  }
+
+  implicit class PropertyExpOps[I](val _i: I) extends AnyVal {
+    def := [V] (v: V)(implicit iE: I => ast.Identifier, vE: V => PropertyValue): PropertyExp =
+        PropertyExp(_i, v)
   }
 }
