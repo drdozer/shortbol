@@ -125,10 +125,16 @@ object sugar {
   implicit def tlComment(c: Comment): TopLevel.Comment = TopLevel.Comment(c)
   implicit def tlConstructorDef(c: ConstructorDef): TopLevel.ConstructorDef = TopLevel.ConstructorDef(c)
 
-//  implicit def bsAssignment[A](a: A)(implicit e: A => ast.Assignment): BodyStmt.Assignment = BodyStmt.Assignment(a)
   implicit def bsBlankLine(bl: BlankLine): BodyStmt.BlankLine = BodyStmt.BlankLine(bl)
   implicit def bsComment(c: Comment): BodyStmt.Comment = BodyStmt.Comment(c)
-//  implicit def bsInstanceExp(ie: InstanceExp): BodyStmt.InstanceExp = BodyStmt.InstanceExp(ie)
+  implicit def bsPropertyExp[PE](pe: PE)(implicit peE: PE => PropertyExp): BodyStmt.PropertyExp = BodyStmt.PropertyExp(pe)
+
+  implicit def propertyExp[I, V](iv: (I, V))(implicit iE: I => ast.Identifier, vE: V => PropertyValue) =
+    PropertyExp(iv._1, iv._2)
+
+  implicit def pvLiteral[L](l: L)(implicit lE: L => Literal): PropertyValue = PropertyValue.Literal(l)
+  implicit def pvReference[R](r: R)(implicit rE: R => Identifier): PropertyValue = PropertyValue.Reference(r)
+  implicit def pvNested(n: ast.ConstructorApp): PropertyValue = PropertyValue.Nested(n)
 
   implicit def veIdentifier[I](i: I)(implicit e: I => ast.Identifier): ValueExp.Identifier = ValueExp.Identifier(i)
   implicit def veLiteral[L](l: L)(implicit e: L => ast.Literal): ValueExp.Literal = ValueExp.Literal(l)
