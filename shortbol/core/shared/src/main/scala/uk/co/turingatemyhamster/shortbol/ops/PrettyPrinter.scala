@@ -11,6 +11,7 @@ trait PrintApp[T] {
   def apply(t: T): Unit
 }
 
+
 object PrintApp extends TypeClassCompanion[PrintApp] {
   implicit class PrintAppOps[T](val _t: T) extends AnyVal {
     def append(implicit pa: PrintApp[T]): Unit = pa apply _t

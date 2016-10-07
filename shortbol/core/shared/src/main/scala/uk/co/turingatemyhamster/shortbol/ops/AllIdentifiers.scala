@@ -2,8 +2,6 @@ package uk.co.turingatemyhamster.shortbol.ops
 
 import shapeless._
 import uk.co.turingatemyhamster.shortbol.ast
-import uk.co.turingatemyhamster.shortbol.ast.QName
-import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 
 trait AllIdentifiers[T] {
   def apply(t: T): Seq[ast.Identifier]
@@ -53,10 +51,13 @@ object AllIdentifiers extends TypeClassCompanion[AllIdentifiers] {
   implicit val literal = AllIdentifiers[ast.Literal]
   implicit val tpeConstructor = AllIdentifiers[ast.TpeConstructor]
   implicit val valueExp = AllIdentifiers[ast.ValueExp]
+  implicit val constructorApp = AllIdentifiers[ast.ConstructorApp]
+  implicit val propertyValue = AllIdentifiers[ast.PropertyValue]
+  implicit val propertyExp = AllIdentifiers[ast.PropertyExp]
   implicit val bodyStmt = AllIdentifiers[ast.BodyStmt]
   implicit val topLevel = AllIdentifiers[ast.TopLevel]
   implicit val sbFile = AllIdentifiers[ast.SBFile]
-
+//
   def miss[T]: AllIdentifiers[T] = new MissIdentifiers[T]
 
   class MissIdentifiers[T] extends AllIdentifiers[T] {
@@ -64,159 +65,7 @@ object AllIdentifiers extends TypeClassCompanion[AllIdentifiers] {
   }
 }
 
-trait AllQNames[T] {
-  def apply(t: T): Seq[ast.QName]
-}
-
-object AllQNames extends TypeClassCompanion[AllQNames] {
-  def in[T](t: T)(implicit e: AllQNames[T]) = e(t)
-
-  override val typeClass: TypeClass[AllQNames] = new TypeClass[AllQNames] {
-    override def coproduct[L, R <: Coproduct](cl: => AllQNames[L],
-                                              cr: => AllQNames[R]) = new AllQNames[:+:[L, R]] {
-      override def apply(t: :+:[L, R]) = t match {
-        case Inl(l) => cl(l)
-        case Inr(r) => cr(r)
-      }
-    }
-
-    override def emptyCoproduct = new AllQNames[CNil] {
-      override def apply(t: CNil) = ???
-    }
-
-    override def emptyProduct = miss[HNil]
-
-    override def product[H, T <: HList](ch: AllQNames[H],
-                                        ct: AllQNames[T]) = new AllQNames[::[H, T]] {
-      override def apply(t: ::[H, T]) = ch(t.head) ++ ct(t.tail)
-    }
-
-    override def project[F, G](instance: => AllQNames[G],
-                               to: (F) => G,
-                               from: (G) => F) = new AllQNames[F] {
-      override def apply(t: F) = instance(to(t))
-    }
-  }
-
-  implicit def seq[T](implicit e: AllQNames[T]): AllQNames[Seq[T]] = new AllQNames[Seq[T]] {
-    override def apply(t: Seq[T]) = t flatMap e.apply
-  }
-
-  implicit val missString = miss[String]
-  implicit val missInt = miss[Int]
-  implicit val missBoolean = miss[Boolean]
-
-  implicit val qname: AllQNames[ast.QName] = new AllQNames[QName] {
-    override def apply(t: QName) = Seq(t)
-  }
-
-  implicit val identifier = AllQNames[ast.Identifier]
-  implicit val style = AllQNames[ast.StringLiteral.Style]
-  implicit val literal = AllQNames[ast.Literal]
-  implicit val tpeConstructor = AllQNames[ast.TpeConstructor]
-  implicit val assignmentSeq = AllQNames[Seq[ast.Assignment]]
-  implicit val instanceExpSeq = AllQNames[Seq[ast.InstanceExp]]
-  implicit val constructorDefSeq = AllQNames[Seq[ast.ConstructorDef]]
-  implicit val valueExp = AllQNames[ast.ValueExp]
-  implicit val bodyStmt = AllQNames[ast.BodyStmt]
-  implicit val topLevel = AllQNames[ast.TopLevel]
-  implicit val sbFile = AllQNames[ast.SBFile]
-
-  def miss[T]: AllQNames[T] = new MissQName[T]
-
-  class MissQName[T] extends AllQNames[T] {
-    override def apply(t: T) = Seq.empty
-  }
-}
 
 
-import scalaz.Scalaz._
-
-trait ChangeIdentifiers[T] {
-  def apply(t: T): EvalState[T]
-}
-
-object ChangeIdentifiers {
-  case class at(transform: ast.Identifier => EvalState[ast.Identifier]) extends TypeClassCompanion[ChangeIdentifiers]
-  {
-    self =>
-
-    override val typeClass: TypeClass[ChangeIdentifiers] = new TypeClass[ChangeIdentifiers] {
-      override def coproduct[L, R <: Coproduct](cl: => ChangeIdentifiers[L],
-                                                cr: => ChangeIdentifiers[R]) =
-          new ChangeIdentifiers[:+:[L, R]] {
-            override def apply(t: :+:[L, R]) = t match {
-              case Inl(l) => for {
-                cll <- cl(l)
-              } yield Inl(cll)
-              case Inr(r) => for {
-                crr <- cr(r)
-              } yield Inr(crr)
-            }
-          }
 
 
-      override def emptyCoproduct = new ChangeIdentifiers[CNil] {
-        override def apply(t: CNil) = ???
-      }
-
-      override def product[H, T <: HList](ch: ChangeIdentifiers[H],
-                                          ct: ChangeIdentifiers[T]) = new ChangeIdentifiers[::[H, T]] {
-        override def apply(t: ::[H, T]) = for {
-          chh <- ch(t.head)
-          ctt <- ct(t.tail)
-        } yield chh :: ctt
-      }
-
-      override def emptyProduct = miss[HNil]
-
-      override def project[F, G](instance: => ChangeIdentifiers[G],
-                                 to: (F) => G,
-                                 from: (G) => F) = new ChangeIdentifiers[F] {
-        override def apply(t: F) = for {
-          tot <- instance(to(t))
-        } yield from(tot)
-      }
-    }
-
-    implicit def deriveNodeInstance[F <: ast.AstNode, G]
-    (implicit gen: Generic.Aux[F, G], cg: Lazy[ChangeIdentifiers[G]]): ChangeIdentifiers[F] = {
-      val fg = typeClass.project(cg.value, gen.to _, gen.from _)
-      new ChangeIdentifiers[F] {
-        override def apply(t: F) = for {
-          ff <- fg.apply(t)
-        } yield {
-          ff.region = t.region
-          ff
-        }
-      }
-    }
-
-    implicit def seq[T](implicit e: ChangeIdentifiers[T]): ChangeIdentifiers[Seq[T]] =
-      typeClass.project[Seq[T], List[T]](implicitly[ChangeIdentifiers[List[T]]], _.to[List], identity)
-
-    implicit val missString = miss[String]
-    implicit val missInt = miss[Int]
-    implicit val missBoolean = miss[Boolean]
-
-    implicit val identifier: ChangeIdentifiers[ast.Identifier] = new ChangeIdentifiers[ast.Identifier] {
-      override def apply(t: ast.Identifier) = transform(t)
-    }
-    implicit val style = self[ast.StringLiteral.Style]
-    implicit val literal = self[ast.Literal]
-    implicit val assignment = self[ast.Assignment]
-    implicit val tpeConstructor = self[ast.TpeConstructor]
-    implicit val instanceExp = self[ast.InstanceExp]
-    implicit val constructorDef = self[ast.ConstructorDef]
-    implicit val valueExp = self[ast.ValueExp]
-    implicit val bodyStmt = self[ast.BodyStmt]
-    implicit val topLevel = self[ast.TopLevel]
-    implicit val sbFile = self[ast.SBFile]
-
-    def miss[T]: ChangeIdentifiers[T] = new MissIdentifiers[T]
-
-    class MissIdentifiers[T] extends ChangeIdentifiers[T] {
-      override def apply(t: T) = t.point[EvalState]
-    }
-  }
-}

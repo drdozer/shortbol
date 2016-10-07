@@ -190,286 +190,291 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     def eval[U](implicit e: Aux[T, U]): EvalState[U] = e(_t)
   }
 
-  implicit def seq[T, U](implicit pa: Aux[T, U]): Aux[Seq[T], Seq[U]] =
-    Eval.typeClass.project(implicitly[Aux[List[T], List[U]]], (_: Seq[T]).to[List], implicitly[List[U]<:<Seq[U]])
-
-
-  // Smelly! Find a way to compute this
-  implicit lazy val topLevel: Aux[TopLevel, List[TopLevel.InstanceExp]] = {
-    type U = List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:CNil
-    val g = Generic[TopLevel]
-    val e = Eval[g.Repr, U]
-    typeClass.project[TopLevel, g.Repr, List[TopLevel.InstanceExp], U](e, g.to, _.unify)
-  }
-
-  implicit val bodyStmt = Eval[BodyStmt, BodyStmt]
-
-  implicit val literal: Aux[Literal, Literal] = identityEval
-
-  // fixme: see if this is redundant
-  implicit val sbFile: Aux[SBFile, SBEvaluatedFile] = new Eval[SBFile] {
-    override type Result = SBEvaluatedFile
-
-    override def apply(t: SBFile) = for {
-      ts <- t.tops.eval
-    } yield {
-      val f = SBEvaluatedFile(ts.flatten)
-      f.region = t.region
-      f
-    }
-  }
-
-  implicit val blankLine: Aux[BlankLine, BlankLine] = identityEval
-
-  implicit val topLevel_blankLine: Aux[TopLevel.BlankLine, List[TopLevel.InstanceExp]] = new Eval[TopLevel.BlankLine] {
-    override type Result = List[TopLevel.InstanceExp]
-
-    override def apply(t: TopLevel.BlankLine) = for {
-      te <- t.blankLine.eval
-    } yield Nil
-  }
-
-  implicit val comment: Aux[Comment, Comment] = identityEval
-
-  implicit val topLevel_comment: Aux[TopLevel.Comment, List[TopLevel.InstanceExp]] = new Eval[TopLevel.Comment] {
-      override type Result = List[TopLevel.InstanceExp]
-
-      override def apply(t: TopLevel.Comment) = for {
-        te <- t.comment.eval
-      } yield Nil
-    }
-
-  implicit val topLevel_pragma: Aux[TopLevel.Pragma, List[TopLevel.InstanceExp]] = new Eval[TopLevel.Pragma] {
-    override type Result = List[TopLevel.InstanceExp]
-
-    override def apply(t: TopLevel.Pragma) = for {
-      p <- t.pragma.eval
-      _ <- modify((_: EvalContext).withPragmas(p :_*))
-    } yield Nil
-  }
-
-  implicit val pragama: Aux[Pragma, List[Pragma]] = new Eval[Pragma] {
-    override type Result = List[Pragma]
-
-    override def apply(t: Pragma) = for {
-      phook <- gets((_: EvalContext).hooks.phook)
-      hook = phook.foldl((p: Pragma) => (List(p)).point[EvalState])(
-        h1 => h2 => (p0: Pragma) => for {
-          p1 <- h1(p0)
-          p2 <- (p1 map h2).sequence
-        } yield p2.flatten)
-      cd <- hook(t)
-    } yield cd
-  }
-
-  implicit val assignment: Aux[Assignment, Assignment] = new Eval[Assignment] {
-    override type Result = Assignment
-
-    override def apply(t: Assignment) = for {
-      p <- t.property.eval
-      v <- t.value.eval
-    } yield {
-      val a = Assignment(p, v)
-      a.region = t.region
-      a
-    }
-  }
-
-  implicit val topLevel_assignment: Aux[TopLevel.Assignment, List[TopLevel.InstanceExp]] = new Eval[TopLevel.Assignment] {
-    override type Result = List[TopLevel.InstanceExp]
-
-    override def apply(t: TopLevel.Assignment) = for {
-      ahook <- gets((_: EvalContext).hooks.ahook)
-      hook = ahook.foldl((a: Assignment) => List(a).point[EvalState])(
-        h1 => h2 => (a0 : Assignment) => for {
-          a1 <- h1(a0)
-          a2 <- (a1 map h2).sequence
-        } yield a2.flatten)
-      a <- hook(t.assignment)
-      _ <- modify((_: EvalContext).withAssignments(a :_*))
-    } yield Nil
-  }
-
-  implicit val topLevel_constructorDef: Aux[TopLevel.ConstructorDef, List[TopLevel.InstanceExp]] = new Eval[TopLevel.ConstructorDef] {
-    override type Result = List[TopLevel.InstanceExp]
-
-    override def apply(t: TopLevel.ConstructorDef) = for {
-      cd <- t.constructorDef.eval
-      _ <- modify((_: EvalContext).withConstructors(cd :_*))
-    } yield Nil
-  }
-
-  implicit val constructorDef: Aux[ConstructorDef, List[ConstructorDef]] = new Eval[ConstructorDef] {
-    override type Result = List[ConstructorDef]
-
-    override def apply(t: ConstructorDef) = for {
-      chook <- gets((_: EvalContext).hooks.chook)
-      hook = chook.foldl((c: ConstructorDef) => List(c).point[EvalState])(
-        h1 => h2 => (c0: ConstructorDef) => for {
-          c1 <- h1(c0)
-          c2 <- (c1 map h2).sequence
-        } yield c2.flatten)
-      cd <- hook(t)
-    } yield cd
-  }
-
-  implicit val constructorApp: Aux[ConstructorApp, ConstructorApp] = new Eval[ConstructorApp] {
-    override type Result = ConstructorApp
-
-    override def apply(ca: ConstructorApp) = for {
-      tcTcBody <- ca.cstr.eval
-      (tc, tcBody) = tcTcBody
-      body <- ca.body.eval
-    } yield {
-      val c = ConstructorApp(tc, tcBody ++ body)
-      c.region = ca.region
-      c
-    }
-  }
-
-
-  implicit val instanceExp: Aux[InstanceExp, List[InstanceExp]] = new Eval[InstanceExp] {
-    override type Result = List[InstanceExp]
-
-    override def apply(i: InstanceExp) = for {
-      ce <- i.cstrApp.eval
-      ihook <- gets((_: EvalContext).hooks.ihook)
-      hook = ihook.foldl((i: InstanceExp) => List(i).point[EvalState])(
-        h1 => h2 => (i0: InstanceExp) => for
-        {
-          i1 <- h1(i0)
-          i2 <- (i1 map h2).sequence
-        } yield i2.flatten)
-      ie = InstanceExp(i.id, ce)
-      _ = ie.region = i.region
-      is <- hook(ie)
-    } yield is
-  }
-
-  implicit val topLevel_instanceExp: Aux[TopLevel.InstanceExp, List[TopLevel.InstanceExp]] = new Eval[TopLevel.InstanceExp] {
-    override type Result = List[TopLevel.InstanceExp]
-
-    override def apply(t: TopLevel.InstanceExp) = for {
-      is <- t.instanceExp.eval
-      _ <- modify((_: EvalContext).withInstances(is :_*))
-    } yield is map TopLevel.InstanceExp
-  }
-
-  implicit val constructorDefApp: Aux[(Seq[ValueExp], ConstructorDef), (TpeConstructor, Seq[BodyStmt])] = new Eval[(Seq[ValueExp], ConstructorDef)] {
-    override type Result = (TpeConstructor, Seq[BodyStmt])
-
-    override def apply(vscd: (Seq[ValueExp], ConstructorDef)) = for {
-      cd <- withStack(vscd._2.args, vscd._1)(vscd._2.cstrApp.eval)
-    } yield (cd.cstr, cd.body)
-
-    def withStack[T](names: Seq[Identifier], values: Seq[ValueExp])(sf: EvalState[T]) = for {
-      ec <- get[EvalContext]
-      _ <- modify ((_: EvalContext).withAssignments(names zip values map (Assignment.apply _).tupled :_*))
-      v <- sf
-      _ <- put(ec) // fixme: should we only be only overwriting the bindings?
-    } yield v
-  }
-
-  implicit val tpeConstructor1: Aux[TpeConstructor1, (TpeConstructor, Seq[BodyStmt])] = new Eval[TpeConstructor1] {
-    override type Result = (TpeConstructor, Seq[BodyStmt])
-
-    override def apply(t: TpeConstructor1) = for {
-      ot <- resolveWithAssignment(t.id)
-      args <- t.args.eval
-      ts <- ot match {
-        case Some(cd) =>
-          (args, cd).eval
-        case None =>
-          val t1 = t.copy(args = args)
-          t1.region = t.region
-          (t1, Seq.empty).point[EvalState]
-      }
-    } yield ts
-
-    def resolveWithAssignment(id: Identifier): EvalState[Option[ConstructorDef]] = for {
-      c <- cstr(id)
-      cc <- c match {
-        case Some(_) =>
-          c.point[EvalState]
-        case None =>
-          for {
-            b <- resolveBinding(id)
-            bb <- b match {
-              case Some(ValueExp.Identifier(nid)) =>
-                resolveWithAssignment(nid)
-              case _ =>
-                (None : Option[ConstructorDef]).point[EvalState]
-            }
-          } yield bb
-      }
-    } yield cc
-  }
-
-  implicit val tpeConstructorStar: Aux[TpeConstructorStar, (TpeConstructorStar, Seq[BodyStmt])] = new Eval[TpeConstructorStar] {
-    override type Result = (TpeConstructorStar, Seq[BodyStmt])
-
-    override def apply(t: TpeConstructorStar) = (t -> Seq.empty[BodyStmt]).point[EvalState]
-  }
-
-  implicit val tpeConstructor: Aux[TpeConstructor, (TpeConstructor, Seq[BodyStmt])] = {
-    type U = (TpeConstructor, Seq[BodyStmt]):+:(TpeConstructorStar, Seq[BodyStmt]):+:CNil
-    val g = Generic[TpeConstructor]
-    val e = Eval[g.Repr, U]
-    typeClass.project[TpeConstructor, g.Repr, (TpeConstructor, Seq[BodyStmt]), U](e, g.to, _.unify)
-  }
-
-  implicit val identifier: Aux[Identifier, Identifier] = new Eval[Identifier] {
-    override type Result = Identifier
-
-    def apply(id: Identifier) = resolveWithAssignment(id)
-
-    def resolveWithAssignment(id: Identifier): State[EvalContext, Identifier] = for {
-      b <- resolveBinding(id)
-      rb <- b match {
-        case Some(ValueExp.Identifier(rid)) =>
-          resolveWithAssignment(rid)
-        case _ =>
-          id.point[EvalState]
-      }
-    } yield rb
-  }
-
-  implicit val valueExp: Aux[ValueExp, ValueExp] = new Eval[ValueExp] {
-    override type Result = ValueExp
-
-    override def apply(t: ValueExp) = t match {
-      case ValueExp.Literal(l) =>
-        for {
-          ll <- l.eval
-        } yield ValueExp.Literal(ll)
-      case ValueExp.Identifier(i) =>
-        resolveWithAssignment(i)
-    }
-
-    def resolveWithAssignment(id: Identifier): State[EvalContext, ValueExp] = for {
-      b <- resolveBinding(id)
-      rb <- b match {
-        case Some(ValueExp.Identifier(rid)) =>
-          resolveWithAssignment(rid)
-        case Some(l@ValueExp.Literal(_)) =>
-          l.point[EvalState]
-        case None =>
-          ValueExp.Identifier(id).point[EvalState]
-      }
-    } yield rb
-  }
-
-  def as[T, U](implicit e: Aux[U, U], to: T <:< U): Aux[T, U] =
-    typeClass.project[T, U, U, U](e, to, identity)
-
-  implicit val localName: Aux[LocalName, Identifier] = as[LocalName, Identifier]
-  implicit val qname: Aux[QName, Identifier] = as[QName, Identifier]
-  implicit val url: Aux[Url, Identifier] = as[Url, Identifier]
-
-  def cstr(id: Identifier): State[EvalContext, Option[ConstructorDef]] =
-    gets ((_: EvalContext).resolveCstr(id))
-
-  def resolveBinding(id: Identifier): State[EvalContext, Option[ValueExp]] =
-    gets ((_: EvalContext).resolveValue(id))
+//  implicit def seq[T, U](implicit pa: Aux[T, U]): Aux[Seq[T], Seq[U]] =
+//    Eval.typeClass.project(implicitly[Aux[List[T], List[U]]], (_: Seq[T]).to[List], implicitly[List[U]<:<Seq[U]])
+//
+//
+//  // Smelly! Find a way to compute this
+//  implicit lazy val topLevel: Aux[TopLevel, List[TopLevel.InstanceExp]] = {
+//    type U = List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:List[TopLevel.InstanceExp]:+:CNil
+//    val g = Generic[TopLevel]
+//    val e = Eval[g.Repr, U]
+//    typeClass.project[TopLevel, g.Repr, List[TopLevel.InstanceExp], U](e, g.to, _.unify)
+//  }
+//
+////  implicit val propertyValue = Eval[PropertyValue, PropertyValue]
+//  implicit val propertyValue: Aux[PropertyValue, PropertyValue] = ???
+//
+//  implicit val propertyExp = Eval[PropertyExp, PropertyExp]
+//
+//  implicit val bodyStmt = Eval[BodyStmt, BodyStmt]
+//
+//  implicit val literal: Aux[Literal, Literal] = identityEval
+//
+//  // fixme: see if this is redundant
+//  implicit val sbFile: Aux[SBFile, SBEvaluatedFile] = new Eval[SBFile] {
+//    override type Result = SBEvaluatedFile
+//
+//    override def apply(t: SBFile) = for {
+//      ts <- t.tops.eval
+//    } yield {
+//      val f = SBEvaluatedFile(ts.flatten)
+//      f.region = t.region
+//      f
+//    }
+//  }
+//
+//  implicit val blankLine: Aux[BlankLine, BlankLine] = identityEval
+//
+//  implicit val topLevel_blankLine: Aux[TopLevel.BlankLine, List[TopLevel.InstanceExp]] = new Eval[TopLevel.BlankLine] {
+//    override type Result = List[TopLevel.InstanceExp]
+//
+//    override def apply(t: TopLevel.BlankLine) = for {
+//      te <- t.blankLine.eval
+//    } yield Nil
+//  }
+//
+//  implicit val comment: Aux[Comment, Comment] = identityEval
+//
+//  implicit val topLevel_comment: Aux[TopLevel.Comment, List[TopLevel.InstanceExp]] = new Eval[TopLevel.Comment] {
+//      override type Result = List[TopLevel.InstanceExp]
+//
+//      override def apply(t: TopLevel.Comment) = for {
+//        te <- t.comment.eval
+//      } yield Nil
+//    }
+//
+//  implicit val topLevel_pragma: Aux[TopLevel.Pragma, List[TopLevel.InstanceExp]] = new Eval[TopLevel.Pragma] {
+//    override type Result = List[TopLevel.InstanceExp]
+//
+//    override def apply(t: TopLevel.Pragma) = for {
+//      p <- t.pragma.eval
+//      _ <- modify((_: EvalContext).withPragmas(p :_*))
+//    } yield Nil
+//  }
+//
+//  implicit val pragama: Aux[Pragma, List[Pragma]] = new Eval[Pragma] {
+//    override type Result = List[Pragma]
+//
+//    override def apply(t: Pragma) = for {
+//      phook <- gets((_: EvalContext).hooks.phook)
+//      hook = phook.foldl((p: Pragma) => (List(p)).point[EvalState])(
+//        h1 => h2 => (p0: Pragma) => for {
+//          p1 <- h1(p0)
+//          p2 <- (p1 map h2).sequence
+//        } yield p2.flatten)
+//      cd <- hook(t)
+//    } yield cd
+//  }
+//
+//  implicit val assignment: Aux[Assignment, Assignment] = new Eval[Assignment] {
+//    override type Result = Assignment
+//
+//    override def apply(t: Assignment) = for {
+//      p <- t.property.eval
+//      v <- t.value.eval
+//    } yield {
+//      val a = Assignment(p, v)
+//      a.region = t.region
+//      a
+//    }
+//  }
+//
+//  implicit val topLevel_assignment: Aux[TopLevel.Assignment, List[TopLevel.InstanceExp]] = new Eval[TopLevel.Assignment] {
+//    override type Result = List[TopLevel.InstanceExp]
+//
+//    override def apply(t: TopLevel.Assignment) = for {
+//      ahook <- gets((_: EvalContext).hooks.ahook)
+//      hook = ahook.foldl((a: Assignment) => List(a).point[EvalState])(
+//        h1 => h2 => (a0 : Assignment) => for {
+//          a1 <- h1(a0)
+//          a2 <- (a1 map h2).sequence
+//        } yield a2.flatten)
+//      a <- hook(t.assignment)
+//      _ <- modify((_: EvalContext).withAssignments(a :_*))
+//    } yield Nil
+//  }
+//
+//  implicit val topLevel_constructorDef: Aux[TopLevel.ConstructorDef, List[TopLevel.InstanceExp]] = new Eval[TopLevel.ConstructorDef] {
+//    override type Result = List[TopLevel.InstanceExp]
+//
+//    override def apply(t: TopLevel.ConstructorDef) = for {
+//      cd <- t.constructorDef.eval
+//      _ <- modify((_: EvalContext).withConstructors(cd :_*))
+//    } yield Nil
+//  }
+//
+//  implicit val constructorDef: Aux[ConstructorDef, List[ConstructorDef]] = new Eval[ConstructorDef] {
+//    override type Result = List[ConstructorDef]
+//
+//    override def apply(t: ConstructorDef) = for {
+//      chook <- gets((_: EvalContext).hooks.chook)
+//      hook = chook.foldl((c: ConstructorDef) => List(c).point[EvalState])(
+//        h1 => h2 => (c0: ConstructorDef) => for {
+//          c1 <- h1(c0)
+//          c2 <- (c1 map h2).sequence
+//        } yield c2.flatten)
+//      cd <- hook(t)
+//    } yield cd
+//  }
+//
+//  implicit val constructorApp: Aux[ConstructorApp, ConstructorApp] = new Eval[ConstructorApp] {
+//    override type Result = ConstructorApp
+//
+//    override def apply(ca: ConstructorApp) = for {
+//      tcTcBody <- ca.cstr.eval
+//      (tc, tcBody) = tcTcBody
+//      body <- ca.body.eval
+//    } yield {
+//      val c = ConstructorApp(tc, tcBody ++ body)
+//      c.region = ca.region
+//      c
+//    }
+//  }
+//
+//
+//  implicit val instanceExp: Aux[InstanceExp, List[InstanceExp]] = new Eval[InstanceExp] {
+//    override type Result = List[InstanceExp]
+//
+//    override def apply(i: InstanceExp) = for {
+//      ce <- i.cstrApp.eval
+//      ihook <- gets((_: EvalContext).hooks.ihook)
+//      hook = ihook.foldl((i: InstanceExp) => List(i).point[EvalState])(
+//        h1 => h2 => (i0: InstanceExp) => for
+//        {
+//          i1 <- h1(i0)
+//          i2 <- (i1 map h2).sequence
+//        } yield i2.flatten)
+//      ie = InstanceExp(i.id, ce)
+//      _ = ie.region = i.region
+//      is <- hook(ie)
+//    } yield is
+//  }
+//
+//  implicit val topLevel_instanceExp: Aux[TopLevel.InstanceExp, List[TopLevel.InstanceExp]] = new Eval[TopLevel.InstanceExp] {
+//    override type Result = List[TopLevel.InstanceExp]
+//
+//    override def apply(t: TopLevel.InstanceExp) = for {
+//      is <- t.instanceExp.eval
+//      _ <- modify((_: EvalContext).withInstances(is :_*))
+//    } yield is map TopLevel.InstanceExp
+//  }
+//
+//  implicit val constructorDefApp: Aux[(Seq[ValueExp], ConstructorDef), (TpeConstructor, Seq[BodyStmt])] = new Eval[(Seq[ValueExp], ConstructorDef)] {
+//    override type Result = (TpeConstructor, Seq[BodyStmt])
+//
+//    override def apply(vscd: (Seq[ValueExp], ConstructorDef)) = for {
+//      cd <- withStack(vscd._2.args, vscd._1)(vscd._2.cstrApp.eval)
+//    } yield (cd.cstr, cd.body)
+//
+//    def withStack[T](names: Seq[Identifier], values: Seq[ValueExp])(sf: EvalState[T]) = for {
+//      ec <- get[EvalContext]
+//      _ <- modify ((_: EvalContext).withAssignments(names zip values map (Assignment.apply _).tupled :_*))
+//      v <- sf
+//      _ <- put(ec) // fixme: should we only be only overwriting the bindings?
+//    } yield v
+//  }
+//
+//  implicit val tpeConstructor1: Aux[TpeConstructor1, (TpeConstructor, Seq[BodyStmt])] = new Eval[TpeConstructor1] {
+//    override type Result = (TpeConstructor, Seq[BodyStmt])
+//
+//    override def apply(t: TpeConstructor1) = for {
+//      ot <- resolveWithAssignment(t.id)
+//      args <- t.args.eval
+//      ts <- ot match {
+//        case Some(cd) =>
+//          (args, cd).eval
+//        case None =>
+//          val t1 = t.copy(args = args)
+//          t1.region = t.region
+//          (t1, Seq.empty).point[EvalState]
+//      }
+//    } yield ts
+//
+//    def resolveWithAssignment(id: Identifier): EvalState[Option[ConstructorDef]] = for {
+//      c <- cstr(id)
+//      cc <- c match {
+//        case Some(_) =>
+//          c.point[EvalState]
+//        case None =>
+//          for {
+//            b <- resolveBinding(id)
+//            bb <- b match {
+//              case Some(ValueExp.Identifier(nid)) =>
+//                resolveWithAssignment(nid)
+//              case _ =>
+//                (None : Option[ConstructorDef]).point[EvalState]
+//            }
+//          } yield bb
+//      }
+//    } yield cc
+//  }
+//
+//  implicit val tpeConstructorStar: Aux[TpeConstructorStar, (TpeConstructorStar, Seq[BodyStmt])] = new Eval[TpeConstructorStar] {
+//    override type Result = (TpeConstructorStar, Seq[BodyStmt])
+//
+//    override def apply(t: TpeConstructorStar) = (t -> Seq.empty[BodyStmt]).point[EvalState]
+//  }
+//
+//  implicit val tpeConstructor: Aux[TpeConstructor, (TpeConstructor, Seq[BodyStmt])] = {
+//    type U = (TpeConstructor, Seq[BodyStmt]):+:(TpeConstructorStar, Seq[BodyStmt]):+:CNil
+//    val g = Generic[TpeConstructor]
+//    val e = Eval[g.Repr, U]
+//    typeClass.project[TpeConstructor, g.Repr, (TpeConstructor, Seq[BodyStmt]), U](e, g.to, _.unify)
+//  }
+//
+//  implicit val identifier: Aux[Identifier, Identifier] = new Eval[Identifier] {
+//    override type Result = Identifier
+//
+//    def apply(id: Identifier) = resolveWithAssignment(id)
+//
+//    def resolveWithAssignment(id: Identifier): State[EvalContext, Identifier] = for {
+//      b <- resolveBinding(id)
+//      rb <- b match {
+//        case Some(ValueExp.Identifier(rid)) =>
+//          resolveWithAssignment(rid)
+//        case _ =>
+//          id.point[EvalState]
+//      }
+//    } yield rb
+//  }
+//
+//  implicit val valueExp: Aux[ValueExp, ValueExp] = new Eval[ValueExp] {
+//    override type Result = ValueExp
+//
+//    override def apply(t: ValueExp) = t match {
+//      case ValueExp.Literal(l) =>
+//        for {
+//          ll <- l.eval
+//        } yield ValueExp.Literal(ll)
+//      case ValueExp.Identifier(i) =>
+//        resolveWithAssignment(i)
+//    }
+//
+//    def resolveWithAssignment(id: Identifier): State[EvalContext, ValueExp] = for {
+//      b <- resolveBinding(id)
+//      rb <- b match {
+//        case Some(ValueExp.Identifier(rid)) =>
+//          resolveWithAssignment(rid)
+//        case Some(l@ValueExp.Literal(_)) =>
+//          l.point[EvalState]
+//        case None =>
+//          ValueExp.Identifier(id).point[EvalState]
+//      }
+//    } yield rb
+//  }
+//
+//  def as[T, U](implicit e: Aux[U, U], to: T <:< U): Aux[T, U] =
+//    typeClass.project[T, U, U, U](e, to, identity)
+//
+//  implicit val localName: Aux[LocalName, Identifier] = as[LocalName, Identifier]
+//  implicit val qname: Aux[QName, Identifier] = as[QName, Identifier]
+//  implicit val url: Aux[Url, Identifier] = as[Url, Identifier]
+//
+//  def cstr(id: Identifier): State[EvalContext, Option[ConstructorDef]] =
+//    gets ((_: EvalContext).resolveCstr(id))
+//
+//  def resolveBinding(id: Identifier): State[EvalContext, Option[ValueExp]] =
+//    gets ((_: EvalContext).resolveValue(id))
 
 }

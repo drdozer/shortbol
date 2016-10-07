@@ -154,11 +154,29 @@ sealed class IndentingShortbolParser(indent: Int) {
   import ShortbolParsers._
 
   object bodyStmt {
-    val Assignment = P(ShortbolParsers.Assignment map ast.BodyStmt.Assignment)
+    val Assignment = P(ShortbolParsers.Assignment map { a =>
+      ast.PropertyExp(
+        a.property,
+        a.value match {
+          case ast.ValueExp.Literal(lit) =>
+            ast.PropertyValue.Literal(lit)
+          case ast.ValueExp.Identifier(ref) =>
+            ast.PropertyValue.Reference(ref)
+        }
+      )
+    } map ast.BodyStmt.PropertyExp)
     val BlankLine = P(ShortbolParsers.BlankLine map ast.BodyStmt.BlankLine)
     val Comment = P(ShortbolParsers.Comment map ast.BodyStmt.Comment)
-    val InstanceExp = P(self.InstanceExp map ast.BodyStmt.InstanceExp)
-    val InfixAssignment = P(ShortbolParsers.InfixAssignment map ast.BodyStmt.InstanceExp)
+    val InstanceExp = P(self.InstanceExp map { ie =>
+      ast.PropertyExp(
+        ie.id,
+        ast.PropertyValue.Nested(ie.cstrApp))
+    } map ast.BodyStmt.PropertyExp)
+    val InfixAssignment = P(ShortbolParsers.InfixAssignment map { ie =>
+      ast.PropertyExp(
+        ie.id,
+        ast.PropertyValue.Nested(ie.cstrApp))
+    } map ast.BodyStmt.PropertyExp)
   }
 
   lazy val BodyStmt: Parser[ast.BodyStmt] =

@@ -27,57 +27,57 @@ object optics {
     val body = GenLens[ConstructorApp](_.body) composeIso seqListIso[BodyStmt]
   }
 
-  object bodyStmt {
-    type PropValue = Either[ValueExp, ConstructorApp]
-
-    val assignment = GenPrism[BodyStmt, BodyStmt.Assignment] composeLens
-      GenLens[BodyStmt.Assignment](_.assignment)
-    val blankLine = GenPrism[BodyStmt, BodyStmt.BlankLine] composeLens
-      GenLens[BodyStmt.BlankLine](_.blankLine)
-    val comment = GenPrism[BodyStmt, BodyStmt.Comment] composeLens
-      GenLens[BodyStmt.Comment](_.comment)
-    val instanceExp = GenPrism[BodyStmt, BodyStmt.InstanceExp] composeLens
-      GenLens[BodyStmt.InstanceExp](_.instanceExp)
-    val constructorApp = GenPrism[BodyStmt, BodyStmt.ConstructorApp] composeLens
-      GenLens[BodyStmt.ConstructorApp](_.constructorApp)
-
-    val property: Optional[BodyStmt, (Identifier, PropValue)] = new POptional[BodyStmt, BodyStmt, (Identifier, PropValue), (Identifier, PropValue)] {
-      override def getOrModify(s: BodyStmt) = {
-        s match {
-          case BodyStmt.Assignment(Assignment(p, v)) =>
-            \/-(p -> (Left(v) : PropValue))
-          case BodyStmt.InstanceExp(InstanceExp(i, c)) =>
-            \/-(i -> (Right(c) : PropValue))
-          case bs =>
-            -\/(bs)
-        }
-      }
-
-      override def set(b: (Identifier, PropValue)) = s => b match {
-        case (p, Left(v)) =>
-          BodyStmt.Assignment(Assignment(p, v))
-        case (i, Right(c)) =>
-          BodyStmt.InstanceExp(InstanceExp(i, c))
-      }
-
-      override def getOption(s: BodyStmt) = getOrModify(s) fold (
-       _ => None,
-        Some(_)
-      )
-      def modifyF[F[_]: Applicative](f: ((Identifier, PropValue)) => F[(Identifier, PropValue)])(s: BodyStmt): F[BodyStmt] =
-        getOption(s).fold(
-          Applicative[F].point(s))(
-          a => Applicative[F].map(f(a))(set(_)(s))
-        )
-
-      def modify(f: ((Identifier, PropValue)) => (Identifier, PropValue)): BodyStmt => BodyStmt =
-        s => getOption(s).fold(s)(a => set(f(a))(s))
-    }
-
-    def propValue(propId: Identifier) = property composePrism
-      optics.unsafeSelect(_._1 == propId) composeLens
-      second
-  }
+//  object bodyStmt {
+//    type PropValue = Either[ValueExp, ConstructorApp]
+//
+//    val assignment = GenPrism[BodyStmt, BodyStmt.Assignment] composeLens
+//      GenLens[BodyStmt.Assignment](_.assignment)
+//    val blankLine = GenPrism[BodyStmt, BodyStmt.BlankLine] composeLens
+//      GenLens[BodyStmt.BlankLine](_.blankLine)
+//    val comment = GenPrism[BodyStmt, BodyStmt.Comment] composeLens
+//      GenLens[BodyStmt.Comment](_.comment)
+//    val instanceExp = GenPrism[BodyStmt, BodyStmt.InstanceExp] composeLens
+//      GenLens[BodyStmt.InstanceExp](_.instanceExp)
+////    val constructorApp = GenPrism[BodyStmt, BodyStmt.ConstructorApp] composeLens
+////      GenLens[BodyStmt.ConstructorApp](_.constructorApp)
+//
+//    val property: Optional[BodyStmt, (Identifier, PropValue)] = new POptional[BodyStmt, BodyStmt, (Identifier, PropValue), (Identifier, PropValue)] {
+//      override def getOrModify(s: BodyStmt) = {
+//        s match {
+//          case BodyStmt.Assignment(Assignment(p, v)) =>
+//            \/-(p -> (Left(v) : PropValue))
+//          case BodyStmt.InstanceExp(InstanceExp(i, c)) =>
+//            \/-(i -> (Right(c) : PropValue))
+//          case bs =>
+//            -\/(bs)
+//        }
+//      }
+//
+//      override def set(b: (Identifier, PropValue)) = s => b match {
+//        case (p, Left(v)) =>
+//          BodyStmt.Assignment(Assignment(p, v))
+//        case (i, Right(c)) =>
+//          BodyStmt.InstanceExp(InstanceExp(i, c))
+//      }
+//
+//      override def getOption(s: BodyStmt) = getOrModify(s) fold (
+//       _ => None,
+//        Some(_)
+//      )
+//      def modifyF[F[_]: Applicative](f: ((Identifier, PropValue)) => F[(Identifier, PropValue)])(s: BodyStmt): F[BodyStmt] =
+//        getOption(s).fold(
+//          Applicative[F].point(s))(
+//          a => Applicative[F].map(f(a))(set(_)(s))
+//        )
+//
+//      def modify(f: ((Identifier, PropValue)) => (Identifier, PropValue)): BodyStmt => BodyStmt =
+//        s => getOption(s).fold(s)(a => set(f(a))(s))
+//    }
+//
+//    def propValue(propId: Identifier) = property composePrism
+//      optics.unsafeSelect(_._1 == propId) composeLens
+//      second
+//  }
 
   object assignment {
     val property = GenLens[Assignment](_.property)

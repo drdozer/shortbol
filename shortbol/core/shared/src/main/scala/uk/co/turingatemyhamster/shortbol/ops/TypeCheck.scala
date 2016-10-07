@@ -444,66 +444,66 @@ trait ConstraintSystem {
   def fromContext(ctxt: EvalContext): Constraint[TopLevel.InstanceExp]
 }
 
-object ConstraintSystem {
-  def apply(cs: ConstraintSystem*) = new {
-    def apply(recovery: ConstraintRecovery[_, _]*) = new {
-      def apply(ctxt: EvalContext) = new Constraint[SBEvaluatedFile] {
-        val allConstraints = Constraint.applyAll(cs.to[List] map (_.fromContext(ctxt)))
-
-        val recoveringConstraint = new Constraint[TopLevel.InstanceExp] {
-          override def apply(a: TopLevel.InstanceExp): ValidatedConstraints[TopLevel.InstanceExp] =
-            applyWithRecovery(a).validationNel
-
-          def applyWithRecovery(a: TopLevel.InstanceExp): ConstraintViolation[TopLevel.InstanceExp] \/ TopLevel.InstanceExp =
-            allConstraints(a).fold(
-                        err => {
-                          println(s"*** applyWithRecovery *** at $a for error ${err.head.prettyPrint}")
-                          val ar = attemptRecovery(err.head)
-                          println(s"*** recovered *** to ${ar.fold(_.prettyPrint, _.toString)}")
-                          val aar = ar flatMap applyWithRecovery
-                          println(s"*** finally *** $aar")
-                          aar
-                        },
-                        \/-(_)
-                      )
-
-          def attemptRecovery(cv: ConstraintViolation[TopLevel.InstanceExp]): ConstraintViolation[TopLevel.InstanceExp] \/ TopLevel.InstanceExp =
-            recovery.flatMap(r =>
-              // type hack -- should do better
-              cv recoverWith r.asInstanceOf[ConstraintRecovery[ConstraintViolation[Any], Any]] flatMap { case(r, tie) =>
-                println(s"Overseen recovery to: $tie with recovery: $r")
-                val (c,t) = tie.eval.run(ctxt)
-                println("Log messages:")
-                println(c.logms.drop(ctxt.logms.length).map(_.pretty).mkString("\n"))
-                t.headOption
-              }
-            ).headOption \/> cv
-
-
-          override def not = ???
-
-          override def prettyPrint = allConstraints.prettyPrint
-        } log "recoveringConstraint"
-
-        val sbEFConstraint = (
-          ('tops, optics.sbEvaluatedFile.tops) @:
-          (ForEvery(
-            recoveringConstraint
-          ) log "tops")
-          ) log "sbEFConstraint"
-
-        def apply(sev: SBEvaluatedFile) = sbEFConstraint(sev)
-
-        override def not = ???
-
-        override def prettyPrint = sbEFConstraint.prettyPrint
-      }
-
-      def apply(cf : (EvalContext, SBEvaluatedFile))
-      : ValidatedConstraints[SBEvaluatedFile] = apply(cf._1)(cf._2)
-    }
-  }
-}
+//object ConstraintSystem {
+//  def apply(cs: ConstraintSystem*) = new {
+//    def apply(recovery: ConstraintRecovery[_, _]*) = new {
+//      def apply(ctxt: EvalContext) = new Constraint[SBEvaluatedFile] {
+//        val allConstraints = Constraint.applyAll(cs.to[List] map (_.fromContext(ctxt)))
+//
+//        val recoveringConstraint = new Constraint[TopLevel.InstanceExp] {
+//          override def apply(a: TopLevel.InstanceExp): ValidatedConstraints[TopLevel.InstanceExp] =
+//            applyWithRecovery(a).validationNel
+//
+//          def applyWithRecovery(a: TopLevel.InstanceExp): ConstraintViolation[TopLevel.InstanceExp] \/ TopLevel.InstanceExp =
+//            allConstraints(a).fold(
+//                        err => {
+//                          println(s"*** applyWithRecovery *** at $a for error ${err.head.prettyPrint}")
+//                          val ar = attemptRecovery(err.head)
+//                          println(s"*** recovered *** to ${ar.fold(_.prettyPrint, _.toString)}")
+//                          val aar = ar flatMap applyWithRecovery
+//                          println(s"*** finally *** $aar")
+//                          aar
+//                        },
+//                        \/-(_)
+//                      )
+//
+//          def attemptRecovery(cv: ConstraintViolation[TopLevel.InstanceExp]): ConstraintViolation[TopLevel.InstanceExp] \/ TopLevel.InstanceExp =
+//            recovery.flatMap(r =>
+//              // type hack -- should do better
+//              cv recoverWith r.asInstanceOf[ConstraintRecovery[ConstraintViolation[Any], Any]] flatMap { case(None, tie) =>
+//                println(s"Overseen recovery to: $tie")
+//                val (c,t) = tie.eval.run(ctxt)
+//                println("Log messages:")
+//                println(c.logms.drop(ctxt.logms.length).map(_.pretty).mkString("\n"))
+//                t.headOption
+//              }
+//            ).headOption \/> cv
+//
+//
+//          override def not = ???
+//
+//          override def prettyPrint = allConstraints.prettyPrint
+//        } log "recoveringConstraint"
+//
+//        val sbEFConstraint = (
+//          ('tops, optics.sbEvaluatedFile.tops) @:
+//          (ForEvery(
+//            recoveringConstraint
+//          ) log "tops")
+//          ) log "sbEFConstraint"
+//
+//        def apply(sev: SBEvaluatedFile) = sbEFConstraint(sev)
+//
+//        override def not = ???
+//
+//        override def prettyPrint = sbEFConstraint.prettyPrint
+//      }
+//
+//      def apply(cf : (EvalContext, SBEvaluatedFile))
+//      : ValidatedConstraints[SBEvaluatedFile] = apply(cf._1)(cf._2)
+//    }
+//  }
+//}
 
 
 

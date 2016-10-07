@@ -35,11 +35,12 @@ object TopLevel {
 
 // body statements
 object BodyStmt {
-  case class Assignment(assignment: ast.Assignment) extends BodyStmt
+//  case class Assignment(assignment: ast.Assignment) extends BodyStmt
   case class BlankLine(blankLine: ast.BlankLine) extends BodyStmt
   case class Comment(comment: ast.Comment) extends BodyStmt
-  case class InstanceExp(instanceExp: ast.InstanceExp) extends BodyStmt
-  case class ConstructorApp(constructorApp: ast.ConstructorApp) extends BodyStmt
+  case class PropertyExp(propertyExp: ast.PropertyExp) extends BodyStmt
+//  case class InstanceExp(instanceExp: ast.InstanceExp) extends BodyStmt
+//  case class ConstructorApp(constructorApp: ast.ConstructorApp) extends BodyStmt
 }
 
 // value expressions
@@ -106,6 +107,16 @@ case class SBFile(tops: Seq[TopLevel]) extends AstNode
 
 case class SBEvaluatedFile(tops: Seq[TopLevel.InstanceExp]) extends AstNode
 
+case class PropertyExp(property: Identifier, value: PropertyValue) extends AstNode
+
+sealed trait PropertyValue
+
+object PropertyValue {
+  case class Literal(value: ast.Literal) extends PropertyValue
+  case class Reference(value: ast.Identifier) extends PropertyValue
+  case class Nested(value: ast.ConstructorApp) extends PropertyValue
+}
+
 object sugar {
   import scala.language.implicitConversions
 
@@ -114,10 +125,10 @@ object sugar {
   implicit def tlComment(c: Comment): TopLevel.Comment = TopLevel.Comment(c)
   implicit def tlConstructorDef(c: ConstructorDef): TopLevel.ConstructorDef = TopLevel.ConstructorDef(c)
 
-  implicit def bsAssignment[A](a: A)(implicit e: A => ast.Assignment): BodyStmt.Assignment = BodyStmt.Assignment(a)
+//  implicit def bsAssignment[A](a: A)(implicit e: A => ast.Assignment): BodyStmt.Assignment = BodyStmt.Assignment(a)
   implicit def bsBlankLine(bl: BlankLine): BodyStmt.BlankLine = BodyStmt.BlankLine(bl)
   implicit def bsComment(c: Comment): BodyStmt.Comment = BodyStmt.Comment(c)
-  implicit def bsInstanceExp(ie: InstanceExp): BodyStmt.InstanceExp = BodyStmt.InstanceExp(ie)
+//  implicit def bsInstanceExp(ie: InstanceExp): BodyStmt.InstanceExp = BodyStmt.InstanceExp(ie)
 
   implicit def veIdentifier[I](i: I)(implicit e: I => ast.Identifier): ValueExp.Identifier = ValueExp.Identifier(i)
   implicit def veLiteral[L](l: L)(implicit e: L => ast.Literal): ValueExp.Literal = ValueExp.Literal(l)
