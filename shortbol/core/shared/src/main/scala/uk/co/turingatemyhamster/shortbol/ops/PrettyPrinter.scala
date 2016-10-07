@@ -193,6 +193,17 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     a.value.append
   }
 
+  implicit lazy val propertyExp: PrintApp[PropertyExp] = PrintApp.using { p =>
+    p.value match {
+      case PropertyValue.Literal(l) =>
+        Assignment(p.property, ValueExp.Literal(l)).append
+      case PropertyValue.Reference(r) =>
+        Assignment(p.property, ValueExp.Identifier(r)).append
+      case PropertyValue.Nested(n) =>
+        InstanceExp(p.property, n).append
+    }
+  }
+
   implicit lazy val bodyStmt: PrintApp[BodyStmt] = {
     val bsG = Generic[BodyStmt]
     val delegate = deriveInstance[BodyStmt, bsG.Repr]

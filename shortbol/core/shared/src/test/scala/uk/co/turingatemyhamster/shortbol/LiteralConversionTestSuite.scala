@@ -97,32 +97,32 @@ object LiteralConversionTestSuite extends TestSuite {
       }
     }
 
-    'typeError- {
-      val ontology =
-        """
-          |Sequence : owl:Class
-          |  elements : owl:propertyRestriction
-          |    owl:allValuesFrom = xsd:string
-        """.stripMargin
-      import ast.sugar._
-      import Eval.EvalOps
-      import ShortbolParser.POps
-      val ontologyCtxt = ShortbolParser.SBFile.withPositions("_ontology_", ontology).get.value.eval.exec(Fixture.configuredContext)
-
-      val owl = OWL.fromContext(ontologyCtxt)
-
-      val litConv = LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA)
-
-      'typeStringLiteral - {
-        val expRec = Assignment("elements", expected) : BodyStmt
-        val cstr = owl.allValuesFromConstraint("elements", Assignment("owl" :# "allValuesFrom", "xsd" :# "string"))
-        val tpeCheck = cstr.get.apply(Assignment("elements", fastaString) : BodyStmt)
-        val recovered = tpeCheck.leftMap(_.map(_.recoverWith(litConv)))
-
-        recovered.fold(
-          nel => assert(nel.head.contains(None -> expRec)),
-          a => assert(a != a))
-      }
-    }
+//    'typeError- {
+//      val ontology =
+//        """
+//          |Sequence : owl:Class
+//          |  elements : owl:propertyRestriction
+//          |    owl:allValuesFrom = xsd:string
+//        """.stripMargin
+//      import ast.sugar._
+//      import Eval.EvalOps
+//      import ShortbolParser.POps
+//      val ontologyCtxt = ShortbolParser.SBFile.withPositions("_ontology_", ontology).get.value.eval.exec(Fixture.configuredContext)
+//
+//      val owl = OWL.fromContext(ontologyCtxt)
+//
+//      val litConv = LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA)
+//
+//      'typeStringLiteral - {
+//        val expRec = Assignment("elements", expected) : BodyStmt
+//        val cstr = owl.allValuesFromConstraint("elements", Assignment("owl" :# "allValuesFrom", "xsd" :# "string"))
+//        val tpeCheck = cstr.get.apply(Assignment("elements", fastaString) : BodyStmt)
+//        val recovered = tpeCheck.leftMap(_.map(_.recoverWith(litConv)))
+//
+//        recovered.fold(
+//          nel => assert(nel.head.contains(None -> expRec)),
+//          a => assert(a != a))
+//      }
+//    }
   }
 }

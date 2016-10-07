@@ -25,10 +25,10 @@ object Regressions extends TestSuite {
           InstanceExp(QName(NSPrefix("df"),LocalName("me")),
             ConstructorApp(
               TpeConstructor1(QName(NSPrefix("df"),LocalName("you")),List()),
-              List(BodyStmt.Assignment(
-                Assignment(
+              List(BodyStmt.PropertyExp(
+                PropertyExp(
                   QName(NSPrefix("df"),LocalName("name")),
-                  ValueExp.Literal(StringLiteral(StringLiteral.SingleLine("matthew",false),None,None))
+                  PropertyValue.Literal(StringLiteral(StringLiteral.SingleLine("matthew",false),None,None))
                 )
               ))
             )
