@@ -15,10 +15,10 @@ object PragmaTestSuite extends TestSuite {
   val tests = TestSuite {
     import EvalTestSuite.{parse, parse_instances, parse_instances_eval, parse_constructorDef, Ø, TestOps}
 
-//    'pragma - {
-//      (Fixture.configuredContext.prgms,
-//        Fixture.configuredContext.logms)
-//    }
+    'pragma - {
+      (Fixture.configuredContext.prgms,
+        Fixture.configuredContext.logms)
+    }
 //
 //    'import - {
 //      * - {
