@@ -35,12 +35,9 @@ object TopLevel {
 
 // body statements
 object BodyStmt {
-//  case class Assignment(assignment: ast.Assignment) extends BodyStmt
   case class BlankLine(blankLine: ast.BlankLine) extends BodyStmt
   case class Comment(comment: ast.Comment) extends BodyStmt
   case class PropertyExp(propertyExp: ast.PropertyExp) extends BodyStmt
-//  case class InstanceExp(instanceExp: ast.InstanceExp) extends BodyStmt
-//  case class ConstructorApp(constructorApp: ast.ConstructorApp) extends BodyStmt
 }
 
 // value expressions
@@ -150,7 +147,16 @@ object sugar {
   implicit def veLiteral[L](l: L)(implicit e: L => ast.Literal): ValueExp.Literal = ValueExp.Literal(l)
   def slVal(s: String): ValueExp = veLiteral(slLit(s))
 
-  implicit def ass[A, B](ab: (A, B))(implicit ai: A => Identifier, bv: B => ValueExp): Assignment = Assignment(ab._1, ab._2)
+  implicit class IV[I](val _i: I) extends AnyVal {
+    def := [V](v: V): I IvPair V = IvPair(_i, v)
+  }
+
+  case class IvPair [I, V](i: I, v: V)
+
+  implicit def toAssignment[I, V](iv: I IvPair V)(implicit iE: I => ast.Identifier, vE: V => ValueExp): ast.Assignment =
+    ast.Assignment(iv.i, iv.v)
+  implicit def toProperty[I, V](iv: I IvPair V)(implicit iE: I => ast.Identifier, vE: V => PropertyValue): PropertyExp =
+    PropertyExp(iv.i, iv.v)
 
   implicit def strLit[S](s: S)(implicit e: S => StringLiteral.Style): StringLiteral = StringLiteral(s, None, None)
   def slLit(s: String): StringLiteral = StringLiteral(StringLiteral.SingleLine(s, false), None, None)
@@ -163,8 +169,4 @@ object sugar {
     def :# (ln: LocalName)(implicit ne: N => NSPrefix): QName = QName(_pfx, ln)
   }
 
-  implicit class PropertyExpOps[I](val _i: I) extends AnyVal {
-    def := [V] (v: V)(implicit iE: I => ast.Identifier, vE: V => PropertyValue): PropertyExp =
-        PropertyExp(_i, v)
-  }
 }

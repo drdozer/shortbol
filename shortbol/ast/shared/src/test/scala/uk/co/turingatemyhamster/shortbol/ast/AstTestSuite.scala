@@ -40,24 +40,24 @@ object AstTestSuite extends TestSuite {
     }
 
     'ass - {
-      assert((LocalName("bob") -> IntegerLiteral(42) : Assignment) == Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42))))
-      assert(("bob" -> IntegerLiteral(42) : Assignment) == Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42))))
-      assert((LocalName("bob") -> 42 : Assignment) == Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42))))
-      assert(("bob" -> 42 : Assignment) == Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42))))
+      assert((LocalName("bob") := IntegerLiteral(42) : Assignment) == Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42))))
+      assert(("bob" := IntegerLiteral(42) : Assignment) == Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42))))
+      assert((LocalName("bob") := 42 : Assignment) == Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42))))
+      assert(("bob" := 42 : Assignment) == Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42))))
     }
 
     'bsAssignment - {
-      assert((LocalName("bob") -> IntegerLiteral(42) : BodyStmt.PropertyExp) == BodyStmt.PropertyExp(PropertyExp(LocalName("bob"), PropertyValue.Literal(IntegerLiteral(42)))))
-      assert(("bob" -> IntegerLiteral(42) : BodyStmt.PropertyExp) == BodyStmt.PropertyExp(PropertyExp(LocalName("bob"), PropertyValue.Literal(IntegerLiteral(42)))))
-      assert((LocalName("bob") -> 42 : BodyStmt.PropertyExp) == BodyStmt.PropertyExp(PropertyExp(LocalName("bob"), PropertyValue.Literal(IntegerLiteral(42)))))
-      assert(("bob" -> 42 : BodyStmt.PropertyExp) == BodyStmt.PropertyExp(PropertyExp(LocalName("bob"), PropertyValue.Literal(IntegerLiteral(42)))))
+      assert((LocalName("bob") := IntegerLiteral(42) : BodyStmt.PropertyExp) == BodyStmt.PropertyExp(PropertyExp(LocalName("bob"), PropertyValue.Literal(IntegerLiteral(42)))))
+      assert(("bob" := IntegerLiteral(42) : BodyStmt.PropertyExp) == BodyStmt.PropertyExp(PropertyExp(LocalName("bob"), PropertyValue.Literal(IntegerLiteral(42)))))
+      assert((LocalName("bob") := 42 : BodyStmt.PropertyExp) == BodyStmt.PropertyExp(PropertyExp(LocalName("bob"), PropertyValue.Literal(IntegerLiteral(42)))))
+      assert(("bob" := 42 : BodyStmt.PropertyExp) == BodyStmt.PropertyExp(PropertyExp(LocalName("bob"), PropertyValue.Literal(IntegerLiteral(42)))))
     }
 
     'tlAssignment - {
-      assert((LocalName("bob") -> IntegerLiteral(42) : TopLevel.Assignment) == TopLevel.Assignment(Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42)))))
-      assert(("bob" -> IntegerLiteral(42) : TopLevel.Assignment) == TopLevel.Assignment(Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42)))))
-      assert((LocalName("bob") -> 42 : TopLevel.Assignment) == TopLevel.Assignment(Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42)))))
-      assert(("bob" -> 42 : TopLevel.Assignment) == TopLevel.Assignment(Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42)))))
+      assert((LocalName("bob") := IntegerLiteral(42) : TopLevel.Assignment) == TopLevel.Assignment(Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42)))))
+      assert(("bob" := IntegerLiteral(42) : TopLevel.Assignment) == TopLevel.Assignment(Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42)))))
+      assert((LocalName("bob") := 42 : TopLevel.Assignment) == TopLevel.Assignment(Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42)))))
+      assert(("bob" := 42 : TopLevel.Assignment) == TopLevel.Assignment(Assignment(LocalName("bob"), ValueExp.Literal(IntegerLiteral(42)))))
     }
   }
 
