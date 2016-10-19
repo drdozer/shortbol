@@ -122,8 +122,18 @@ case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
 }
 
 sealed trait Eval[T] {
+  self =>
   type Result
   def apply(t: T): Eval.EvalState[Result]
+  def log(msg: String): EvalEval.Aux[T, self.Result] = new Eval[T] {
+    override type Result = self.Result
+    override def apply(t: T) = for {
+      tt <- self.apply(t)
+    } yield {
+      println(s"$msg:\n\tin:  $t\n\tout: $tt")
+      tt
+    }
+  }
 }
 
 object EvalEval {
@@ -195,6 +205,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
 
   implicit class EvalOps[T](val _t: T) extends AnyVal {
     def eval[U](implicit e: Aux[T, U]): EvalState[U] = e(_t)
+    def evalLog[U](msg: String)(implicit e: Aux[T, U]): EvalState[U] = e.log(msg).apply(_t)
   }
 
   implicit def seq[T, U](implicit pa: Aux[T, U]): Aux[Seq[T], Seq[U]] =
@@ -209,13 +220,38 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     typeClass.project[TopLevel, g.Repr, List[TopLevel.InstanceExp], U](e, g.to, _.unify)
   }
 
-  // fixme: Get this implemented correctly!!!
-  //
-////  implicit val propertyValue = Eval[PropertyValue, PropertyValue]
-//  implicit val propertyValue: Aux[PropertyValue, PropertyValue] = ???
-//
-//  implicit val propertyExp = Eval[PropertyExp, PropertyExp]
-//  implicit val propertyExp: Aux[PropertyExp, PropertyExp] = ???
+  implicit val propertyValue: Aux[PropertyValue, PropertyValue] = new Eval[PropertyValue] {
+    override type Result = PropertyValue
+
+    override def apply(t: PropertyValue) = t match {
+      case l@PropertyValue.Literal(_) =>
+        (l: PropertyValue).point[EvalState]
+      case n@PropertyValue.Nested(_) =>
+        (n: PropertyValue).point[EvalState]
+      case PropertyValue.Reference(r) =>
+        for {
+          v <- (ValueExp.Identifier(r) : ValueExp).eval
+        } yield v match {
+          case ValueExp.Identifier(i) =>
+            PropertyValue.Reference(i)
+          case ValueExp.Literal(l) =>
+            PropertyValue.Literal(l)
+        }
+    }
+  } log "propertyValue"
+
+  implicit val propertyExp: Aux[PropertyExp, PropertyExp] = new Eval[PropertyExp] {
+    override type Result = PropertyExp
+
+    override def apply(t: PropertyExp) = for {
+      p <- t.property.eval
+      v <- t.value.eval
+    } yield {
+      val pe = PropertyExp(p, v)
+      pe.region = t.region
+      pe
+    }
+  }
 
   implicit val bodyStmt = Eval[BodyStmt, BodyStmt]
 
@@ -340,7 +376,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
       c.region = ca.region
       c
     }
-  }
+  } log "constructorApp"
 
 
   implicit val instanceExp: Aux[InstanceExp, List[InstanceExp]] = new Eval[InstanceExp] {
@@ -374,7 +410,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
     override type Result = (TpeConstructor, Seq[BodyStmt])
 
     override def apply(vscd: (Seq[ValueExp], ConstructorDef)) = for {
-      cd <- withStack(vscd._2.args, vscd._1)(vscd._2.cstrApp.eval)
+      cd <- withStack(vscd._2.args, vscd._1)(vscd._2.cstrApp.evalLog("defCstrApp"))
     } yield (cd.cstr, cd.body)
 
     def withStack[T](names: Seq[Identifier], values: Seq[ValueExp])(sf: EvalState[T]) = for {
@@ -383,17 +419,17 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
       v <- sf
       _ <- put(ec) // fixme: should we only be only overwriting the bindings?
     } yield v
-  }
+  } log "constructorDefApp"
 
   implicit val tpeConstructor1: Aux[TpeConstructor1, (TpeConstructor, Seq[BodyStmt])] = new Eval[TpeConstructor1] {
     override type Result = (TpeConstructor, Seq[BodyStmt])
 
     override def apply(t: TpeConstructor1) = for {
       ot <- resolveWithAssignment(t.id)
-      args <- t.args.eval
+      args <- t.args.evalLog("tArgs")
       ts <- ot match {
         case Some(cd) =>
-          (args, cd).eval
+          (args, cd).evalLog("argsCd")
         case None =>
           val t1 = t.copy(args = args)
           t1.region = t.region
@@ -418,7 +454,7 @@ object Eval extends TypeClassCompanion2[EvalEval.Aux] {
           } yield bb
       }
     } yield cc
-  }
+  } log "tpeConstructor1"
 
   implicit val tpeConstructorStar: Aux[TpeConstructorStar, (TpeConstructorStar, Seq[BodyStmt])] = new Eval[TpeConstructorStar] {
     override type Result = (TpeConstructorStar, Seq[BodyStmt])
