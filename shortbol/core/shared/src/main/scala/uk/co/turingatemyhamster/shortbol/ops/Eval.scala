@@ -43,13 +43,6 @@ case class Hooks(phook: Vector[Pragma => Eval.EvalState[List[Pragma]]] = Vector.
     copy(ahook = ahook ++ as)
 }
 
-trait HooksOptics[H] {
-  def withPHooks(h: H, ps: (Pragma => Eval.EvalState[List[Pragma]])*): H
-  def withIHooks(h: H, is: (InstanceExp => Eval.EvalState[List[InstanceExp]])*): H
-  def withCHooks(h: H, cs: (ConstructorDef => Eval.EvalState[List[ConstructorDef]])*): H
-  def withAHooks(h: H, as: (Assignment => Eval.EvalState[List[Assignment]])*): H
-}
-
 case class EvalContext(prgms: Map[Identifier, List[Pragma]] = Map.empty,
                        cstrs: Map[Identifier, List[ConstructorDef]] = Map.empty,
                        vlxps: Map[Identifier, List[ValueExp]] = Map.empty,
