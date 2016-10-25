@@ -6,8 +6,9 @@ import datatree._
 import datatree.{ast => da}
 import relations._
 import web._
-import shortbol.{ast => sa}
-import uk.co.turingatemyhamster.shortbol.ast.{IntegerLiteral, SBEvaluatedFile}
+import shortbol.{shorthandAst => sa}
+import uk.co.turingatemyhamster.shortbol.longhandAst.SBFile
+import uk.co.turingatemyhamster.shortbol.shorthandAst.IntegerLiteral
 
 /**
  * Created by nmrp3 on 23/09/15.
@@ -43,35 +44,35 @@ trait ExporterEnv[DT <: Datatree] {
 
   import Exporter._
 
-  def apply(tl: SBEvaluatedFile) = topLevel_instances.export(tl.tops)
+  def apply(tl: SBFile) = topLevel_instances.export(tl.tops)
 
   def ctxt: EvalContext
 
   lazy val bindings = {
     ctxt.prgms.get(pragma.PrefixPragma.ID).to[List].flatten.map {
-      case sa.Pragma(_, Seq(sa.ValueExp.Identifier(sa.LocalName(pfx)), sa.ValueExp.Identifier(sa.Url(url)))) =>
+      case shorthandAst.Pragma(_, Seq(shorthandAst.ValueExp.Identifier(shorthandAst.LocalName(pfx)), shorthandAst.ValueExp.Identifier(shorthandAst.Url(url)))) =>
         pfx -> Uri(url)
     }
   }.toMap
 
   lazy val nsBindings = (bindings map { case (pfx, uri) => NamespaceBinding(Namespace(uri), Prefix(pfx)) }).to[Seq]
 
-  def qnameToUri(qName: sa.QName) = bindings(qName.prefix.pfx) extendWith qName.localName.name
+  def qnameToUri(qName: shorthandAst.QName) = bindings(qName.prefix.pfx) extendWith qName.localName.name
 
   implicit def seqExporter[T, E](implicit ev: Exporter[T, E]): Exporter[Seq[T], Seq[E]] =
     Exporter { _ map ev.export }
 
-  def identityFor(i: sa.ConstructorApp) = i.body.collectFirst {
-    case sa.BodyStmt.PropertyExp(sa.PropertyExp(`rdf_about`, sa.PropertyValue.Reference(v))) => v.export[DT#Uri]
+  def identityFor(i: shorthandAst.ConstructorApp) = i.body.collectFirst {
+    case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(`rdf_about`, shorthandAst.PropertyValue.Reference(v))) => v.export[DT#Uri]
   }
 
-  implicit val topLevel_instances: Exporter[Seq[sa.TopLevel.InstanceExp], DT#DocumentRoot] =
-    Exporter { (ts: Seq[sa.TopLevel.InstanceExp]) =>
+  implicit val topLevel_instances: Exporter[Seq[shorthandAst.TopLevel.InstanceExp], DT#DocumentRoot] =
+    Exporter { (ts: Seq[shorthandAst.TopLevel.InstanceExp]) =>
       DocumentRoot(ZeroMany(nsBindings :_*), ZeroMany(ts map (_.export) :_*))
     }
 
-  implicit val topLevelInstanceExpExporter: Exporter[sa.TopLevel.InstanceExp, DT#TopLevelDocument] =
-    Exporter { (t: sa.TopLevel.InstanceExp) =>
+  implicit val topLevelInstanceExpExporter: Exporter[shorthandAst.TopLevel.InstanceExp, DT#TopLevelDocument] =
+    Exporter { (t: shorthandAst.TopLevel.InstanceExp) =>
       TopLevelDocument(
         ZeroMany(),
         ZeroOne.fromOption(identityFor(t.instanceExp.cstrApp)),
@@ -79,8 +80,8 @@ trait ExporterEnv[DT <: Datatree] {
         ZeroMany(t.instanceExp.cstrApp.body.export.flatten :_*))
   }
 
-  implicit val constructorAppExporter: Exporter[sa.ConstructorApp, DT#NestedDocument] =
-    Exporter { (t: sa.ConstructorApp) =>
+  implicit val constructorAppExporter: Exporter[shorthandAst.ConstructorApp, DT#NestedDocument] =
+    Exporter { (t: shorthandAst.ConstructorApp) =>
       NestedDocument(
         ZeroMany(),
         ZeroOne.fromOption(identityFor(t)),
@@ -88,23 +89,23 @@ trait ExporterEnv[DT <: Datatree] {
         ZeroMany(t.body.export.flatten :_*))
     }
 
-  implicit val identifierToUri: Exporter[sa.Identifier, DT#Uri] =
-    Exporter { (i: sa.Identifier) =>
+  implicit val identifierToUri: Exporter[shorthandAst.Identifier, DT#Uri] =
+    Exporter { (i: shorthandAst.Identifier) =>
       i match {
-        case sa.Url(url) =>
+        case shorthandAst.Url(url) =>
           Uri(url)
-        case qn : sa.QName =>
+        case qn : shorthandAst.QName =>
           qnameToUri(qn)
-        case ln : sa.LocalName =>
+        case ln : shorthandAst.LocalName =>
           throw new IllegalStateException(
             s"Unable to export a local name as an instance URI: ${ln.name} at ${ln.region.pretty}")
       }
     }
 
-  implicit val identifierToQName: Exporter[sa.Identifier, DT#QName] =
-    Exporter { (i: sa.Identifier) =>
+  implicit val identifierToQName: Exporter[shorthandAst.Identifier, DT#QName] =
+    Exporter { (i: shorthandAst.Identifier) =>
       i match {
-        case qn@sa.QName(sa.NSPrefix(pfx), sa.LocalName(ln)) =>
+        case qn@shorthandAst.QName(shorthandAst.NSPrefix(pfx), shorthandAst.LocalName(ln)) =>
           QName(qnameToUri(qn), LocalName(ln), Prefix(pfx))
         case _ =>
           throw new IllegalStateException(
@@ -112,62 +113,62 @@ trait ExporterEnv[DT <: Datatree] {
       }
     }
 
-  implicit val tpeConstructorExporter: Exporter[sa.TpeConstructor, DT#QName] =
-    Exporter { (t: sa.TpeConstructor) =>
+  implicit val tpeConstructorExporter: Exporter[shorthandAst.TpeConstructor, DT#QName] =
+    Exporter { (t: shorthandAst.TpeConstructor) =>
       t match {
-        case sa.TpeConstructor1(id, _) =>
+        case shorthandAst.TpeConstructor1(id, _) =>
           id.export[DT#QName]
-        case sa.TpeConstructorStar() =>
+        case shorthandAst.TpeConstructorStar() =>
           throw new IllegalStateException(
             s"Unable to export a star constructor: $t at ${t.region.pretty}")
       }
     }
 
-  implicit val bodyStmtExporter: Exporter[sa.BodyStmt, Option[DT#NamedProperty]] =
-    Exporter { (b: sa.BodyStmt) =>
+  implicit val bodyStmtExporter: Exporter[shorthandAst.BodyStmt, Option[DT#NamedProperty]] =
+    Exporter { (b: shorthandAst.BodyStmt) =>
       b match {
-        case sa.BodyStmt.PropertyExp(sa.PropertyExp(`rdf_about`, _)) =>
+        case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(`rdf_about`, _)) =>
           None
-        case sa.BodyStmt.PropertyExp(pe) =>
+        case shorthandAst.BodyStmt.PropertyExp(pe) =>
           Some(pe.export)
         case _ =>
           None
       }
     }
 
-  implicit val propertyExpExporter: Exporter[sa.PropertyExp, DT#NamedProperty] =
-    Exporter { (pe: sa.PropertyExp) =>
+  implicit val propertyExpExporter: Exporter[shorthandAst.PropertyExp, DT#NamedProperty] =
+    Exporter { (pe: shorthandAst.PropertyExp) =>
       val prop = pe.property.export[DT#QName]
       pe.value match {
-        case sa.PropertyValue.Literal(l) =>
+        case shorthandAst.PropertyValue.Literal(l) =>
           NamedProperty(ZeroMany(), prop, l.export)
-        case sa.PropertyValue.Reference(r) =>
+        case shorthandAst.PropertyValue.Reference(r) =>
           NamedProperty(ZeroMany(), prop, UriLiteral(r.export[DT#Uri]))
-        case sa.PropertyValue.Nested(n) =>
+        case shorthandAst.PropertyValue.Nested(n) =>
           NamedProperty(ZeroMany(), prop, n.export)
       }
     }
 
-  implicit val literalExporter: Exporter[sa.Literal, DT#Literal] =
-    Exporter { (l: sa.Literal) =>
+  implicit val literalExporter: Exporter[shorthandAst.Literal, DT#Literal] =
+    Exporter { (l: shorthandAst.Literal) =>
       l match {
-        case sa.IntegerLiteral(i) =>
+        case shorthandAst.IntegerLiteral(i) =>
           LongLiteral(i)
-        case sa.StringLiteral(s, dt, lang) =>
+        case shorthandAst.StringLiteral(s, dt, lang) =>
           dtDSL.TypedLiteral(One(s.export), ZeroOne.fromOption(dt map (_.tpe.export[DT#Uri])), ZeroOne.fromOption(lang.map(_.tag)))
       }
     }
 
-  implicit val styleExporter: Exporter[sa.StringLiteral.Style, String] =
-    Exporter { (s: sa.StringLiteral.Style) =>
+  implicit val styleExporter: Exporter[shorthandAst.StringLiteral.Style, String] =
+    Exporter { (s: shorthandAst.StringLiteral.Style) =>
       s match {
-        case sa.StringLiteral.SingleLine(txt, _) =>
+        case shorthandAst.StringLiteral.SingleLine(txt, _) =>
           txt
-        case sa.StringLiteral.MultiLine(txts, _) =>
+        case shorthandAst.StringLiteral.MultiLine(txts, _) =>
           txts.mkString
       }
     }
 
-  import sa.sugar._
+  import shorthandAst.sugar._
   val rdf_about = "rdf" :# "about"
 }

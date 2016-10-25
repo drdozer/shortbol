@@ -1,6 +1,6 @@
 package uk.co.turingatemyhamster.shortbol
 
-import ast._
+import shorthandAst._
 import ops._
 import utest._
 

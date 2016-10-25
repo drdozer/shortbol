@@ -1,4 +1,4 @@
-package uk.co.turingatemyhamster.shortbol.ast
+package uk.co.turingatemyhamster.shortbol.shorthandAst
 
 import utest._
 import sugar._

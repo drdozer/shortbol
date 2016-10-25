@@ -1,8 +1,8 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import ast._
-import ast.sugar._
+import shorthandAst._
+import shorthandAst.sugar._
 import ops.Eval.{EvalState, log, withCHooks, withIHooks, withPHooks}
 import ops._
 

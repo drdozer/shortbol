@@ -5,8 +5,8 @@ package shortbol
 import datatree._
 import relations._
 import web._
-import ast.{Pragma, SBEvaluatedFile, SBFile}
-import ast.sugar._
+import shorthandAst.{Pragma, SBFile}
+import shorthandAst.sugar._
 import ops.{Eval, EvalContext, ShortbolParser}
 import ShortbolParser.POps
 import pragma._

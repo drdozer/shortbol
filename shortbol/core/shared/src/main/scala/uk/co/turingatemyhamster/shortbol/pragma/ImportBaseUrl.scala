@@ -1,8 +1,8 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import ast.{LocalName, Pragma}
-import ast.sugar._
+import shorthandAst.{LocalName, Pragma}
+import shorthandAst.sugar._
 import ops.Eval.EvalState
 import uk.co.turingatemyhamster.shortbol.ops.{Eval, EvalContext}
 

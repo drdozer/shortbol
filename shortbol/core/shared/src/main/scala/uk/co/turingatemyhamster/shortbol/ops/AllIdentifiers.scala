@@ -1,10 +1,10 @@
 package uk.co.turingatemyhamster.shortbol.ops
 
 import shapeless._
-import uk.co.turingatemyhamster.shortbol.ast
+import uk.co.turingatemyhamster.shortbol.shorthandAst
 
 trait AllIdentifiers[T] {
-  def apply(t: T): Seq[ast.Identifier]
+  def apply(t: T): Seq[shorthandAst.Identifier]
 }
 
 object AllIdentifiers extends TypeClassCompanion[AllIdentifiers] {
@@ -44,19 +44,19 @@ object AllIdentifiers extends TypeClassCompanion[AllIdentifiers] {
   implicit val missInt = miss[Int]
   implicit val missBoolean = miss[Boolean]
 
-  implicit val identifier: AllIdentifiers[ast.Identifier] = new AllIdentifiers[ast.Identifier] {
-    override def apply(t: ast.Identifier) = Seq(t)
+  implicit val identifier: AllIdentifiers[shorthandAst.Identifier] = new AllIdentifiers[shorthandAst.Identifier] {
+    override def apply(t: shorthandAst.Identifier) = Seq(t)
   }
-  implicit val style = AllIdentifiers[ast.StringLiteral.Style]
-  implicit val literal = AllIdentifiers[ast.Literal]
-  implicit val tpeConstructor = AllIdentifiers[ast.TpeConstructor]
-  implicit val valueExp = AllIdentifiers[ast.ValueExp]
-  implicit val constructorApp = AllIdentifiers[ast.ConstructorApp]
-  implicit val propertyValue = AllIdentifiers[ast.PropertyValue]
-  implicit val propertyExp = AllIdentifiers[ast.PropertyExp]
-  implicit val bodyStmt = AllIdentifiers[ast.BodyStmt]
-  implicit val topLevel = AllIdentifiers[ast.TopLevel]
-  implicit val sbFile = AllIdentifiers[ast.SBFile]
+  implicit val style = AllIdentifiers[shorthandAst.StringLiteral.Style]
+  implicit val literal = AllIdentifiers[shorthandAst.Literal]
+  implicit val tpeConstructor = AllIdentifiers[shorthandAst.TpeConstructor]
+  implicit val valueExp = AllIdentifiers[shorthandAst.ValueExp]
+  implicit val constructorApp = AllIdentifiers[shorthandAst.ConstructorApp]
+  implicit val propertyValue = AllIdentifiers[shorthandAst.PropertyValue]
+  implicit val propertyExp = AllIdentifiers[shorthandAst.PropertyExp]
+  implicit val bodyStmt = AllIdentifiers[shorthandAst.BodyStmt]
+  implicit val topLevel = AllIdentifiers[shorthandAst.TopLevel]
+  implicit val sbFile = AllIdentifiers[shorthandAst.SBFile]
 //
   def miss[T]: AllIdentifiers[T] = new MissIdentifiers[T]
 

@@ -1,7 +1,7 @@
 package uk.co.turingatemyhamster.shortbol.ops
 
 import shapeless._
-import uk.co.turingatemyhamster.shortbol.ast
+import uk.co.turingatemyhamster.shortbol.shorthandAst
 
 /**
   *
@@ -9,7 +9,7 @@ import uk.co.turingatemyhamster.shortbol.ast
   * @author Matthew Pocock
   */
 trait AllQNames[T] {
-  def apply(t: T): Seq[ast.QName]
+  def apply(t: T): Seq[shorthandAst.QName]
 }
 
 object AllQNames extends TypeClassCompanion[AllQNames] {
@@ -50,24 +50,24 @@ object AllQNames extends TypeClassCompanion[AllQNames] {
   implicit val missInt = miss[Int]
   implicit val missBoolean = miss[Boolean]
 
-  implicit val qname: AllQNames[ast.QName] = new AllQNames[ast.QName] {
-    override def apply(t: ast.QName) = Seq(t)
+  implicit val qname: AllQNames[shorthandAst.QName] = new AllQNames[shorthandAst.QName] {
+    override def apply(t: shorthandAst.QName) = Seq(t)
   }
 
-  implicit val identifier = AllQNames[ast.Identifier]
-  implicit val style = AllQNames[ast.StringLiteral.Style]
-  implicit val literal = AllQNames[ast.Literal]
-  implicit val tpeConstructor = AllQNames[ast.TpeConstructor]
-  implicit val assignmentSeq = AllQNames[Seq[ast.Assignment]]
-  implicit val instanceExpSeq = AllQNames[Seq[ast.InstanceExp]]
-  implicit val constructorApp = AllQNames[ast.ConstructorApp]
-  implicit val constructorDefSeq = AllQNames[Seq[ast.ConstructorDef]]
-  implicit val valueExp = AllQNames[ast.ValueExp]
-  implicit val propertyValue = AllQNames[ast.PropertyValue]
-  implicit val propertyExp = AllQNames[ast.PropertyExp]
-  implicit val bodyStmt = AllQNames[ast.BodyStmt]
-  implicit val topLevel = AllQNames[ast.TopLevel]
-  implicit val sbFile = AllQNames[ast.SBFile]
+  implicit val identifier = AllQNames[shorthandAst.Identifier]
+  implicit val style = AllQNames[shorthandAst.StringLiteral.Style]
+  implicit val literal = AllQNames[shorthandAst.Literal]
+  implicit val tpeConstructor = AllQNames[shorthandAst.TpeConstructor]
+  implicit val assignmentSeq = AllQNames[Seq[shorthandAst.Assignment]]
+  implicit val instanceExpSeq = AllQNames[Seq[shorthandAst.InstanceExp]]
+  implicit val constructorApp = AllQNames[shorthandAst.ConstructorApp]
+  implicit val constructorDefSeq = AllQNames[Seq[shorthandAst.ConstructorDef]]
+  implicit val valueExp = AllQNames[shorthandAst.ValueExp]
+  implicit val propertyValue = AllQNames[shorthandAst.PropertyValue]
+  implicit val propertyExp = AllQNames[shorthandAst.PropertyExp]
+  implicit val bodyStmt = AllQNames[shorthandAst.BodyStmt]
+  implicit val topLevel = AllQNames[shorthandAst.TopLevel]
+  implicit val sbFile = AllQNames[shorthandAst.SBFile]
 
   def miss[T]: AllQNames[T] = new MissQName[T]
 

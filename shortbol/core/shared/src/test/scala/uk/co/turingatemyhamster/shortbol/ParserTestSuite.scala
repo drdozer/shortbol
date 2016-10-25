@@ -2,8 +2,8 @@ package uk.co.turingatemyhamster.shortbol
 
 import fastparse.all._
 import fastparse.core.Parsed.{Failure, Success}
-import uk.co.turingatemyhamster.shortbol.ast._
-import uk.co.turingatemyhamster.shortbol.ast.sugar._
+import uk.co.turingatemyhamster.shortbol.shorthandAst._
+import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
 import uk.co.turingatemyhamster.shortbol.ops.{AllNodes, ShortbolParser, ShortbolParsers}
 import utest._
@@ -381,7 +381,7 @@ object ParserTestSuite extends TestSuite{
     'IndentedInstanceBody - {
       * - shouldParse(
         "\n ", ShortbolParser.IndentedInstanceBody,
-        Seq(ast.BlankLine() : BodyStmt)
+        Seq(shorthandAst.BlankLine() : BodyStmt)
       )
     }
 
@@ -399,7 +399,7 @@ object ParserTestSuite extends TestSuite{
         ConstructorApp(
           TpeConstructor1(
             LocalName("DNAComponent"), Nil
-          ), Seq(ast.BlankLine() : BodyStmt)
+          ), Seq(shorthandAst.BlankLine() : BodyStmt)
         )
       )
     }
@@ -489,7 +489,7 @@ object ParserTestSuite extends TestSuite{
           InstanceExp(
             "cds", ConstructorApp(
               "DNAComponent",
-              ast.BlankLine()
+              shorthandAst.BlankLine()
             )
           )
         )
@@ -499,8 +499,8 @@ object ParserTestSuite extends TestSuite{
           InstanceExp(
             "cds", ConstructorApp(
               "DNAComponent",
-              ast.BlankLine(),
-              ast.BlankLine()
+              shorthandAst.BlankLine(),
+              shorthandAst.BlankLine()
             )
           )
         )

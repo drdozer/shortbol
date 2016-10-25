@@ -5,8 +5,8 @@ import scala.reflect.runtime.universe.TypeTag
 import monocle.{Monocle, Getter}
 import Monocle.{none => _, _}
 
-import ast._
-import ast.sugar._
+import shorthandAst._
+import shorthandAst.sugar._
 
 import scalaz.Scalaz._
 

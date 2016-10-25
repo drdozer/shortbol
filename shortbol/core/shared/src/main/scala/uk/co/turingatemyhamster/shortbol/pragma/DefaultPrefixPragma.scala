@@ -1,7 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import ast._
+import shorthandAst._
 import sugar._
 import ops._
 import ops.Eval._

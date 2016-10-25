@@ -10,7 +10,7 @@ import akka.stream.ActorMaterializer
 import fastparse.core.Parsed.{Failure, Success}
 
 import scala.io.StdIn
-import ast._
+import shorthandAst._
 import com.typesafe.config.ConfigFactory
 import ops._
 

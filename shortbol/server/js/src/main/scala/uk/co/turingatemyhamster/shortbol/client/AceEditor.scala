@@ -3,7 +3,7 @@ package uk.co.turingatemyhamster.shortbol.client
 import org.scalajs.dom.Node
 import org.widok._
 import pl.metastack.metarx._
-import uk.co.turingatemyhamster.shortbol.ast._
+import uk.co.turingatemyhamster.shortbol.shorthandAst._
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser
 import ShortbolParser.POps
 import fastparse.core.Parsed.Success

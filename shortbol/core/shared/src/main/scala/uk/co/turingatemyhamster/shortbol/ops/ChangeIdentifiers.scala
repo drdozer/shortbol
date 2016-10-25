@@ -2,7 +2,7 @@ package uk.co.turingatemyhamster.shortbol.ops
 
 import scalaz.Scalaz._
 import shapeless._
-import uk.co.turingatemyhamster.shortbol.ast
+import uk.co.turingatemyhamster.shortbol.shorthandAst
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 
 /**
@@ -15,7 +15,7 @@ trait ChangeIdentifiers[T] {
 }
 
 object ChangeIdentifiers {
-  case class at(transform: ast.Identifier => EvalState[ast.Identifier]) extends TypeClassCompanion[ChangeIdentifiers]
+  case class at(transform: shorthandAst.Identifier => EvalState[shorthandAst.Identifier]) extends TypeClassCompanion[ChangeIdentifiers]
   {
     self =>
 
@@ -57,7 +57,7 @@ object ChangeIdentifiers {
       }
     }
 
-    implicit def deriveNodeInstance[F <: ast.AstNode, G]
+    implicit def deriveNodeInstance[F <: shorthandAst.AstNode, G]
     (implicit gen: Generic.Aux[F, G], cg: Lazy[ChangeIdentifiers[G]]): ChangeIdentifiers[F] = {
       val fg = typeClass.project(cg.value, gen.to _, gen.from _)
       new ChangeIdentifiers[F] {
@@ -77,22 +77,22 @@ object ChangeIdentifiers {
     implicit val missInt = miss[Int]
     implicit val missBoolean = miss[Boolean]
 
-    implicit val identifier: ChangeIdentifiers[ast.Identifier] = new ChangeIdentifiers[ast.Identifier] {
-      override def apply(t: ast.Identifier) = transform(t)
+    implicit val identifier: ChangeIdentifiers[shorthandAst.Identifier] = new ChangeIdentifiers[shorthandAst.Identifier] {
+      override def apply(t: shorthandAst.Identifier) = transform(t)
     }
-    implicit val style = self[ast.StringLiteral.Style]
-    implicit val literal = self[ast.Literal]
-    implicit val assignment = self[ast.Assignment]
-    implicit val tpeConstructor = self[ast.TpeConstructor]
-    implicit val instanceExp = self[ast.InstanceExp]
-    implicit val constructorApp = self[ast.ConstructorApp]
-    implicit val constructorDef = self[ast.ConstructorDef]
-    implicit val valueExp = self[ast.ValueExp]
-    implicit val propertyValue = self[ast.PropertyValue]
-    implicit val propertyExp = self[ast.PropertyExp]
-    implicit val bodyStmt = self[ast.BodyStmt]
-    implicit val topLevel = self[ast.TopLevel]
-    implicit val sbFile = self[ast.SBFile]
+    implicit val style = self[shorthandAst.StringLiteral.Style]
+    implicit val literal = self[shorthandAst.Literal]
+    implicit val assignment = self[shorthandAst.Assignment]
+    implicit val tpeConstructor = self[shorthandAst.TpeConstructor]
+    implicit val instanceExp = self[shorthandAst.InstanceExp]
+    implicit val constructorApp = self[shorthandAst.ConstructorApp]
+    implicit val constructorDef = self[shorthandAst.ConstructorDef]
+    implicit val valueExp = self[shorthandAst.ValueExp]
+    implicit val propertyValue = self[shorthandAst.PropertyValue]
+    implicit val propertyExp = self[shorthandAst.PropertyExp]
+    implicit val bodyStmt = self[shorthandAst.BodyStmt]
+    implicit val topLevel = self[shorthandAst.TopLevel]
+    implicit val sbFile = self[shorthandAst.SBFile]
 
     def miss[T]: ChangeIdentifiers[T] = new MissIdentifiers[T]
 

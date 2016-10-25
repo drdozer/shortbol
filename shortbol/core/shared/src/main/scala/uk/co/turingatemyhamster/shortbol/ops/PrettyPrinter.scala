@@ -1,7 +1,10 @@
-package uk.co.turingatemyhamster.shortbol.ops
+package uk.co.turingatemyhamster
+package shortbol
+package ops
 
-import shapeless._
-import uk.co.turingatemyhamster.shortbol.ast._
+import _root_.shapeless._
+import shortbol.{longhandAst => lAst}
+import shortbol.{shorthandAst => sAst}
 
 object PrettyPrinter {
   def apply(out: Appendable): PrettyPrinter = new PrettyPrinter(out)
@@ -51,35 +54,35 @@ object PrintApp extends TypeClassCompanion[PrintApp] {
 class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   import PrintApp._
 
-  def apply(s: SBFile) = s.append
-  def apply(s: SBEvaluatedFile) = s.append
-  def apply(t: TpeConstructor1) = t.append
-  def apply(c: ConstructorApp) = c.append
-  def apply(c: TopLevel.ConstructorDef) = c.append
+  def apply(s: sAst.SBFile) = s.append
+  def apply(s: lAst.SBFile) = s.append
+  def apply(t: sAst.TpeConstructor1) = t.append
+  def apply(c: sAst.ConstructorApp) = c.append
+  def apply(c: sAst.TopLevel.ConstructorDef) = c.append
 
-  implicit val literal = PrintApp[Literal]
-  implicit val identifier = PrintApp[Identifier]
-  implicit val tpeConstructor = PrintApp[TpeConstructor]
-  implicit val valueExp = PrintApp[ValueExp]
-  implicit val topLevel = PrintApp[TopLevel]
+  implicit val literal = PrintApp[sAst.Literal]
+  implicit val identifier = PrintApp[sAst.Identifier]
+  implicit val tpeConstructor = PrintApp[sAst.TpeConstructor]
+  implicit val valueExp = PrintApp[sAst.ValueExp]
+  implicit val topLevel = PrintApp[sAst.TopLevel]
 
   implicit def seq[T](implicit pa: PrintApp[List[T]]): PrintApp[Seq[T]] =
     PrintApp.typeClass.project(pa, _.to[List], implicitly[List[T]<:<Seq[T]])
 
-  def appendNested(bdy: Seq[BodyStmt]) = bdy.append
+  def appendNested(bdy: Seq[sAst.BodyStmt]) = bdy.append
 
   implicit lazy val indentStr = "\n" + (" " * indent)
 
   implicit lazy val string: PrintApp[String] = PrintApp.using(out append _)
 
-  implicit lazy val instanceExp: PrintApp[InstanceExp] = PrintApp.using { ie =>
+  implicit lazy val instanceExp: PrintApp[sAst.InstanceExp] = PrintApp.using { ie =>
     indentStr.append
     ie.id.append
     " : ".append
     ie.cstrApp.append
   }
 
-  implicit lazy val constructorDef: PrintApp[ConstructorDef] = PrintApp.using { cd =>
+  implicit lazy val constructorDef: PrintApp[sAst.ConstructorDef] = PrintApp.using { cd =>
       indentStr.append
       cd.id.append
       if(cd.args.nonEmpty) {
@@ -95,15 +98,15 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
       cd.cstrApp.append
   }
 
-  implicit lazy val blankLine: PrintApp[BlankLine.type] = PrintApp.using ( _ => "\n".append)
+  implicit lazy val blankLine: PrintApp[sAst.BlankLine] = PrintApp.using ( _ => "\n".append)
 
-  implicit lazy val comment: PrintApp[Comment] = PrintApp.using { c =>
+  implicit lazy val comment: PrintApp[sAst.Comment] = PrintApp.using { c =>
     "#".append
     c.commentText.append
     // fixme: should we have a newline here?
   }
 
-  implicit lazy val constructorApp: PrintApp[ConstructorApp] = PrintApp.using { app =>
+  implicit lazy val constructorApp: PrintApp[sAst.ConstructorApp] = PrintApp.using { app =>
     app.cstr.append
     if(app.body.nonEmpty) {
       val pp = new PrettyPrinter(out, indent = indent + indentDepth)
@@ -111,23 +114,23 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     }
   }
 
-  implicit lazy val qname: PrintApp[QName] = PrintApp.using { q =>
+  implicit lazy val qname: PrintApp[sAst.QName] = PrintApp.using { q =>
     q.prefix.append
     ":".append
     q.localName.append
   }
 
-  implicit lazy val url: PrintApp[Url] = PrintApp.using { u =>
+  implicit lazy val url: PrintApp[sAst.Url] = PrintApp.using { u =>
     "<".append
     u.url.append
     ">".append
   }
 
-  implicit lazy val nsPrefx: PrintApp[NSPrefix] = PrintApp.using { _.pfx.append }
+  implicit lazy val nsPrefx: PrintApp[sAst.NSPrefix] = PrintApp.using { _.pfx.append }
 
-  implicit lazy val localName: PrintApp[LocalName] = PrintApp.using { _.name.append }
+  implicit lazy val localName: PrintApp[sAst.LocalName] = PrintApp.using { _.name.append }
 
-  implicit lazy val tpeConstructor1: PrintApp[TpeConstructor1] = PrintApp.using { c =>
+  implicit lazy val tpeConstructor1: PrintApp[sAst.TpeConstructor1] = PrintApp.using { c =>
     c.id.append
     if(c.args.nonEmpty) {
       "(".append
@@ -140,17 +143,17 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     }
   }
 
-  implicit lazy val tpeConstrcutorStar: PrintApp[TpeConstructorStar] = PrintApp.using { _ =>
+  implicit lazy val tpeConstrcutorStar: PrintApp[sAst.TpeConstructorStar] = PrintApp.using { _ =>
     "*".append
   }
 
-  implicit lazy val stringLiteral: PrintApp[StringLiteral] = PrintApp.using { str =>
+  implicit lazy val stringLiteral: PrintApp[sAst.StringLiteral] = PrintApp.using { str =>
     str.style.append
     str.datatype.foreach(_.append)
     str.language.foreach(_.append)
   }
 
-  implicit lazy val singleLine: PrintApp[StringLiteral.SingleLine] = PrintApp.using { str =>
+  implicit lazy val singleLine: PrintApp[sAst.StringLiteral.SingleLine] = PrintApp.using { str =>
     if(str.isEscaped) {
       "{".append
       str.asString.append
@@ -162,7 +165,7 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     }
   }
 
-  implicit lazy val mutliLine: PrintApp[StringLiteral.MultiLine] = PrintApp.using { str =>
+  implicit lazy val mutliLine: PrintApp[sAst.StringLiteral.MultiLine] = PrintApp.using { str =>
     val indentS = " " * str.indent
     "{\n".append
     indentS.append
@@ -173,43 +176,43 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     "}".append
   }
 
-  implicit lazy val datatype: PrintApp[Datatype] = PrintApp.using { dt =>
+  implicit lazy val datatype: PrintApp[sAst.Datatype] = PrintApp.using { dt =>
     "^^".append
     dt.tpe.append
   }
 
-  implicit lazy val language: PrintApp[Language] = PrintApp.using { l =>
+  implicit lazy val language: PrintApp[sAst.Language] = PrintApp.using { l =>
     "@".append
     l.tag.append
   }
 
-  implicit lazy val integerLiteral: PrintApp[IntegerLiteral] = PrintApp.using {
+  implicit lazy val integerLiteral: PrintApp[sAst.IntegerLiteral] = PrintApp.using {
     _.i.toString.append
   }
 
-  implicit lazy val assignment: PrintApp[Assignment] = PrintApp.using { a =>
+  implicit lazy val assignment: PrintApp[sAst.Assignment] = PrintApp.using { a =>
     a.property.append
     " = ".append
     a.value.append
   }
 
-  implicit lazy val propertyExp: PrintApp[PropertyExp] = PrintApp.using { p =>
+  implicit lazy val propertyExp: PrintApp[sAst.PropertyExp] = PrintApp.using { p =>
     p.value match {
-      case PropertyValue.Literal(l) =>
-        Assignment(p.property, ValueExp.Literal(l)).append
-      case PropertyValue.Reference(r) =>
-        Assignment(p.property, ValueExp.Identifier(r)).append
-      case PropertyValue.Nested(n) =>
-        InstanceExp(p.property, n).append
+      case sAst.PropertyValue.Literal(l) =>
+        sAst.Assignment(p.property, sAst.ValueExp.Literal(l)).append
+      case sAst.PropertyValue.Reference(r) =>
+        sAst.Assignment(p.property, sAst.ValueExp.Identifier(r)).append
+      case sAst.PropertyValue.Nested(n) =>
+        sAst.InstanceExp(p.property, n).append
     }
   }
 
-  implicit lazy val bodyStmt: PrintApp[BodyStmt] = {
-    val bsG = Generic[BodyStmt]
-    val delegate = deriveInstance[BodyStmt, bsG.Repr]
+  implicit lazy val bodyStmt: PrintApp[sAst.BodyStmt] = {
+    val bsG = Generic[sAst.BodyStmt]
+    val delegate = deriveInstance[sAst.BodyStmt, bsG.Repr]
 
-    new PrintApp[BodyStmt] {
-      override def apply(t: BodyStmt) = {
+    new PrintApp[sAst.BodyStmt] {
+      override def apply(t: sAst.BodyStmt) = {
         indentStr.append
         delegate(t)
       }

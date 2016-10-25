@@ -1,9 +1,9 @@
 package uk.co.turingatemyhamster
 package shortbol
 
-import ast._
-import ast.{Pragma => _}
-import ast.sugar._
+import shorthandAst._
+import shorthandAst.{Pragma => _}
+import shorthandAst.sugar._
 import pragma._
 import pragma.{PragmaPragma => _}
 import ops.Eval._

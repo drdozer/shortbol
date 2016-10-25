@@ -1,11 +1,11 @@
 package uk.co.turingatemyhamster.shortbol.ops
 
 import shapeless._
-import uk.co.turingatemyhamster.shortbol.ast
-import uk.co.turingatemyhamster.shortbol.ast.AstNode
+import uk.co.turingatemyhamster.shortbol.shorthandAst
+import uk.co.turingatemyhamster.shortbol.shorthandAst.AstNode
 
 trait AllNodes[T] {
-  def apply(t: T): Seq[ast.AstNode]
+  def apply(t: T): Seq[shorthandAst.AstNode]
 }
 
 object AllNodes extends TypeClassCompanion[AllNodes] {
@@ -52,32 +52,32 @@ object AllNodes extends TypeClassCompanion[AllNodes] {
   implicit val missInt = miss[Int]
   implicit val missBoolean = miss[Boolean]
 
-  implicit val localName = AllNodes[ast.LocalName]
-  implicit val qname = AllNodes[ast.QName]
-  implicit val url = AllNodes[ast.Url]
-  implicit val identifier = AllNodes[ast.Identifier]
-  implicit val singleLine = AllNodes[ast.StringLiteral.SingleLine]
-  implicit val multiLine = AllNodes[ast.StringLiteral.MultiLine]
-  implicit val style = AllNodes[ast.StringLiteral.Style]
-  implicit val datatype = AllNodes[ast.Datatype]
-  implicit val language = AllNodes[ast.Language]
-  implicit val stringLiteral = AllNodes[ast.StringLiteral]
-  implicit val integerLiteral = AllNodes[ast.IntegerLiteral]
-  implicit val literal = AllNodes[ast.Literal]
-  implicit val valueExp = AllNodes[ast.ValueExp]
-  implicit val tpeConstructor1 = AllNodes[ast.TpeConstructor1]
-  implicit val tpeConstructorStar = AllNodes[ast.TpeConstructorStar]
-  implicit val tpeConstructor = AllNodes[ast.TpeConstructor]
-  implicit val assignment = AllNodes[ast.Assignment]
-  implicit val blankLine = AllNodes[ast.BlankLine]
-  implicit val comment = AllNodes[ast.Comment]
-  implicit val constructorApp = AllNodes[ast.ConstructorApp]
-  implicit val constructorDef = AllNodes[ast.ConstructorDef]
-  implicit val instanceExp = AllNodes[ast.InstanceExp]
-  implicit val pragma = AllNodes[ast.Pragma]
-  implicit val bodyStmt = AllNodes[ast.BodyStmt]
-  implicit val topLevel = AllNodes[ast.TopLevel]
-  implicit val sbFile = AllNodes[ast.SBFile]
+  implicit val localName = AllNodes[shorthandAst.LocalName]
+  implicit val qname = AllNodes[shorthandAst.QName]
+  implicit val url = AllNodes[shorthandAst.Url]
+  implicit val identifier = AllNodes[shorthandAst.Identifier]
+  implicit val singleLine = AllNodes[shorthandAst.StringLiteral.SingleLine]
+  implicit val multiLine = AllNodes[shorthandAst.StringLiteral.MultiLine]
+  implicit val style = AllNodes[shorthandAst.StringLiteral.Style]
+  implicit val datatype = AllNodes[shorthandAst.Datatype]
+  implicit val language = AllNodes[shorthandAst.Language]
+  implicit val stringLiteral = AllNodes[shorthandAst.StringLiteral]
+  implicit val integerLiteral = AllNodes[shorthandAst.IntegerLiteral]
+  implicit val literal = AllNodes[shorthandAst.Literal]
+  implicit val valueExp = AllNodes[shorthandAst.ValueExp]
+  implicit val tpeConstructor1 = AllNodes[shorthandAst.TpeConstructor1]
+  implicit val tpeConstructorStar = AllNodes[shorthandAst.TpeConstructorStar]
+  implicit val tpeConstructor = AllNodes[shorthandAst.TpeConstructor]
+  implicit val assignment = AllNodes[shorthandAst.Assignment]
+  implicit val blankLine = AllNodes[shorthandAst.BlankLine]
+  implicit val comment = AllNodes[shorthandAst.Comment]
+  implicit val constructorApp = AllNodes[shorthandAst.ConstructorApp]
+  implicit val constructorDef = AllNodes[shorthandAst.ConstructorDef]
+  implicit val instanceExp = AllNodes[shorthandAst.InstanceExp]
+  implicit val pragma = AllNodes[shorthandAst.Pragma]
+  implicit val bodyStmt = AllNodes[shorthandAst.BodyStmt]
+  implicit val topLevel = AllNodes[shorthandAst.TopLevel]
+  implicit val sbFile = AllNodes[shorthandAst.SBFile]
 
   def miss[T]: MissNode[T] = new MissNode[T]
   class MissNode[T] extends AllNodes[T] {

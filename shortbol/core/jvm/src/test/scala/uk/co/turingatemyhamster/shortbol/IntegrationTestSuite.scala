@@ -3,7 +3,7 @@ package uk.co.turingatemyhamster.shortbol
 import utest._
 
 import uk.co.turingatemyhamster.shortbol.EvalTestSuite._
-import ast._
+import shorthandAst._
 
 object IntegrationTestSuite extends TestSuite {
   override def tests = TestSuite {

@@ -6,10 +6,10 @@ import utest._
 
 import scalaz._
 import Scalaz._
-import ast._
+import shorthandAst._
 import ops._
 import Eval.EvalOps
-import ast.sugar._
+import shorthandAst.sugar._
 import pragma.{ImportPragma, Resolver}
 import ShortbolParser.POps
 
@@ -38,8 +38,8 @@ object EvalTestSuite extends TestSuite {
   def parse_instances(shortbol: String): Seq[TopLevel.InstanceExp] =
     parse(shortbol).tops.collect { case i : TopLevel.InstanceExp => i }
 
-  def parse_instances_eval(shortbol: String): SBEvaluatedFile =
-    SBEvaluatedFile(parse_instances(shortbol))
+  def parse_instances_eval(shortbol: String): longhandAst.SBFile =
+    longhandAst.SBFile(parse_instances(shortbol))
 
   def parse_constructorDef(shortbol: String): ConstructorDef =
     ShortbolParser.ConstructorDef.parse(shortbol) match {
@@ -53,12 +53,12 @@ object EvalTestSuite extends TestSuite {
   implicit class TestOps[T](_t: T) {
 
     def in(c0: EvalContext) = new InContext(_t, c0)
-    def evaluatesTo[U](u: U)(implicit e: EvalEval.Aux[T, U], an: AllNodes[U]) =
+    def evaluatesTo[U](u: U)(implicit e: Eval.Aux[T, U], an: AllNodes[U]) =
       (new InContext(_t, Ø)).evaluatesTo(u)
   }
 
   class InContext[T](t: T, c0: EvalContext) {
-    def evaluatesWithRanges[U](expectedResult: U)(implicit eval: EvalEval.Aux[T, U], an: AllNodes[U]) = new Object {
+    def evaluatesWithRanges[U](expectedResult: U)(implicit eval: Eval.Aux[T, U], an: AllNodes[U]) = new Object {
       def in(expectedContext: EvalContext): Unit = {
         assert(eval != null)
         val (observedContext, observedResult) = eval(t).run(c0)
@@ -76,7 +76,7 @@ object EvalTestSuite extends TestSuite {
       }
     }
 
-    def evaluatesTo[U](expectedResult: U)(implicit eval: EvalEval.Aux[T, U]) = new Object {
+    def evaluatesTo[U](expectedResult: U)(implicit eval: Eval.Aux[T, U]) = new Object {
       def in(expectedContext: EvalContext): Unit = {
         assert(eval != null)
         val (observedContext, observedResult) = eval(t).run(c0)
@@ -99,7 +99,7 @@ object EvalTestSuite extends TestSuite {
       * - { (BlankLine() : BodyStmt) evaluatesTo (BlankLine() : BodyStmt) in Ø }
       * - { (BlankLine() : TopLevel) evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø }
       * - { parse("", ShortbolParsers.BlankLine) evaluatesTo BlankLine() in Ø }
-      * - { parse("", ShortbolParser.bodyStmt.BlankLine) evaluatesTo (BlankLine() : BodyStmt.BlankLine) in Ø }
+      * - { parse("", ShortbolParser.BodyStmt) evaluatesTo (BlankLine() : BodyStmt) in Ø }
     }
 
     'comment - {
@@ -111,8 +111,8 @@ object EvalTestSuite extends TestSuite {
         (Nil : List[TopLevel.InstanceExp]) in Ø }
       * - { parse("#a comment", ShortbolParsers.Comment) in Ø evaluatesWithRanges
         Comment("a comment") in Ø }
-      * - { parse("#a comment", ShortbolParser.bodyStmt.Comment) in Ø evaluatesWithRanges
-        (Comment("a comment") : BodyStmt.Comment) in Ø }
+      * - { parse("#a comment", ShortbolParser.BodyStmt) in Ø evaluatesWithRanges
+        (Comment("a comment") : BodyStmt) in Ø }
     }
 
     'literal - {
@@ -445,12 +445,24 @@ object EvalTestSuite extends TestSuite {
     'tpeConstructor1 - {
       'rename - {
         * - {
-          TpeConstructor1("X", Seq()) evaluatesTo TpeConstructor1("X", Seq()) in Ø
+          TpeConstructor1("X", Seq()) evaluatesTo (TpeConstructor1("X", Seq()) : TpeConstructor, Seq.empty[BodyStmt]) in Ø
         }
         * - {
-          TpeConstructor1("X", Seq()) in Ø.withAssignments("a" := "x") evaluatesTo TpeConstructor1("X", Seq()) in Ø.withAssignments ("a" := "x") }
-        * - { TpeConstructor1("X", Seq()) in Ø.withAssignments("X" := "Y") evaluatesTo TpeConstructor1("Y", Seq()) in Ø.withAssignments ("X" := "Y") }
-        * - { TpeConstructor1("X", Seq()) in Ø.withAssignments(QName("ns", "X") := "Y") evaluatesTo TpeConstructor1("Y", Seq()) in Ø.withAssignments (QName("ns", "X") := "Y") }
+          TpeConstructor1("X", Seq()) in
+            Ø.withAssignments("a" := "x") evaluatesTo
+            (TpeConstructor1("X", Seq()): TpeConstructor, Seq.empty[BodyStmt]) in
+            Ø.withAssignments ("a" := "x")
+        }
+        * - {
+          TpeConstructor1("X", Seq()) in
+            Ø.withAssignments("X" := "Y") evaluatesTo
+            (TpeConstructor1("Y", Seq()): TpeConstructor, Seq.empty[BodyStmt]) in
+            Ø.withAssignments ("X" := "Y") }
+        * - {
+          TpeConstructor1("X", Seq()) in
+            Ø.withAssignments(QName("ns", "X") := "Y") evaluatesTo
+            (TpeConstructor1("Y", Seq()): TpeConstructor, Seq.empty[BodyStmt]) in
+            Ø.withAssignments (QName("ns", "X") := "Y") }
       }
 
       'expand_body - {
@@ -475,11 +487,14 @@ object EvalTestSuite extends TestSuite {
             42)
           ) in Ø.withAssignments (
             "a" := "x"
-            ) evaluatesTo TpeConstructor1("X", Seq(
+          ) evaluatesTo (
+            TpeConstructor1("X", Seq(
             StringLiteral.SingleLine("abc", false),
             LocalName("x"),
             42)
-            ) in Ø.withAssignments (
+            ): TpeConstructor,
+            Seq.empty[BodyStmt]
+          ) in Ø.withAssignments (
             "a" := "x"
             )
         }
@@ -494,7 +509,7 @@ object EvalTestSuite extends TestSuite {
           "a" := "x",
           "Foo" := "Bar"
           ) evaluatesTo (
-          (TpeConstructor1("Foo", Seq(
+          (TpeConstructor1("Bar", Seq(
           StringLiteral.SingleLine("abc", false),
           LocalName("x"),
           42)) : TpeConstructor) ->
@@ -507,7 +522,7 @@ object EvalTestSuite extends TestSuite {
     }
 
     'tpeConstructorStar - {
-      TpeConstructorStar() evaluatesTo (TpeConstructorStar(), Seq.empty[BodyStmt]) in Ø
+      TpeConstructorStar() evaluatesTo (TpeConstructorStar() : TpeConstructor, Seq.empty[BodyStmt]) in Ø
     }
 
     'tpeConstructor - {
@@ -521,11 +536,12 @@ object EvalTestSuite extends TestSuite {
         ) : TpeConstructor) in Ø.withAssignments(
           "a" := "x",
           "X" := "Y"
-          ) evaluatesTo (TpeConstructor1("Y", Seq(
+          ) evaluatesTo (
+          TpeConstructor1("Y", Seq(
           StringLiteral.SingleLine("abc", false),
           LocalName("x"),
           42)
-        ) : TpeConstructor) in Ø.withAssignments (
+        ) : TpeConstructor, Seq.empty[BodyStmt]) in Ø.withAssignments (
           "a" := "x",
           "X" := "Y"
           )

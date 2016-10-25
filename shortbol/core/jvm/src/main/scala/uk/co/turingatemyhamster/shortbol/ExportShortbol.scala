@@ -7,7 +7,7 @@ import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter
 import fastparse.core.Parsed.{Failure, Success}
 import uk.co.turingatemyhamster.datatree
 import uk.co.turingatemyhamster.datatree.io.RdfIo
-import uk.co.turingatemyhamster.shortbol.ast.sugar._
+import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
 import uk.co.turingatemyhamster.shortbol.ops.{Exporter, PrettyPrinter, ShortbolParser}
@@ -25,7 +25,7 @@ object ExportShortbol {
     val f = new File(file)
     if(f.exists()) {
       ShortbolParser.SBFile.withPositions(file, Source.fromFile(new File(file)).mkString) match {
-        case s : Success[ast.SBFile] =>
+        case s : Success[shorthandAst.SBFile] =>
           println("Loaded:")
           PrettyPrinter(System.out)(s.value)
           println

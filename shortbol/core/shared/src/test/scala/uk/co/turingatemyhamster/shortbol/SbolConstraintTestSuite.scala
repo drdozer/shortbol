@@ -3,8 +3,8 @@ package uk.co.turingatemyhamster.shortbol
 import ops._
 import Eval.EvalOps
 import ShortbolParser.POps
-import ast.sugar._
-import uk.co.turingatemyhamster.shortbol.ast.SBEvaluatedFile
+import shorthandAst.sugar._
+import uk.co.turingatemyhamster.shortbol.longhandAst.SBFile
 import utest._
 
 import scala.util.Random
@@ -47,7 +47,7 @@ object SbolConstraintTestSuite extends TestSuite {
     val ds = '0' to '9'
     val as = cs ++ ds
 
-    () => (cs(r.nextInt(cs.size)) :: List.fill(7)(as(r.nextInt(as.size)))).mkString : ast.Identifier
+    () => (cs(r.nextInt(cs.size)) :: List.fill(7)(as(r.nextInt(as.size)))).mkString : shorthandAst.Identifier
   }
 
 //  def recovers(src: String): Unit = {

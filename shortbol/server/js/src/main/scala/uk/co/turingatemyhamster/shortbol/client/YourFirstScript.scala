@@ -4,7 +4,7 @@ import fastparse.core.Parsed.Success
 import org.widok._
 import org.widok.bindings.HTML
 import pl.metastack.metarx.ReadChannel
-import uk.co.turingatemyhamster.shortbol.ast._
+import uk.co.turingatemyhamster.shortbol.shorthandAst._
 import sugar._
 
 import scala.concurrent.Future

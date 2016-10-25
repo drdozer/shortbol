@@ -1,7 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 package  ops
 
-import ast._
+import shorthandAst._
 import sugar._
 
 
