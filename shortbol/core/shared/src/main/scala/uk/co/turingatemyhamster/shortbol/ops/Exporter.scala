@@ -66,6 +66,10 @@ trait ExporterEnv[DT <: Datatree] {
     case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(`rdf_about`, shorthandAst.PropertyValue.Reference(v))) => v.export[DT#Uri]
   }
 
+  def identityFor(i: longhandAst.ConstructorApp) = i.body.collectFirst {
+    case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(`rdf_about`, shorthandAst.PropertyValue.Reference(v))) => v.export[DT#Uri]
+  }
+
   implicit val topLevel_instances: Exporter[Seq[longhandAst.InstanceExp], DT#DocumentRoot] =
     Exporter { (ts: Seq[longhandAst.InstanceExp]) =>
       DocumentRoot(ZeroMany(nsBindings :_*), ZeroMany(ts map (_.export) :_*))
@@ -113,7 +117,8 @@ trait ExporterEnv[DT <: Datatree] {
       }
     }
 
-  implicit val tpeConstructorExporter: Exporter[shorthandAst.TpeConstructor, DT#QName] =
+  // fixme: remove this when possible
+  implicit val tpeConstructorExporter_shorthand: Exporter[shorthandAst.TpeConstructor, DT#QName] =
     Exporter { (t: shorthandAst.TpeConstructor) =>
       t match {
         case shorthandAst.TpeConstructor1(id, _) =>
@@ -122,6 +127,11 @@ trait ExporterEnv[DT <: Datatree] {
           throw new IllegalStateException(
             s"Unable to export a star constructor: $t at ${t.region.pretty}")
       }
+    }
+
+  implicit val tpeConstructorExporter: Exporter[longhandAst.TpeConstructor, DT#QName] =
+    Exporter { (t: longhandAst.TpeConstructor) =>
+      t.tpe.export[DT#QName]
     }
 
   implicit val bodyStmtExporter: Exporter[shorthandAst.BodyStmt, Option[DT#NamedProperty]] =

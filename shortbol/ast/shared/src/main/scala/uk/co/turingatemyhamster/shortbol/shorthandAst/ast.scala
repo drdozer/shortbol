@@ -98,7 +98,7 @@ case class ConstructorDef(id: Identifier,
                             args: Seq[Identifier],
                             cstrApp: ConstructorApp) extends AstNode
 
-case class InstanceExp(id: Identifier,
+case class InstanceExp(identifier: Identifier,
                        cstrApp: ConstructorApp) extends AstNode
 
 case class Pragma(id: Identifier, values: Seq[shorthandAst.ValueExp]) extends AstNode

@@ -169,12 +169,12 @@ sealed class IndentingShortbolParser(indent: Int) {
     val Comment = P(ShortbolParsers.Comment map shorthandAst.BodyStmt.Comment)
     val InstanceExp = P(self.InstanceExp map { ie =>
       shorthandAst.PropertyExp(
-        ie.id,
+        ie.identifier,
         shorthandAst.PropertyValue.Nested(ie.cstrApp))
     }) map shorthandAst.BodyStmt.PropertyExp
     val InfixAssignment = P(ShortbolParsers.InfixAssignment map { ie =>
       shorthandAst.PropertyExp(
-        ie.id,
+        ie.identifier,
         shorthandAst.PropertyValue.Nested(ie.cstrApp))
     }) map shorthandAst.BodyStmt.PropertyExp
   }
