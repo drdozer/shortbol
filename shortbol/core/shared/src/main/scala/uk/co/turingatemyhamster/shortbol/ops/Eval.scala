@@ -216,34 +216,36 @@ object Eval {
 
 
   // Smelly! Find a way to compute this
-  implicit lazy val topLevel: Aux[sAst.TopLevel, List[lAst.InstanceExp]] = {
-    type U = List[lAst.InstanceExp]:+:
-      List[lAst.InstanceExp]:+:
-      List[lAst.InstanceExp]:+:
-      List[lAst.InstanceExp]:+:
-      List[lAst.InstanceExp]:+:
-      List[lAst.InstanceExp]:+:CNil
+  implicit lazy val topLevel: Aux[sAst.TopLevel, Seq[lAst.InstanceExp]] = {
+    type U = Seq[lAst.InstanceExp]:+:
+      Seq[lAst.InstanceExp]:+:
+      Seq[lAst.InstanceExp]:+:
+      Seq[lAst.InstanceExp]:+:
+      Seq[lAst.InstanceExp]:+:
+      Seq[lAst.InstanceExp]:+:CNil
     val g = Generic[sAst.TopLevel]
     val e = TypeclassFactory[g.Repr, U]
-    typeClass.project[sAst.TopLevel, g.Repr, List[lAst.InstanceExp], U](e, g.to, _.unify)
+    typeClass.project[sAst.TopLevel, g.Repr, Seq[lAst.InstanceExp], U](e, g.to, _.unify)
   }
 
-  implicit val propertyValue: Aux[sAst.PropertyValue, sAst.PropertyValue] = new Eval[sAst.PropertyValue] {
-    override type Result = sAst.PropertyValue
+  implicit val propertyValue: Aux[sAst.PropertyValue, lAst.PropertyValue] = new Eval[sAst.PropertyValue] {
+    override type Result = lAst.PropertyValue
 
     override def apply(t: sAst.PropertyValue) = t match {
-      case l@sAst.PropertyValue.Literal(_) =>
-        (l: sAst.PropertyValue).point[EvalState]
-      case n@sAst.PropertyValue.Nested(_) =>
-        (n: sAst.PropertyValue).point[EvalState]
+      case sAst.PropertyValue.Literal(l) =>
+        (lAst.PropertyValue.Literal(l) : lAst.PropertyValue).point[EvalState]
+      case sAst.PropertyValue.Nested(n) =>
+        for {
+          ne <- n.eval
+        } yield lAst.PropertyValue.Nested(ne)
       case sAst.PropertyValue.Reference(r) =>
         for {
           v <- (sAst.ValueExp.Identifier(r) : sAst.ValueExp).eval
         } yield v match {
           case sAst.ValueExp.Identifier(i) =>
-            sAst.PropertyValue.Reference(i)
+            lAst.PropertyValue.Reference(i)
           case sAst.ValueExp.Literal(l) =>
-            sAst.PropertyValue.Literal(l)
+            lAst.PropertyValue.Literal(l)
         }
     }
   } log "propertyValue"
@@ -291,22 +293,22 @@ object Eval {
 
 //  implicit val blankLine: Aux[sAst.BlankLine, sAst.BlankLine] = identityEval
 
-  implicit val topLevel_blankLine: Aux[sAst.TopLevel.BlankLine, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.BlankLine] {
-    override type Result = List[lAst.InstanceExp]
+  implicit val topLevel_blankLine: Aux[sAst.TopLevel.BlankLine, Seq[lAst.InstanceExp]] = new Eval[sAst.TopLevel.BlankLine] {
+    override type Result = Seq[lAst.InstanceExp]
 
     override def apply(t: sAst.TopLevel.BlankLine) =
-      List.empty[lAst.InstanceExp].point[EvalState]
+      Seq.empty[lAst.InstanceExp].point[EvalState]
   }
 
-  implicit val topLevel_comment: Aux[sAst.TopLevel.Comment, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Comment] {
-      override type Result = List[lAst.InstanceExp]
+  implicit val topLevel_comment: Aux[sAst.TopLevel.Comment, Seq[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Comment] {
+      override type Result = Seq[lAst.InstanceExp]
 
       override def apply(t: sAst.TopLevel.Comment) =
-        List.empty[lAst.InstanceExp].point[EvalState]
+        Seq.empty[lAst.InstanceExp].point[EvalState]
     }
 
-  implicit val topLevel_pragma: Aux[sAst.TopLevel.Pragma, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Pragma] {
-    override type Result = List[lAst.InstanceExp]
+  implicit val topLevel_pragma: Aux[sAst.TopLevel.Pragma, Seq[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Pragma] {
+    override type Result = Seq[lAst.InstanceExp]
 
     override def apply(t: sAst.TopLevel.Pragma) = for {
       p <- t.pragma.eval
@@ -314,8 +316,8 @@ object Eval {
     } yield Nil
   }
 
-  implicit val pragama: Aux[sAst.Pragma, List[sAst.Pragma]] = new Eval[sAst.Pragma] {
-    override type Result = List[sAst.Pragma]
+  implicit val pragama: Aux[sAst.Pragma, Seq[sAst.Pragma]] = new Eval[sAst.Pragma] {
+    override type Result = Seq[sAst.Pragma]
 
     override def apply(t: sAst.Pragma) = for {
       phook <- gets((_: EvalContext).hooks.phook)
@@ -341,8 +343,8 @@ object Eval {
     }
   }
 
-  implicit val topLevel_assignment: Aux[sAst.TopLevel.Assignment, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Assignment] {
-    override type Result = List[lAst.InstanceExp]
+  implicit val topLevel_assignment: Aux[sAst.TopLevel.Assignment, Seq[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Assignment] {
+    override type Result = Seq[lAst.InstanceExp]
 
     override def apply(t: sAst.TopLevel.Assignment) = for {
       ahook <- gets((_: EvalContext).hooks.ahook)
@@ -356,8 +358,8 @@ object Eval {
     } yield Nil
   }
 
-  implicit val topLevel_constructorDef: Aux[sAst.TopLevel.ConstructorDef, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.ConstructorDef] {
-    override type Result = List[lAst.InstanceExp]
+  implicit val topLevel_constructorDef: Aux[sAst.TopLevel.ConstructorDef, Seq[lAst.InstanceExp]] = new Eval[sAst.TopLevel.ConstructorDef] {
+    override type Result = Seq[lAst.InstanceExp]
 
     override def apply(t: sAst.TopLevel.ConstructorDef) = for {
       cd <- t.constructorDef.eval
@@ -365,8 +367,8 @@ object Eval {
     } yield Nil
   }
 
-  implicit val constructorDef: Aux[sAst.ConstructorDef, List[sAst.ConstructorDef]] = new Eval[sAst.ConstructorDef] {
-    override type Result = List[sAst.ConstructorDef]
+  implicit val constructorDef: Aux[sAst.ConstructorDef, Seq[sAst.ConstructorDef]] = new Eval[sAst.ConstructorDef] {
+    override type Result = Seq[sAst.ConstructorDef]
 
     override def apply(t: sAst.ConstructorDef) = for {
       chook <- gets((_: EvalContext).hooks.chook)
@@ -394,8 +396,8 @@ object Eval {
   } log "constructorApp"
 
 
-  implicit val instanceExp: Aux[sAst.InstanceExp, List[lAst.InstanceExp]] = new Eval[sAst.InstanceExp] {
-    override type Result = List[lAst.InstanceExp]
+  implicit val instanceExp: Aux[sAst.InstanceExp, Seq[lAst.InstanceExp]] = new Eval[sAst.InstanceExp] {
+    override type Result = Seq[lAst.InstanceExp]
 
     override def apply(i: sAst.InstanceExp) = for {
       ce <- i.cstrApp.eval
@@ -412,8 +414,8 @@ object Eval {
     } yield is
   }
 
-  implicit val topLevel_instanceExp: Aux[sAst.TopLevel.InstanceExp, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.InstanceExp] {
-    override type Result = List[lAst.InstanceExp]
+  implicit val topLevel_instanceExp: Aux[sAst.TopLevel.InstanceExp, Seq[lAst.InstanceExp]] = new Eval[sAst.TopLevel.InstanceExp] {
+    override type Result = Seq[lAst.InstanceExp]
 
     override def apply(t: sAst.TopLevel.InstanceExp) = for {
       is <- t.instanceExp.eval

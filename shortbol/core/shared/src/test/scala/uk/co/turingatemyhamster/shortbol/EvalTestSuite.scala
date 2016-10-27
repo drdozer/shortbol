@@ -35,14 +35,25 @@ object EvalTestSuite extends TestSuite {
         s.value
     }
 
-  def parse_instances(shortbol: String): Seq[longhandAst.InstanceExp] =
-    parse(shortbol).tops.collect {
-      case TopLevel.InstanceExp(InstanceExp(identifier, ConstructorApp(TpeConstructor1(tpe, _), body))) =>
-        longhandAst.InstanceExp(identifier, longhandAst.ConstructorApp(longhandAst.TpeConstructor(tpe),
+  def parse_instances(shortbol: String): Seq[longhandAst.InstanceExp] = {
+    def process(ca: shorthandAst.ConstructorApp): longhandAst.ConstructorApp = ca match {
+      case ConstructorApp(TpeConstructor1(tpe, Seq()), body) =>
+        longhandAst.ConstructorApp(longhandAst.TpeConstructor(tpe),
           body collect {
             case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(p, v)) =>
-              longhandAst.PropertyExp(p, v)
-          })) }
+              longhandAst.PropertyExp(p, v match {
+                case shorthandAst.PropertyValue.Literal(l) => longhandAst.PropertyValue.Literal(l)
+                case shorthandAst.PropertyValue.Reference(r) => longhandAst.PropertyValue.Reference(r)
+                case shorthandAst.PropertyValue.Nested(n) => process(n)
+              })
+          })
+    }
+
+    parse(shortbol).tops.collect {
+      case TopLevel.InstanceExp(InstanceExp(identifier, ca)) =>
+
+        longhandAst.InstanceExp(identifier, process(ca)) }
+  }
 
   def parse_instances_eval(shortbol: String): longhandAst.SBFile =
     longhandAst.SBFile(parse_instances(shortbol))
@@ -101,13 +112,13 @@ object EvalTestSuite extends TestSuite {
   val tests = TestSuite {
 
     'blankline - {
-      * - { (BlankLine() : TopLevel) evaluatesTo (Nil : List[longhandAst.InstanceExp]) in Ø }
+      * - { (BlankLine() : TopLevel) evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø }
       * - { parse("", ShortbolParser.BodyStmt) evaluatesTo Seq.empty[longhandAst.PropertyExp] in Ø }
     }
 
     'comment - {
       * - { (Comment("a comment") : TopLevel) evaluatesTo
-        (Nil : List[longhandAst.InstanceExp]) in Ø }
+        (Seq.empty[longhandAst.InstanceExp]) in Ø }
       * - { parse("#a comment", ShortbolParser.BodyStmt) in Ø evaluatesWithRanges
         Seq.empty[longhandAst.PropertyExp] in Ø }
     }
@@ -402,12 +413,12 @@ object EvalTestSuite extends TestSuite {
       }
 
       'topLevel - {
-        * - { ("a" := "b" : TopLevel) evaluatesTo (Nil : List[longhandAst.InstanceExp]) in Ø.withAssignments ("a" := "b") }
+        * - { ("a" := "b" : TopLevel) evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø.withAssignments ("a" := "b") }
 
         // withAssignments with matching keys doesn't merge values
-        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("a" := "x") evaluatesTo (Nil : List[longhandAst.InstanceExp]) in Ø.withAssignments("a" := "x").withAssignments("a" := "b") }
+        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("a" := "x") evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø.withAssignments("a" := "x").withAssignments("a" := "b") }
 
-        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("b" := "y") evaluatesTo (Nil : List[longhandAst.InstanceExp]) in Ø.withAssignments ("b" := "y", "a" := "b") }
+        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("b" := "y") evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø.withAssignments ("b" := "y", "a" := "b") }
       }
     }
 
@@ -415,7 +426,7 @@ object EvalTestSuite extends TestSuite {
       * - {
         Seq[TopLevel](
           "b" := "c",
-          "a" := "b") evaluatesTo Seq[List[longhandAst.InstanceExp]](Nil, Nil) in Ø.withAssignments (
+          "a" := "b") evaluatesTo Seq[Seq[longhandAst.InstanceExp]](Nil, Nil) in Ø.withAssignments (
           "b" := "c",
           "a" := "b")
       }
@@ -424,7 +435,7 @@ object EvalTestSuite extends TestSuite {
         Seq[TopLevel](
           "c" := "d",
           "b" := "c",
-          "a" := "b") evaluatesTo Seq[List[longhandAst.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
+          "a" := "b") evaluatesTo Seq[Seq[longhandAst.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
           "c" := "d",
           "b" := "c",
           "a" := "b")
@@ -434,7 +445,7 @@ object EvalTestSuite extends TestSuite {
         Seq[TopLevel](
           "bx" := "cx",
           "cx" := "dx",
-          "ax" := "bx") evaluatesTo Seq[List[longhandAst.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
+          "ax" := "bx") evaluatesTo Seq[Seq[longhandAst.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
           "bx" := "cx",
           "cx" := "dx",
           "ax" := "bx")
@@ -543,7 +554,7 @@ object EvalTestSuite extends TestSuite {
             Seq(),
             ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
           )
-        ) evaluatesTo (Nil: List[longhandAst.InstanceExp]) in Ø.withConstructors (
+        ) evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
             Seq(),
@@ -561,7 +572,7 @@ object EvalTestSuite extends TestSuite {
           )
         ) in Ø.withAssignments(
           "Foo" := "Bar"
-        ) evaluatesTo (Nil: List[longhandAst.InstanceExp]) in Ø.withConstructors (
+        ) evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
             Seq(),

@@ -62,12 +62,12 @@ trait ExporterEnv[DT <: Datatree] {
   implicit def seqExporter[T, E](implicit ev: Exporter[T, E]): Exporter[Seq[T], Seq[E]] =
     Exporter { _ map ev.export }
 
-  def identityFor(i: shorthandAst.ConstructorApp) = i.body.collectFirst {
-    case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(`rdf_about`, shorthandAst.PropertyValue.Reference(v))) => v.export[DT#Uri]
-  }
+//  def identityFor(i: shorthandAst.ConstructorApp) = i.body.collectFirst {
+//    case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(`rdf_about`, shorthandAst.PropertyValue.Reference(v))) => v.export[DT#Uri]
+//  }
 
   def identityFor(i: longhandAst.ConstructorApp) = i.body.collectFirst {
-    case longhandAst.PropertyExp(`rdf_about`, shorthandAst.PropertyValue.Reference(v)) => v.export[DT#Uri]
+    case longhandAst.PropertyExp(`rdf_about`, longhandAst.PropertyValue.Reference(v)) => v.export[DT#Uri]
   }
 
   implicit val topLevel_instances: Exporter[Seq[longhandAst.InstanceExp], DT#DocumentRoot] =
@@ -84,8 +84,8 @@ trait ExporterEnv[DT <: Datatree] {
         ZeroMany(t.cstrApp.body.export.flatten :_*))
   }
 
-  implicit val constructorAppExporter: Exporter[shorthandAst.ConstructorApp, DT#NestedDocument] =
-    Exporter { (t: shorthandAst.ConstructorApp) =>
+  implicit val constructorAppExporter: Exporter[longhandAst.ConstructorApp, DT#NestedDocument] =
+    Exporter { (t: longhandAst.ConstructorApp) =>
       NestedDocument(
         ZeroMany(),
         ZeroOne.fromOption(identityFor(t)),
@@ -118,48 +118,48 @@ trait ExporterEnv[DT <: Datatree] {
     }
 
   // fixme: remove this when possible
-  implicit val tpeConstructorExporter_shorthand: Exporter[shorthandAst.TpeConstructor, DT#QName] =
-    Exporter { (t: shorthandAst.TpeConstructor) =>
-      t match {
-        case shorthandAst.TpeConstructor1(id, _) =>
-          id.export[DT#QName]
-        case shorthandAst.TpeConstructorStar() =>
-          throw new IllegalStateException(
-            s"Unable to export a star constructor: $t at ${t.region.pretty}")
-      }
-    }
+//  implicit val tpeConstructorExporter_shorthand: Exporter[shorthandAst.TpeConstructor, DT#QName] =
+//    Exporter { (t: shorthandAst.TpeConstructor) =>
+//      t match {
+//        case shorthandAst.TpeConstructor1(id, _) =>
+//          id.export[DT#QName]
+//        case shorthandAst.TpeConstructorStar() =>
+//          throw new IllegalStateException(
+//            s"Unable to export a star constructor: $t at ${t.region.pretty}")
+//      }
+//    }
 
   implicit val tpeConstructorExporter: Exporter[longhandAst.TpeConstructor, DT#QName] =
     Exporter { (t: longhandAst.TpeConstructor) =>
       t.tpe.export[DT#QName]
     }
 
-  implicit val bodyStmtExporter: Exporter[shorthandAst.BodyStmt, Option[DT#NamedProperty]] =
-    Exporter { (b: shorthandAst.BodyStmt) =>
-      b match {
-        case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(`rdf_about`, _)) =>
-          None
-        case shorthandAst.BodyStmt.PropertyExp(pe) =>
-          Some(pe.export)
-        case _ =>
-          None
-      }
-    }
+//  implicit val bodyStmtExporter: Exporter[shorthandAst.BodyStmt, Option[DT#NamedProperty]] =
+//    Exporter { (b: shorthandAst.BodyStmt) =>
+//      b match {
+//        case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(`rdf_about`, _)) =>
+//          None
+//        case shorthandAst.BodyStmt.PropertyExp(pe) =>
+//          Some(pe.export)
+//        case _ =>
+//          None
+//      }
+//    }
 
-  implicit val propertyExpExporter: Exporter[shorthandAst.PropertyExp, DT#NamedProperty] =
-    Exporter { (pe: shorthandAst.PropertyExp) =>
-      val prop = pe.property.export[DT#QName]
-      pe.value match {
-        case shorthandAst.PropertyValue.Literal(l) =>
-          NamedProperty(ZeroMany(), prop, l.export)
-        case shorthandAst.PropertyValue.Reference(r) =>
-          NamedProperty(ZeroMany(), prop, UriLiteral(r.export[DT#Uri]))
-        case shorthandAst.PropertyValue.Nested(n) =>
-          NamedProperty(ZeroMany(), prop, n.export)
-      }
-    }
+//  implicit val propertyExpExporter: Exporter[shorthandAst.PropertyExp, DT#NamedProperty] =
+//    Exporter { (pe: shorthandAst.PropertyExp) =>
+//      val prop = pe.property.export[DT#QName]
+//      pe.value match {
+//        case shorthandAst.PropertyValue.Literal(l) =>
+//          NamedProperty(ZeroMany(), prop, l.export)
+//        case shorthandAst.PropertyValue.Reference(r) =>
+//          NamedProperty(ZeroMany(), prop, UriLiteral(r.export[DT#Uri]))
+//        case shorthandAst.PropertyValue.Nested(n) =>
+//          NamedProperty(ZeroMany(), prop, n.export)
+//      }
+//    }
 
-  implicit val l_propertyExpExporter: Exporter[longhandAst.PropertyExp, Option[DT#NamedProperty]] =
+  implicit val propertyExpExporter: Exporter[longhandAst.PropertyExp, Option[DT#NamedProperty]] =
     Exporter { (pe: longhandAst.PropertyExp) =>
       pe.property match {
         case `rdf_about` =>
@@ -167,11 +167,11 @@ trait ExporterEnv[DT <: Datatree] {
         case p =>
           val prop = p.export[DT#QName]
           pe.value match {
-            case shorthandAst.PropertyValue.Literal(l) =>
+            case longhandAst.PropertyValue.Literal(l) =>
               Some(NamedProperty(ZeroMany(), prop, l.export))
-            case shorthandAst.PropertyValue.Reference(r) =>
+            case longhandAst.PropertyValue.Reference(r) =>
               Some(NamedProperty(ZeroMany(), prop, UriLiteral(r.export[DT#Uri])))
-            case shorthandAst.PropertyValue.Nested(n) =>
+            case longhandAst.PropertyValue.Nested(n) =>
               Some(NamedProperty(ZeroMany(), prop, n.export))
           }
       }
