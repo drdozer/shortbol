@@ -36,8 +36,13 @@ object EvalTestSuite extends TestSuite {
     }
 
   def parse_instances(shortbol: String): Seq[longhandAst.InstanceExp] =
-    parse(shortbol).tops.collect { case TopLevel.InstanceExp(InstanceExp(identifier, ConstructorApp(TpeConstructor1(tpe, _), body))) =>
-      longhandAst.InstanceExp(identifier, longhandAst.ConstructorApp(longhandAst.TpeConstructor(tpe), body)) }
+    parse(shortbol).tops.collect {
+      case TopLevel.InstanceExp(InstanceExp(identifier, ConstructorApp(TpeConstructor1(tpe, _), body))) =>
+        longhandAst.InstanceExp(identifier, longhandAst.ConstructorApp(longhandAst.TpeConstructor(tpe),
+          body collect {
+            case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(p, v)) =>
+              longhandAst.PropertyExp(p, v)
+          })) }
 
   def parse_instances_eval(shortbol: String): longhandAst.SBFile =
     longhandAst.SBFile(parse_instances(shortbol))
@@ -96,24 +101,15 @@ object EvalTestSuite extends TestSuite {
   val tests = TestSuite {
 
     'blankline - {
-      * - { BlankLine() evaluatesTo BlankLine() in Ø }
-      * - { (BlankLine() : BodyStmt) evaluatesTo (BlankLine() : BodyStmt) in Ø }
       * - { (BlankLine() : TopLevel) evaluatesTo (Nil : List[longhandAst.InstanceExp]) in Ø }
-      * - { parse("", ShortbolParsers.BlankLine) evaluatesTo BlankLine() in Ø }
-      * - { parse("", ShortbolParser.BodyStmt) evaluatesTo (BlankLine() : BodyStmt) in Ø }
+      * - { parse("", ShortbolParser.BodyStmt) evaluatesTo Seq.empty[longhandAst.PropertyExp] in Ø }
     }
 
     'comment - {
-      * - { Comment("a comment") evaluatesTo
-        Comment("a comment") in Ø }
-      * - { (Comment("a comment") : BodyStmt) evaluatesTo
-        (Comment("a comment") : BodyStmt) in Ø }
       * - { (Comment("a comment") : TopLevel) evaluatesTo
         (Nil : List[longhandAst.InstanceExp]) in Ø }
-      * - { parse("#a comment", ShortbolParsers.Comment) in Ø evaluatesWithRanges
-        Comment("a comment") in Ø }
       * - { parse("#a comment", ShortbolParser.BodyStmt) in Ø evaluatesWithRanges
-        (Comment("a comment") : BodyStmt) in Ø }
+        Seq.empty[longhandAst.PropertyExp] in Ø }
     }
 
     'literal - {
@@ -332,40 +328,40 @@ object EvalTestSuite extends TestSuite {
     'propertyExp - {
       'literal - {
         'raw - {
-          ("a" := 42 : PropertyExp) evaluatesTo ("a" := 42 : PropertyExp) in Ø
+          ("a" := 42 : PropertyExp) evaluatesTo ("a" := 42 : longhandAst.PropertyExp) in Ø
         }
 
         'renamed - {
           ("a" := 42 : PropertyExp) in
             Ø.withAssignments ("a" := "x") evaluatesTo
-            ("x" := 42 : PropertyExp) in
+            ("x" := 42 : longhandAst.PropertyExp) in
             Ø.withAssignments ("a" := "x")
         }
       }
 
       'reference - {
         'raw - {
-          ("a" := "b" : PropertyExp) evaluatesTo ("a" := "b" : PropertyExp) in Ø
+          ("a" := "b" : PropertyExp) evaluatesTo ("a" := "b" : longhandAst.PropertyExp) in Ø
         }
 
         'renamed - {
           ("a" := "b" : PropertyExp) in
             Ø.withAssignments ("a" := "x") evaluatesTo
-            ("x" := "b" : PropertyExp) in
+            ("x" := "b" : longhandAst.PropertyExp) in
             Ø.withAssignments ("a" := "x")
         }
 
         'value_reference - {
           ("a" := "b" : PropertyExp) in
             Ø.withAssignments ("b" := "x") evaluatesTo
-            ("a" := "x" : PropertyExp) in
+            ("a" := "x" : longhandAst.PropertyExp) in
             Ø.withAssignments ("b" := "x")
         }
 
         'value_literal - {
           ("a" := "b" : PropertyExp) in
             Ø.withAssignments ("b" := 42) evaluatesTo
-            ("a" := 42 : PropertyExp) in
+            ("a" := 42 : longhandAst.PropertyExp) in
             Ø.withAssignments ("b" := 42)
         }
       }
@@ -396,11 +392,13 @@ object EvalTestSuite extends TestSuite {
       }
 
       'bodyStmt - {
-        * - { ("a" := "b" : BodyStmt) evaluatesTo ("a" := "b" : BodyStmt) in Ø }
+        * - { ("a" := "b" : BodyStmt) evaluatesTo Seq("a" := "b" : longhandAst.PropertyExp) in Ø }
 
-        * - { ("a" := "b" : BodyStmt) in Ø.withAssignments("a" := "x") evaluatesTo ("x" := "b" : BodyStmt) in Ø.withAssignments ("a" := "x") }
+        * - { ("a" := "b" : BodyStmt) in Ø.withAssignments("a" := "x") evaluatesTo
+          Seq("x" := "b" : longhandAst.PropertyExp) in Ø.withAssignments ("a" := "x") }
 
-        * - { ("a" := "b" : BodyStmt) in Ø.withAssignments("b" := "y") evaluatesTo ("a" := "y" : BodyStmt) in Ø.withAssignments ("b" := "y") }
+        * - { ("a" := "b" : BodyStmt) in Ø.withAssignments("b" := "y") evaluatesTo
+          Seq("a" := "y" : longhandAst.PropertyExp) in Ø.withAssignments ("b" := "y") }
       }
 
       'topLevel - {
@@ -447,23 +445,23 @@ object EvalTestSuite extends TestSuite {
       'rename - {
         * - {
           TpeConstructor1("X", Seq()) evaluatesTo
-            (longhandAst.TpeConstructor("X"), Seq.empty[BodyStmt]) in Ø
+            (longhandAst.TpeConstructor("X"), Seq.empty[longhandAst.PropertyExp]) in Ø
         }
         * - {
           TpeConstructor1("X", Seq()) in
             Ø.withAssignments("a" := "x") evaluatesTo
-            (longhandAst.TpeConstructor("X"), Seq.empty[BodyStmt]) in
+            (longhandAst.TpeConstructor("X"), Seq.empty[longhandAst.PropertyExp]) in
             Ø.withAssignments ("a" := "x")
         }
         * - {
           TpeConstructor1("X", Seq()) in
             Ø.withAssignments("X" := "Y") evaluatesTo
-            (longhandAst.TpeConstructor("Y"), Seq.empty[BodyStmt]) in
+            (longhandAst.TpeConstructor("Y"), Seq.empty[longhandAst.PropertyExp]) in
             Ø.withAssignments ("X" := "Y") }
         * - {
           TpeConstructor1("X", Seq()) in
             Ø.withAssignments(QName("ns", "X") := "Y") evaluatesTo
-            (longhandAst.TpeConstructor("Y"), Seq.empty[BodyStmt]) in
+            (longhandAst.TpeConstructor("Y"), Seq.empty[longhandAst.PropertyExp]) in
             Ø.withAssignments (QName("ns", "X") := "Y") }
       }
 
@@ -475,7 +473,7 @@ object EvalTestSuite extends TestSuite {
             42)
           ) evaluatesTo (
             longhandAst.TpeConstructor("X") ->
-              Seq[BodyStmt]()
+              Seq[longhandAst.PropertyExp]()
             ) in Ø
         }
 
@@ -488,7 +486,7 @@ object EvalTestSuite extends TestSuite {
             "a" := "x"
           ) evaluatesTo (
             longhandAst.TpeConstructor("X"),
-            Seq.empty[BodyStmt]
+            Seq.empty[longhandAst.PropertyExp]
           ) in Ø.withAssignments (
             "a" := "x"
             )
@@ -505,7 +503,7 @@ object EvalTestSuite extends TestSuite {
           "Foo" := "Bar"
         ) evaluatesTo (
           longhandAst.TpeConstructor("Bar") ->
-            Seq[BodyStmt]()
+            Seq.empty[longhandAst.PropertyExp]
           ) in Ø.withAssignments (
           "a" := "x",
           "Foo" := "Bar"
@@ -529,7 +527,7 @@ object EvalTestSuite extends TestSuite {
           "a" := "x",
           "X" := "Y"
           ) evaluatesTo (
-          longhandAst.TpeConstructor("Y"), Seq.empty[BodyStmt]) in
+          longhandAst.TpeConstructor("Y"), Seq.empty[longhandAst.PropertyExp]) in
           Ø.withAssignments (
           "a" := "x",
           "X" := "Y"

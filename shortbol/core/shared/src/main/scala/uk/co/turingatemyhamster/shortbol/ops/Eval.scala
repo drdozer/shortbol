@@ -109,16 +109,16 @@ case class EvalContext(prgms: Map[sAst.Identifier, List[sAst.Pragma]] = Map.empt
       }
     }
 
-  def withPHooks(ps: (sAst.Pragma => Eval.EvalState[List[sAst.Pragma]])*) =
+  def withPHooks(ps: (sAst.Pragma => Eval.EvalState[List[sAst.Pragma]])*): EvalContext =
     copy(hooks = hooks.withPHooks(ps :_*))
 
-  def withIHooks(is: (lAst.InstanceExp => Eval.EvalState[List[lAst.InstanceExp]])*) =
+  def withIHooks(is: (lAst.InstanceExp => Eval.EvalState[List[lAst.InstanceExp]])*): EvalContext =
     copy(hooks = hooks.withIHooks(is :_*))
 
-  def withCHooks(cs: (sAst.ConstructorDef => Eval.EvalState[List[sAst.ConstructorDef]])*) =
+  def withCHooks(cs: (sAst.ConstructorDef => Eval.EvalState[List[sAst.ConstructorDef]])*): EvalContext =
     copy(hooks = hooks.withCHooks(cs :_*))
 
-  def withAHooks(as: (sAst.Assignment => Eval.EvalState[List[sAst.Assignment]])*) =
+  def withAHooks(as: (sAst.Assignment => Eval.EvalState[List[sAst.Assignment]])*): EvalContext =
     copy(hooks = hooks.withAHooks(as :_*))
 }
 
@@ -248,20 +248,31 @@ object Eval {
     }
   } log "propertyValue"
 
-  implicit val propertyExp: Aux[sAst.PropertyExp, sAst.PropertyExp] = new Eval[sAst.PropertyExp] {
-    override type Result = sAst.PropertyExp
+  implicit val propertyExp: Aux[sAst.PropertyExp, lAst.PropertyExp] = new Eval[sAst.PropertyExp] {
+    override type Result = lAst.PropertyExp
 
     override def apply(t: sAst.PropertyExp) = for {
       p <- t.property.eval
       v <- t.value.eval
     } yield {
-      val pe = sAst.PropertyExp(p, v)
+      val pe = lAst.PropertyExp(p, v)
       pe.region = t.region
       pe
     }
   }
 
-  implicit val bodyStmt = TypeclassFactory[sAst.BodyStmt, sAst.BodyStmt]
+  implicit val bodyStmt: Aux[sAst.BodyStmt, Seq[lAst.PropertyExp]] = new Eval[sAst.BodyStmt] {
+    override type Result = Seq[lAst.PropertyExp]
+
+    override def apply(t: sAst.BodyStmt) = t match {
+      case sAst.BodyStmt.PropertyExp(pe) =>
+        for {
+          p <- pe.eval
+        } yield Seq(p)
+      case _ =>
+        Seq.empty[lAst.PropertyExp].point[EvalState]
+    }
+  }
 
   implicit val literal: Aux[sAst.Literal, sAst.Literal] = identityEval
 
@@ -278,24 +289,20 @@ object Eval {
     }
   }
 
-  implicit val blankLine: Aux[sAst.BlankLine, sAst.BlankLine] = identityEval
+//  implicit val blankLine: Aux[sAst.BlankLine, sAst.BlankLine] = identityEval
 
   implicit val topLevel_blankLine: Aux[sAst.TopLevel.BlankLine, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.BlankLine] {
     override type Result = List[lAst.InstanceExp]
 
-    override def apply(t: sAst.TopLevel.BlankLine) = for {
-      te <- t.blankLine.eval
-    } yield Nil
+    override def apply(t: sAst.TopLevel.BlankLine) =
+      List.empty[lAst.InstanceExp].point[EvalState]
   }
-
-  implicit val comment: Aux[sAst.Comment, sAst.Comment] = identityEval
 
   implicit val topLevel_comment: Aux[sAst.TopLevel.Comment, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Comment] {
       override type Result = List[lAst.InstanceExp]
 
-      override def apply(t: sAst.TopLevel.Comment) = for {
-        te <- t.comment.eval
-      } yield Nil
+      override def apply(t: sAst.TopLevel.Comment) =
+        List.empty[lAst.InstanceExp].point[EvalState]
     }
 
   implicit val topLevel_pragma: Aux[sAst.TopLevel.Pragma, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Pragma] {
@@ -380,7 +387,7 @@ object Eval {
       (tc, tcBody) = tcTcBody
       body <- ca.body.eval
     } yield {
-      val c = lAst.ConstructorApp(tc, tcBody ++ body)
+      val c = lAst.ConstructorApp(tc, tcBody ++ body.flatten)
       c.region = ca.region
       c
     }
@@ -414,8 +421,8 @@ object Eval {
     } yield is
   }
 
-  implicit val constructorDefApp: Aux[(Seq[sAst.ValueExp], sAst.ConstructorDef), (lAst.TpeConstructor, Seq[sAst.BodyStmt])] = new Eval[(Seq[sAst.ValueExp], sAst.ConstructorDef)] {
-    override type Result = (lAst.TpeConstructor, Seq[sAst.BodyStmt])
+  implicit val constructorDefApp: Aux[(Seq[sAst.ValueExp], sAst.ConstructorDef), (lAst.TpeConstructor, Seq[lAst.PropertyExp])] = new Eval[(Seq[sAst.ValueExp], sAst.ConstructorDef)] {
+    override type Result = (lAst.TpeConstructor, Seq[lAst.PropertyExp])
 
     override def apply(vscd: (Seq[sAst.ValueExp], sAst.ConstructorDef)) = for {
       cd <- withStack(vscd._2.args, vscd._1)(vscd._2.cstrApp.evalLog("defCstrApp"))
@@ -429,8 +436,8 @@ object Eval {
     } yield v
   } log "constructorDefApp"
 
-  implicit val tpeConstructor1: Aux[sAst.TpeConstructor1, (lAst.TpeConstructor, Seq[sAst.BodyStmt])] = new Eval[sAst.TpeConstructor1] {
-    override type Result = (lAst.TpeConstructor, Seq[sAst.BodyStmt])
+  implicit val tpeConstructor1: Aux[sAst.TpeConstructor1, (lAst.TpeConstructor, Seq[lAst.PropertyExp])] = new Eval[sAst.TpeConstructor1] {
+    override type Result = (lAst.TpeConstructor, Seq[lAst.PropertyExp])
 
     override def apply(t: sAst.TpeConstructor1) = for {
       ot <- resolveWithAssignment(t.id)
@@ -469,18 +476,18 @@ object Eval {
   } log "tpeConstructor1"
 
   // fixme: TpeConstructorStar has borked semantics
-  implicit val tpeConstructorStar: Aux[sAst.TpeConstructorStar, (lAst.TpeConstructor, Seq[sAst.BodyStmt])] = new Eval[sAst.TpeConstructorStar] {
-    override type Result = (lAst.TpeConstructor, Seq[sAst.BodyStmt])
+  implicit val tpeConstructorStar: Aux[sAst.TpeConstructorStar, (lAst.TpeConstructor, Seq[lAst.PropertyExp])] = new Eval[sAst.TpeConstructorStar] {
+    override type Result = (lAst.TpeConstructor, Seq[lAst.PropertyExp])
 
-    override def apply(t: sAst.TpeConstructorStar) = ((??? : lAst.TpeConstructor) -> Seq.empty[sAst.BodyStmt]).point[EvalState]
+    override def apply(t: sAst.TpeConstructorStar) = ((??? : lAst.TpeConstructor) -> Seq.empty[lAst.PropertyExp]).point[EvalState]
   }
 
-  implicit val tpeConstructor: Aux[sAst.TpeConstructor, (lAst.TpeConstructor, Seq[sAst.BodyStmt])] =
+  implicit val tpeConstructor: Aux[sAst.TpeConstructor, (lAst.TpeConstructor, Seq[lAst.PropertyExp])] =
   {
-    type U = (lAst.TpeConstructor, Seq[sAst.BodyStmt]):+:(lAst.TpeConstructor, Seq[sAst.BodyStmt]):+:CNil
+    type U = (lAst.TpeConstructor, Seq[lAst.PropertyExp]):+:(lAst.TpeConstructor, Seq[lAst.PropertyExp]):+:CNil
     val g = Generic[sAst.TpeConstructor]
     val e = TypeclassFactory[g.Repr, U]
-    typeClass.project[sAst.TpeConstructor, g.Repr, (lAst.TpeConstructor, Seq[sAst.BodyStmt]), U](e, g.to, _.unify)
+    typeClass.project[sAst.TpeConstructor, g.Repr, (lAst.TpeConstructor, Seq[lAst.PropertyExp]), U](e, g.to, _.unify)
   }
 
   implicit val identifier: Aux[sAst.Identifier, sAst.Identifier] = new Eval[sAst.Identifier] {

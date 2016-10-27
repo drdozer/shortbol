@@ -67,7 +67,7 @@ trait ExporterEnv[DT <: Datatree] {
   }
 
   def identityFor(i: longhandAst.ConstructorApp) = i.body.collectFirst {
-    case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(`rdf_about`, shorthandAst.PropertyValue.Reference(v))) => v.export[DT#Uri]
+    case longhandAst.PropertyExp(`rdf_about`, shorthandAst.PropertyValue.Reference(v)) => v.export[DT#Uri]
   }
 
   implicit val topLevel_instances: Exporter[Seq[longhandAst.InstanceExp], DT#DocumentRoot] =
@@ -156,6 +156,24 @@ trait ExporterEnv[DT <: Datatree] {
           NamedProperty(ZeroMany(), prop, UriLiteral(r.export[DT#Uri]))
         case shorthandAst.PropertyValue.Nested(n) =>
           NamedProperty(ZeroMany(), prop, n.export)
+      }
+    }
+
+  implicit val l_propertyExpExporter: Exporter[longhandAst.PropertyExp, Option[DT#NamedProperty]] =
+    Exporter { (pe: longhandAst.PropertyExp) =>
+      pe.property match {
+        case `rdf_about` =>
+          None
+        case p =>
+          val prop = p.export[DT#QName]
+          pe.value match {
+            case shorthandAst.PropertyValue.Literal(l) =>
+              Some(NamedProperty(ZeroMany(), prop, l.export))
+            case shorthandAst.PropertyValue.Reference(r) =>
+              Some(NamedProperty(ZeroMany(), prop, UriLiteral(r.export[DT#Uri])))
+            case shorthandAst.PropertyValue.Nested(n) =>
+              Some(NamedProperty(ZeroMany(), prop, n.export))
+          }
       }
     }
 
