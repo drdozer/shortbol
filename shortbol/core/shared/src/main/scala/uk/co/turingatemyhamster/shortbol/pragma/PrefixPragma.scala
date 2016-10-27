@@ -40,10 +40,10 @@ object PrefixPragma {
         List(p).point[EvalState]
     }
 
-    val instanceIDs = AllIdentifiers[InstanceExp]
+    val instanceIDs = AllIdentifiers[longhandAst.InstanceExp]
     val constructorIDs = AllIdentifiers[ConstructorDef]
 
-    def iHook(i: InstanceExp): EvalState[List[InstanceExp]] = for {
+    def iHook(i: longhandAst.InstanceExp): EvalState[List[longhandAst.InstanceExp]] = for {
       _ <- checkIdentifiers(instanceIDs(i))
     } yield List(i)
 

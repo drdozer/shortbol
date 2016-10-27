@@ -27,14 +27,14 @@ object LogMessage {
 }
 
 case class Hooks(phook: Vector[sAst.Pragma => Eval.EvalState[List[sAst.Pragma]]] = Vector.empty,
-                 ihook: Vector[sAst.InstanceExp => Eval.EvalState[List[sAst.InstanceExp]]] = Vector.empty,
+                 ihook: Vector[lAst.InstanceExp => Eval.EvalState[List[lAst.InstanceExp]]] = Vector.empty,
                  chook: Vector[sAst.ConstructorDef => Eval.EvalState[List[sAst.ConstructorDef]]] = Vector.empty,
                  ahook: Vector[sAst.Assignment => Eval.EvalState[List[sAst.Assignment]]] = Vector.empty)
 {
   def withPHooks(ps: (sAst.Pragma => Eval.EvalState[List[sAst.Pragma]])*) =
     copy(phook = phook ++ ps)
 
-  def withIHooks(is: (sAst.InstanceExp => Eval.EvalState[List[sAst.InstanceExp]])*) =
+  def withIHooks(is: (lAst.InstanceExp => Eval.EvalState[List[lAst.InstanceExp]])*) =
     copy(ihook = ihook ++ is)
 
   def withCHooks(cs: (sAst.ConstructorDef => Eval.EvalState[List[sAst.ConstructorDef]])*) =
@@ -46,7 +46,7 @@ case class Hooks(phook: Vector[sAst.Pragma => Eval.EvalState[List[sAst.Pragma]]]
 
 trait HooksOptics[H] {
   def withPHooks(h: H, ps: (sAst.Pragma => Eval.EvalState[List[sAst.Pragma]])*): H
-  def withIHooks(h: H, is: (sAst.InstanceExp => Eval.EvalState[List[sAst.InstanceExp]])*): H
+  def withIHooks(h: H, is: (lAst.InstanceExp => Eval.EvalState[List[lAst.InstanceExp]])*): H
   def withCHooks(h: H, cs: (sAst.ConstructorDef => Eval.EvalState[List[sAst.ConstructorDef]])*): H
   def withAHooks(h: H, as: (sAst.Assignment => Eval.EvalState[List[sAst.Assignment]])*): H
 }
@@ -54,7 +54,7 @@ trait HooksOptics[H] {
 case class EvalContext(prgms: Map[sAst.Identifier, List[sAst.Pragma]] = Map.empty,
                        cstrs: Map[sAst.Identifier, List[sAst.ConstructorDef]] = Map.empty,
                        vlxps: Map[sAst.Identifier, List[sAst.ValueExp]] = Map.empty,
-                       insts: Map[sAst.Identifier, List[sAst.InstanceExp]] = Map.empty,
+                       insts: Map[sAst.Identifier, List[lAst.InstanceExp]] = Map.empty,
                        qnams: Map[sAst.LocalName, Set[sAst.QName]] = Map.empty,
                        hooks: Hooks = Hooks(),
                        logms: Seq[LogMessage] = Seq.empty)
@@ -72,7 +72,7 @@ case class EvalContext(prgms: Map[sAst.Identifier, List[sAst.Pragma]] = Map.empt
   def withPragmas(ps: sAst.Pragma*) =
     copy(prgms = prgms ++ ps.map(p => p.id -> (p :: prgms.getOrElse(p.id, Nil))))
 
-  def withInstances(is: sAst.InstanceExp*) =
+  def withInstances(is: lAst.InstanceExp*) =
     copy(insts = insts ++ is.map(i => i.id -> (i :: insts.getOrElse(i.id, Nil)))).withQNams(AllQNames.in(is) :_*)
 
   def withLog(lm: LogMessage*) =
@@ -100,7 +100,7 @@ case class EvalContext(prgms: Map[sAst.Identifier, List[sAst.Pragma]] = Map.empt
       }
     }
 
-  def resolveInst(id: sAst.Identifier): Option[sAst.InstanceExp] =
+  def resolveInst(id: sAst.Identifier): Option[lAst.InstanceExp] =
     insts get id map (_.head) orElse { // todo: log if there are multiple elements in the list
       id match {
         case ln : sAst.LocalName =>
@@ -112,7 +112,7 @@ case class EvalContext(prgms: Map[sAst.Identifier, List[sAst.Pragma]] = Map.empt
   def withPHooks(ps: (sAst.Pragma => Eval.EvalState[List[sAst.Pragma]])*) =
     copy(hooks = hooks.withPHooks(ps :_*))
 
-  def withIHooks(is: (sAst.InstanceExp => Eval.EvalState[List[sAst.InstanceExp]])*) =
+  def withIHooks(is: (lAst.InstanceExp => Eval.EvalState[List[lAst.InstanceExp]])*) =
     copy(hooks = hooks.withIHooks(is :_*))
 
   def withCHooks(cs: (sAst.ConstructorDef => Eval.EvalState[List[sAst.ConstructorDef]])*) =
@@ -192,7 +192,7 @@ object Eval {
 
   def log(logMessage: LogMessage) = modify((_: EvalContext).withLog(logMessage))
   def withPHooks(pHook: sAst.Pragma => Eval.EvalState[List[sAst.Pragma]]) = modify((_: EvalContext).withPHooks(pHook))
-  def withIHooks(iHook: sAst.InstanceExp => Eval.EvalState[List[sAst.InstanceExp]]) = modify((_: EvalContext).withIHooks(iHook))
+  def withIHooks(iHook: lAst.InstanceExp => Eval.EvalState[List[lAst.InstanceExp]]) = modify((_: EvalContext).withIHooks(iHook))
   def withCHooks(cHook: sAst.ConstructorDef => Eval.EvalState[List[sAst.ConstructorDef]]) = modify((_: EvalContext).withCHooks(cHook))
   def withAHooks(aHook: sAst.Assignment => Eval.EvalState[List[sAst.Assignment]]) = modify((_ : EvalContext).withAHooks(aHook))
 
@@ -216,16 +216,16 @@ object Eval {
 
 
   // Smelly! Find a way to compute this
-  implicit lazy val topLevel: Aux[sAst.TopLevel, List[sAst.TopLevel.InstanceExp]] = {
-    type U = List[sAst.TopLevel.InstanceExp]:+:
-      List[sAst.TopLevel.InstanceExp]:+:
-      List[sAst.TopLevel.InstanceExp]:+:
-      List[sAst.TopLevel.InstanceExp]:+:
-      List[sAst.TopLevel.InstanceExp]:+:
-      List[sAst.TopLevel.InstanceExp]:+:CNil
+  implicit lazy val topLevel: Aux[sAst.TopLevel, List[lAst.InstanceExp]] = {
+    type U = List[lAst.InstanceExp]:+:
+      List[lAst.InstanceExp]:+:
+      List[lAst.InstanceExp]:+:
+      List[lAst.InstanceExp]:+:
+      List[lAst.InstanceExp]:+:
+      List[lAst.InstanceExp]:+:CNil
     val g = Generic[sAst.TopLevel]
     val e = TypeclassFactory[g.Repr, U]
-    typeClass.project[sAst.TopLevel, g.Repr, List[sAst.TopLevel.InstanceExp], U](e, g.to, _.unify)
+    typeClass.project[sAst.TopLevel, g.Repr, List[lAst.InstanceExp], U](e, g.to, _.unify)
   }
 
   implicit val propertyValue: Aux[sAst.PropertyValue, sAst.PropertyValue] = new Eval[sAst.PropertyValue] {
@@ -280,8 +280,8 @@ object Eval {
 
   implicit val blankLine: Aux[sAst.BlankLine, sAst.BlankLine] = identityEval
 
-  implicit val topLevel_blankLine: Aux[sAst.TopLevel.BlankLine, List[sAst.TopLevel.InstanceExp]] = new Eval[sAst.TopLevel.BlankLine] {
-    override type Result = List[sAst.TopLevel.InstanceExp]
+  implicit val topLevel_blankLine: Aux[sAst.TopLevel.BlankLine, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.BlankLine] {
+    override type Result = List[lAst.InstanceExp]
 
     override def apply(t: sAst.TopLevel.BlankLine) = for {
       te <- t.blankLine.eval
@@ -290,16 +290,16 @@ object Eval {
 
   implicit val comment: Aux[sAst.Comment, sAst.Comment] = identityEval
 
-  implicit val topLevel_comment: Aux[sAst.TopLevel.Comment, List[sAst.TopLevel.InstanceExp]] = new Eval[sAst.TopLevel.Comment] {
-      override type Result = List[sAst.TopLevel.InstanceExp]
+  implicit val topLevel_comment: Aux[sAst.TopLevel.Comment, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Comment] {
+      override type Result = List[lAst.InstanceExp]
 
       override def apply(t: sAst.TopLevel.Comment) = for {
         te <- t.comment.eval
       } yield Nil
     }
 
-  implicit val topLevel_pragma: Aux[sAst.TopLevel.Pragma, List[sAst.TopLevel.InstanceExp]] = new Eval[sAst.TopLevel.Pragma] {
-    override type Result = List[sAst.TopLevel.InstanceExp]
+  implicit val topLevel_pragma: Aux[sAst.TopLevel.Pragma, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Pragma] {
+    override type Result = List[lAst.InstanceExp]
 
     override def apply(t: sAst.TopLevel.Pragma) = for {
       p <- t.pragma.eval
@@ -334,8 +334,8 @@ object Eval {
     }
   }
 
-  implicit val topLevel_assignment: Aux[sAst.TopLevel.Assignment, List[sAst.TopLevel.InstanceExp]] = new Eval[sAst.TopLevel.Assignment] {
-    override type Result = List[sAst.TopLevel.InstanceExp]
+  implicit val topLevel_assignment: Aux[sAst.TopLevel.Assignment, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.Assignment] {
+    override type Result = List[lAst.InstanceExp]
 
     override def apply(t: sAst.TopLevel.Assignment) = for {
       ahook <- gets((_: EvalContext).hooks.ahook)
@@ -349,8 +349,8 @@ object Eval {
     } yield Nil
   }
 
-  implicit val topLevel_constructorDef: Aux[sAst.TopLevel.ConstructorDef, List[sAst.TopLevel.InstanceExp]] = new Eval[sAst.TopLevel.ConstructorDef] {
-    override type Result = List[sAst.TopLevel.InstanceExp]
+  implicit val topLevel_constructorDef: Aux[sAst.TopLevel.ConstructorDef, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.ConstructorDef] {
+    override type Result = List[lAst.InstanceExp]
 
     override def apply(t: sAst.TopLevel.ConstructorDef) = for {
       cd <- t.constructorDef.eval
@@ -387,31 +387,31 @@ object Eval {
   } log "constructorApp"
 
 
-  implicit val instanceExp: Aux[sAst.InstanceExp, List[sAst.InstanceExp]] = new Eval[sAst.InstanceExp] {
-    override type Result = List[sAst.InstanceExp]
+  implicit val instanceExp: Aux[sAst.InstanceExp, List[lAst.InstanceExp]] = new Eval[sAst.InstanceExp] {
+    override type Result = List[lAst.InstanceExp]
 
     override def apply(i: sAst.InstanceExp) = for {
       ce <- i.cstrApp.eval
       ihook <- gets((_: EvalContext).hooks.ihook)
-      hook = ihook.foldl((i: sAst.InstanceExp) => List(i).point[EvalState])(
-        h1 => h2 => (i0: sAst.InstanceExp) => for
+      hook = ihook.foldl((i: lAst.InstanceExp) => List(i).point[EvalState])(
+        h1 => h2 => (i0: lAst.InstanceExp) => for
         {
           i1 <- h1(i0)
           i2 <- (i1 map h2).sequence
         } yield i2.flatten)
-      ie = sAst.InstanceExp(i.id, ce)
+      ie = lAst.InstanceExp(i.id, ce)
       _ = ie.region = i.region
       is <- hook(ie)
     } yield is
   }
 
-  implicit val topLevel_instanceExp: Aux[sAst.TopLevel.InstanceExp, List[sAst.TopLevel.InstanceExp]] = new Eval[sAst.TopLevel.InstanceExp] {
-    override type Result = List[sAst.TopLevel.InstanceExp]
+  implicit val topLevel_instanceExp: Aux[sAst.TopLevel.InstanceExp, List[lAst.InstanceExp]] = new Eval[sAst.TopLevel.InstanceExp] {
+    override type Result = List[lAst.InstanceExp]
 
     override def apply(t: sAst.TopLevel.InstanceExp) = for {
       is <- t.instanceExp.eval
       _ <- modify((_: EvalContext).withInstances(is :_*))
-    } yield is map sAst.TopLevel.InstanceExp
+    } yield is
   }
 
   implicit val constructorDefApp: Aux[(Seq[sAst.ValueExp], sAst.ConstructorDef), (sAst.TpeConstructor, Seq[sAst.BodyStmt])] = new Eval[(Seq[sAst.ValueExp], sAst.ConstructorDef)] {

@@ -3,6 +3,7 @@ package uk.co.turingatemyhamster.shortbol.ops
 import scalaz.Scalaz._
 import shapeless._
 import uk.co.turingatemyhamster.shortbol.shorthandAst
+import uk.co.turingatemyhamster.shortbol.longhandAst
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 
 /**
@@ -84,7 +85,7 @@ object ChangeIdentifiers {
     implicit val literal = self[shorthandAst.Literal]
     implicit val assignment = self[shorthandAst.Assignment]
     implicit val tpeConstructor = self[shorthandAst.TpeConstructor]
-    implicit val instanceExp = self[shorthandAst.InstanceExp]
+    implicit val instanceExp = self[longhandAst.InstanceExp]
     implicit val constructorApp = self[shorthandAst.ConstructorApp]
     implicit val constructorDef = self[shorthandAst.ConstructorDef]
     implicit val valueExp = self[shorthandAst.ValueExp]

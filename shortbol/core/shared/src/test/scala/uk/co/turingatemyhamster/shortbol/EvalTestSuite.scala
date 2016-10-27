@@ -35,8 +35,8 @@ object EvalTestSuite extends TestSuite {
         s.value
     }
 
-  def parse_instances(shortbol: String): Seq[TopLevel.InstanceExp] =
-    parse(shortbol).tops.collect { case i : TopLevel.InstanceExp => i }
+  def parse_instances(shortbol: String): Seq[longhandAst.InstanceExp] =
+    parse(shortbol).tops.collect { case TopLevel.InstanceExp(i) => longhandAst.InstanceExp(i.id, i.cstrApp) }
 
   def parse_instances_eval(shortbol: String): longhandAst.SBFile =
     longhandAst.SBFile(parse_instances(shortbol))
@@ -97,7 +97,7 @@ object EvalTestSuite extends TestSuite {
     'blankline - {
       * - { BlankLine() evaluatesTo BlankLine() in Ø }
       * - { (BlankLine() : BodyStmt) evaluatesTo (BlankLine() : BodyStmt) in Ø }
-      * - { (BlankLine() : TopLevel) evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø }
+      * - { (BlankLine() : TopLevel) evaluatesTo (Nil : List[longhandAst.InstanceExp]) in Ø }
       * - { parse("", ShortbolParsers.BlankLine) evaluatesTo BlankLine() in Ø }
       * - { parse("", ShortbolParser.BodyStmt) evaluatesTo (BlankLine() : BodyStmt) in Ø }
     }
@@ -108,7 +108,7 @@ object EvalTestSuite extends TestSuite {
       * - { (Comment("a comment") : BodyStmt) evaluatesTo
         (Comment("a comment") : BodyStmt) in Ø }
       * - { (Comment("a comment") : TopLevel) evaluatesTo
-        (Nil : List[TopLevel.InstanceExp]) in Ø }
+        (Nil : List[longhandAst.InstanceExp]) in Ø }
       * - { parse("#a comment", ShortbolParsers.Comment) in Ø evaluatesWithRanges
         Comment("a comment") in Ø }
       * - { parse("#a comment", ShortbolParser.BodyStmt) in Ø evaluatesWithRanges
@@ -403,12 +403,12 @@ object EvalTestSuite extends TestSuite {
       }
 
       'topLevel - {
-        * - { ("a" := "b" : TopLevel) evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments ("a" := "b") }
+        * - { ("a" := "b" : TopLevel) evaluatesTo (Nil : List[longhandAst.InstanceExp]) in Ø.withAssignments ("a" := "b") }
 
         // withAssignments with matching keys doesn't merge values
-        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("a" := "x") evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments("a" := "x").withAssignments("a" := "b") }
+        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("a" := "x") evaluatesTo (Nil : List[longhandAst.InstanceExp]) in Ø.withAssignments("a" := "x").withAssignments("a" := "b") }
 
-        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("b" := "y") evaluatesTo (Nil : List[TopLevel.InstanceExp]) in Ø.withAssignments ("b" := "y", "a" := "b") }
+        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("b" := "y") evaluatesTo (Nil : List[longhandAst.InstanceExp]) in Ø.withAssignments ("b" := "y", "a" := "b") }
       }
     }
 
@@ -416,7 +416,7 @@ object EvalTestSuite extends TestSuite {
       * - {
         Seq[TopLevel](
           "b" := "c",
-          "a" := "b") evaluatesTo Seq[List[TopLevel.InstanceExp]](Nil, Nil) in Ø.withAssignments (
+          "a" := "b") evaluatesTo Seq[List[longhandAst.InstanceExp]](Nil, Nil) in Ø.withAssignments (
           "b" := "c",
           "a" := "b")
       }
@@ -425,7 +425,7 @@ object EvalTestSuite extends TestSuite {
         Seq[TopLevel](
           "c" := "d",
           "b" := "c",
-          "a" := "b") evaluatesTo Seq[List[TopLevel.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
+          "a" := "b") evaluatesTo Seq[List[longhandAst.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
           "c" := "d",
           "b" := "c",
           "a" := "b")
@@ -435,7 +435,7 @@ object EvalTestSuite extends TestSuite {
         Seq[TopLevel](
           "bx" := "cx",
           "cx" := "dx",
-          "ax" := "bx") evaluatesTo Seq[List[TopLevel.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
+          "ax" := "bx") evaluatesTo Seq[List[longhandAst.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
           "bx" := "cx",
           "cx" := "dx",
           "ax" := "bx")
@@ -556,7 +556,7 @@ object EvalTestSuite extends TestSuite {
             Seq(),
             ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
           )
-        ) evaluatesTo (Nil: List[TopLevel.InstanceExp]) in Ø.withConstructors (
+        ) evaluatesTo (Nil: List[longhandAst.InstanceExp]) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
             Seq(),
@@ -574,7 +574,7 @@ object EvalTestSuite extends TestSuite {
           )
         ) in Ø.withAssignments(
           "Foo" := "Bar"
-        ) evaluatesTo (Nil: List[TopLevel.InstanceExp]) in Ø.withConstructors (
+        ) evaluatesTo (Nil: List[longhandAst.InstanceExp]) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
             Seq(),
@@ -787,7 +787,7 @@ object EvalTestSuite extends TestSuite {
             |  foaf:age = 40
             |  foaf:name = "matthew"
             |  foaf:knows = "caroline"
-            |""".stripMargin).map { i => i.instanceExp} :_*)
+            |""".stripMargin) :_*)
     }
 
     'instance_reassignment - {
@@ -796,7 +796,7 @@ object EvalTestSuite extends TestSuite {
           |a : y
           |a : z""".stripMargin).eval.run(Ø)
       val aRes = ctxt.resolveInst("a")
-      assert(aRes == Some(InstanceExp("a", ConstructorApp(TpeConstructor1("z", Seq()), Seq()))))
+      assert(aRes == Some(longhandAst.InstanceExp("a", ConstructorApp(TpeConstructor1("z", Seq()), Seq()))))
       assert(ctxt.insts("a").length == 3)
     }
   }

@@ -36,7 +36,7 @@ object DefaultPrefixPragma {
         List(p).point[EvalState]
     }
 
-    def iHook(i: InstanceExp): EvalState[List[InstanceExp]] = for {
+    def iHook(i: longhandAst.InstanceExp): EvalState[List[longhandAst.InstanceExp]] = for {
       ii <- ChangeIdentifiers.at(rewrite).instanceExp(i)
     } yield ii::Nil
 

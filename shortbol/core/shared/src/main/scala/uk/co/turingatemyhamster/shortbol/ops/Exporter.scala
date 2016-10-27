@@ -66,18 +66,18 @@ trait ExporterEnv[DT <: Datatree] {
     case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(`rdf_about`, shorthandAst.PropertyValue.Reference(v))) => v.export[DT#Uri]
   }
 
-  implicit val topLevel_instances: Exporter[Seq[shorthandAst.TopLevel.InstanceExp], DT#DocumentRoot] =
-    Exporter { (ts: Seq[shorthandAst.TopLevel.InstanceExp]) =>
+  implicit val topLevel_instances: Exporter[Seq[longhandAst.InstanceExp], DT#DocumentRoot] =
+    Exporter { (ts: Seq[longhandAst.InstanceExp]) =>
       DocumentRoot(ZeroMany(nsBindings :_*), ZeroMany(ts map (_.export) :_*))
     }
 
-  implicit val topLevelInstanceExpExporter: Exporter[shorthandAst.TopLevel.InstanceExp, DT#TopLevelDocument] =
-    Exporter { (t: shorthandAst.TopLevel.InstanceExp) =>
+  implicit val topLevelInstanceExpExporter: Exporter[longhandAst.InstanceExp, DT#TopLevelDocument] =
+    Exporter { (t: longhandAst.InstanceExp) =>
       TopLevelDocument(
         ZeroMany(),
-        ZeroOne.fromOption(identityFor(t.instanceExp.cstrApp)),
-        One(t.instanceExp.cstrApp.cstr.export),
-        ZeroMany(t.instanceExp.cstrApp.body.export.flatten :_*))
+        ZeroOne.fromOption(identityFor(t.cstrApp)),
+        One(t.cstrApp.cstr.export),
+        ZeroMany(t.cstrApp.body.export.flatten :_*))
   }
 
   implicit val constructorAppExporter: Exporter[shorthandAst.ConstructorApp, DT#NestedDocument] =
