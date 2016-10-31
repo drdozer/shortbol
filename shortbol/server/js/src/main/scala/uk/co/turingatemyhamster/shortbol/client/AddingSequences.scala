@@ -2,8 +2,8 @@ package uk.co.turingatemyhamster.shortbol.client
 import org.widok._
 import org.widok.bindings.HTML._
 import TutorialUtils._
-import uk.co.turingatemyhamster.shortbol.ast.ValueExp
-import uk.co.turingatemyhamster.shortbol.ast.sugar._
+import uk.co.turingatemyhamster.shortbol.shorthandAst.ValueExp
+import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
 
 /**
   *

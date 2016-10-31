@@ -1,7 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import ast._
+import shorthandAst._
 import sugar._
 import ops._
 import ops.Eval._
@@ -36,7 +36,7 @@ object DefaultPrefixPragma {
         List(p).point[EvalState]
     }
 
-    def iHook(i: InstanceExp): EvalState[List[InstanceExp]] = for {
+    def iHook(i: longhandAst.InstanceExp): EvalState[List[longhandAst.InstanceExp]] = for {
       ii <- ChangeIdentifiers.at(rewrite).instanceExp(i)
     } yield ii::Nil
 

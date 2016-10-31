@@ -1,13 +1,13 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import ast._
-import ast.sugar._
+import shorthandAst._
+import shorthandAst.sugar._
 import ops._
 import ops.Eval._
 import ShortbolParser.POps
-
 import fastparse.core.Parsed.{Failure, Success}
+import uk.co.turingatemyhamster.shortbol.longhandAst.SBFile
 
 import scalaz.Scalaz._
 import scalaz._
@@ -57,25 +57,23 @@ object ImportPragma {
 }
 
 trait Resolver {
-  def resolve(id: Identifier): EvalState[Throwable \/ SBEvaluatedFile]
+  def resolve(id: Identifier): EvalState[Throwable \/ SBFile]
 }
 
 object Resolver {
   def fromValues(vs: (Identifier, SBFile)*): Resolver = new Resolver {
     val id2F = Map(vs :_*)
 
-    override def resolve(id: Identifier): EvalState[Throwable \/ SBEvaluatedFile] =
+    override def resolve(id: Identifier): EvalState[Throwable \/ SBFile] =
       id2F get id match {
         case Some(f) =>
-          for {
-            e <- f.eval
-          } yield e.right
+          f.right.point[Eval.EvalState]
         case None => (new NoSuchElementException(s"Unable to resolve shortbol for $id") : Throwable).left.point[EvalState]
       }
   }
 
   def fromWeb: Resolver = new Resolver {
-    override def resolve(id: Identifier): EvalState[Throwable \/ SBEvaluatedFile] = id.eval flatMap {
+    override def resolve(id: Identifier): EvalState[Throwable \/ SBFile] = id.eval flatMap {
       case url : Url =>
         resolveUrl(url)
       case qn : QName =>
@@ -90,21 +88,21 @@ object Resolver {
         (new Exception(s"Could not resolve identifier $id via $i") : Throwable).left.point[EvalState]
     }
 
-    def resolveUrl(url: Url): EvalState[Throwable \/ SBEvaluatedFile] = for {
+    def resolveUrl(url: Url): EvalState[Throwable \/ SBFile] = for {
       base <- ImportBaseUrl.top
       relative = relativeUrl(base.collect{case Pragma(ImportBaseUrl.ID, (ValueExp.Identifier(url@Url(_)))::Nil) => url}, url)
       res <- Platform.slurp(relative.url) orElse
               Platform.slurp(relative.url ++ ".sbol") match {
         case -\/(t) =>
-          t.left[SBEvaluatedFile].point[EvalState]
+          t.left[SBFile].point[EvalState]
         case \/-(str) =>
           ImportBaseUrl.pushFrame(Pragma(ImportBaseUrl.ID, relative::Nil))(
             DefaultPrefixPragma.pushFrame(
               ShortbolParser.SBFile.withPositions(relative, str) match {
                 case Success(s, _) =>
-                  s.eval.map((_: SBEvaluatedFile).right[Throwable])
+                  s.eval.map((_: SBFile).right[Throwable])
                 case f: Failure =>
-                  (new Exception(s"Failed to parse ${url.url} as ${relative.url} at ${f.index}: ${f.extra.traced}") : Throwable).left[SBEvaluatedFile].point[EvalState]
+                  (new Exception(s"Failed to parse ${url.url} as ${relative.url} at ${f.index}: ${f.extra.traced}") : Throwable).left[SBFile].point[EvalState]
               }
             )
           )

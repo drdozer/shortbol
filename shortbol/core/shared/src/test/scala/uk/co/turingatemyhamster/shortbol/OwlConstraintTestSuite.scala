@@ -1,7 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 
-import uk.co.turingatemyhamster.shortbol.ast.sugar._
-import uk.co.turingatemyhamster.shortbol.ast._
+import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
+import uk.co.turingatemyhamster.shortbol.shorthandAst._
 import uk.co.turingatemyhamster.shortbol.ops._
 import utest._
 

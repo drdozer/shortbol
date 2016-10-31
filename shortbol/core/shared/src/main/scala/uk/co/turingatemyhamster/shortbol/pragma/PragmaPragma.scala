@@ -3,8 +3,8 @@ package pragma
 
 import ops.{EvalContext, LogMessage}
 import ops.Eval._
-import ast.{LocalName, Pragma}
-import ast.sugar._
+import shorthandAst.{LocalName, Pragma}
+import shorthandAst.sugar._
 
 import scalaz._
 import scalaz.Scalaz._
@@ -28,7 +28,7 @@ object PragmaPragma {
     def phook(p: Pragma): EvalState[List[Pragma]] = p match {
       case Pragma(LocalName("pragma"), ns) if ns.nonEmpty =>
         ns.head match {
-          case ast.ValueExp.Identifier(name : ast.LocalName) =>
+          case shorthandAst.ValueExp.Identifier(name : shorthandAst.LocalName) =>
             hooks get name match {
               case Some(h) =>
                 for {

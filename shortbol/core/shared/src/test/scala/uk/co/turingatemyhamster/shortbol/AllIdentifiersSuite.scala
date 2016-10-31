@@ -1,8 +1,8 @@
 package uk.co.turingatemyhamster
 package shortbol
 
-import ast._
-import ast.sugar._
+import shorthandAst._
+import shorthandAst.sugar._
 import ops._
 import utest._
 import EvalTestSuite.parse

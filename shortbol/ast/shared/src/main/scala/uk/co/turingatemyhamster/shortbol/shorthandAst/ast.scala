@@ -1,6 +1,5 @@
-package uk.co.turingatemyhamster.shortbol.ast
-
-import uk.co.turingatemyhamster.shortbol.ast
+package uk.co.turingatemyhamster.shortbol
+package shorthandAst
 
 case class Pos(offset: Int, line: Int = -1, column: Int = -1)
 {
@@ -25,25 +24,25 @@ sealed trait Literal extends AstNode
 
 // top levels
 object TopLevel {
-  case class Assignment(assignment: ast.Assignment) extends TopLevel
-  case class BlankLine(blankLine: ast.BlankLine) extends TopLevel
-  case class Comment(comment: ast.Comment) extends TopLevel
-  case class ConstructorDef(constructorDef: ast.ConstructorDef) extends TopLevel
-  case class InstanceExp(instanceExp: ast.InstanceExp) extends TopLevel
-  case class Pragma(pragma: ast.Pragma) extends TopLevel
+  case class Assignment(assignment: shorthandAst.Assignment) extends TopLevel
+  case class BlankLine(blankLine: shorthandAst.BlankLine) extends TopLevel
+  case class Comment(comment: shorthandAst.Comment) extends TopLevel
+  case class ConstructorDef(constructorDef: shorthandAst.ConstructorDef) extends TopLevel
+  case class InstanceExp(instanceExp: shorthandAst.InstanceExp) extends TopLevel
+  case class Pragma(pragma: shorthandAst.Pragma) extends TopLevel
 }
 
 // body statements
 object BodyStmt {
-  case class BlankLine(blankLine: ast.BlankLine) extends BodyStmt
-  case class Comment(comment: ast.Comment) extends BodyStmt
-  case class PropertyExp(propertyExp: ast.PropertyExp) extends BodyStmt
+  case class BlankLine(blankLine: shorthandAst.BlankLine) extends BodyStmt
+  case class Comment(comment: shorthandAst.Comment) extends BodyStmt
+  case class PropertyExp(propertyExp: shorthandAst.PropertyExp) extends BodyStmt
 }
 
 // value expressions
 object ValueExp {
-  case class Identifier(identifier: ast.Identifier) extends ValueExp
-  case class Literal(literal: ast.Literal) extends ValueExp
+  case class Identifier(identifier: shorthandAst.Identifier) extends ValueExp
+  case class Literal(literal: shorthandAst.Literal) extends ValueExp
 }
 
 // identifiers
@@ -99,30 +98,28 @@ case class ConstructorDef(id: Identifier,
                             args: Seq[Identifier],
                             cstrApp: ConstructorApp) extends AstNode
 
-case class InstanceExp(id: Identifier,
+case class InstanceExp(identifier: Identifier,
                        cstrApp: ConstructorApp) extends AstNode
 
-case class Pragma(id: Identifier, values: Seq[ast.ValueExp]) extends AstNode
+case class Pragma(id: Identifier, values: Seq[shorthandAst.ValueExp]) extends AstNode
 
 // the whole thing
 case class SBFile(tops: Seq[TopLevel]) extends AstNode
-
-case class SBEvaluatedFile(tops: Seq[TopLevel.InstanceExp]) extends AstNode
 
 case class PropertyExp(property: Identifier, value: PropertyValue) extends AstNode
 
 sealed trait PropertyValue
 
 object PropertyValue {
-  case class Literal(value: ast.Literal) extends PropertyValue
-  case class Reference(value: ast.Identifier) extends PropertyValue
-  case class Nested(value: ast.ConstructorApp) extends PropertyValue
+  case class Literal(value: shorthandAst.Literal) extends PropertyValue
+  case class Reference(value: shorthandAst.Identifier) extends PropertyValue
+  case class Nested(value: shorthandAst.ConstructorApp) extends PropertyValue
 }
 
 object sugar {
   import scala.language.implicitConversions
 
-  implicit def tlAssignment[A](a: A)(implicit e: A => ast.Assignment): TopLevel.Assignment = TopLevel.Assignment(a)
+  implicit def tlAssignment[A](a: A)(implicit e: A => shorthandAst.Assignment): TopLevel.Assignment = TopLevel.Assignment(a)
   implicit def tlBlankLine(bl: BlankLine): TopLevel.BlankLine = TopLevel.BlankLine(bl)
   implicit def tlComment(c: Comment): TopLevel.Comment = TopLevel.Comment(c)
   implicit def tlConstructorDef(c: ConstructorDef): TopLevel.ConstructorDef = TopLevel.ConstructorDef(c)
@@ -141,10 +138,10 @@ object sugar {
 
   implicit def pvLiteral[L](l: L)(implicit lE: L => Literal): PropertyValue = PropertyValue.Literal(l)
   implicit def pvReference[R](r: R)(implicit rE: R => Identifier): PropertyValue = PropertyValue.Reference(r)
-  implicit def pvNested(n: ast.ConstructorApp): PropertyValue = PropertyValue.Nested(n)
+  implicit def pvNested(n: shorthandAst.ConstructorApp): PropertyValue = PropertyValue.Nested(n)
 
-  implicit def veIdentifier[I](i: I)(implicit e: I => ast.Identifier): ValueExp.Identifier = ValueExp.Identifier(i)
-  implicit def veLiteral[L](l: L)(implicit e: L => ast.Literal): ValueExp.Literal = ValueExp.Literal(l)
+  implicit def veIdentifier[I](i: I)(implicit e: I => shorthandAst.Identifier): ValueExp.Identifier = ValueExp.Identifier(i)
+  implicit def veLiteral[L](l: L)(implicit e: L => shorthandAst.Literal): ValueExp.Literal = ValueExp.Literal(l)
   def slVal(s: String): ValueExp = veLiteral(slLit(s))
 
   implicit class IV[I](val _i: I) extends AnyVal {
@@ -153,9 +150,9 @@ object sugar {
 
   case class IvPair [I, V](i: I, v: V)
 
-  implicit def toAssignment[I, V](iv: I IvPair V)(implicit iE: I => ast.Identifier, vE: V => ValueExp): ast.Assignment =
-    ast.Assignment(iv.i, iv.v)
-  implicit def toProperty[I, V](iv: I IvPair V)(implicit iE: I => ast.Identifier, vE: V => PropertyValue): PropertyExp =
+  implicit def toAssignment[I, V](iv: I IvPair V)(implicit iE: I => shorthandAst.Identifier, vE: V => ValueExp): shorthandAst.Assignment =
+    shorthandAst.Assignment(iv.i, iv.v)
+  implicit def toProperty[I, V](iv: I IvPair V)(implicit iE: I => shorthandAst.Identifier, vE: V => PropertyValue): PropertyExp =
     PropertyExp(iv.i, iv.v)
 
   implicit def strLit[S](s: S)(implicit e: S => StringLiteral.Style): StringLiteral = StringLiteral(s, None, None)

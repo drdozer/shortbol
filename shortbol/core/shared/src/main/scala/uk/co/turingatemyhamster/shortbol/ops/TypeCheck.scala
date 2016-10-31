@@ -2,7 +2,7 @@ package uk.co.turingatemyhamster.shortbol
 package ops
 
 import scala.reflect.runtime.universe.TypeTag
-import ast._
+import shorthandAst._
 import Eval.EvalOps
 import sugar._
 

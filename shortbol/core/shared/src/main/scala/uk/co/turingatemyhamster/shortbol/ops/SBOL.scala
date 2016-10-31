@@ -1,11 +1,11 @@
 package uk.co.turingatemyhamster.shortbol
 package ops
 
-import ast._
-import ast.sugar._
+import shorthandAst._
+import shorthandAst.sugar._
 import monocle._
 import Monocle._
-import uk.co.turingatemyhamster.shortbol.ast.{ConstructorApp, ValueExp}
+import uk.co.turingatemyhamster.shortbol.shorthandAst.{ConstructorApp, ValueExp}
 import scalaz._
 import Scalaz._
 

@@ -9,7 +9,7 @@ import org.widok.html._
 import pl.metastack.metarx.Buffer
 import uk.co.turingatemyhamster.datatree
 import uk.co.turingatemyhamster.datatree.io.RdfIo
-import uk.co.turingatemyhamster.shortbol.ast.SBFile
+import uk.co.turingatemyhamster.shortbol.shorthandAst.SBFile
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
 import uk.co.turingatemyhamster.shortbol.ops.{Exporter, LogMessage, PrettyPrinter, ShortbolParser}
@@ -79,7 +79,7 @@ object Sandbox extends PageApplication {
     def processShortbol(): Unit = {
       val txt = editor.getSession().getValue().asInstanceOf[String]
 
-      ShortbolParser.SBFile.withPositions(ast.LocalName("shortbol_editor"), txt) match {
+      ShortbolParser.SBFile.withPositions(shorthandAst.LocalName("shortbol_editor"), txt) match {
         case s: Success[SBFile] =>
           val (c, v) = s.value.eval.run(Fixture.configuredContext)
 
