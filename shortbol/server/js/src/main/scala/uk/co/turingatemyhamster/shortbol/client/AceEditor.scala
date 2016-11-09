@@ -76,7 +76,7 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
         case TopLevel.InstanceExp(i@InstanceExp(id, _)) if id == instId =>
           i.cstrApp.body
       }).flatten exists {
-        case BodyStmt.Assignment(Assignment(p, v)) =>
+        case BodyStmt.PropertyExp(PropertyExp(p, v)) =>
           p == ass.property && v == ass.value
         case _ =>
           false
@@ -109,7 +109,7 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
       s =>
         (for {
           TopLevel.InstanceExp(InstanceExp(id, ConstructorApp(TpeConstructor1(_, _), c))) <- s.tops if id == instId
-          BodyStmt.InstanceExp(InstanceExp(bi, ConstructorApp(TpeConstructor1(t, a), _))) <- c if {
+          BodyStmt.PropertyExp(PropertyExp(bi, PropertyValue.Nested(ConstructorApp(TpeConstructor1(t, a), _)))) <- c if {
           bi == prop && t == tpe && a == args}
         } yield ()).nonEmpty
     }

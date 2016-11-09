@@ -5,7 +5,8 @@ import scala.reflect.runtime.universe.TypeTag
 import monocle.{Monocle, Getter}
 import Monocle.{none => _, _}
 
-import shorthandAst._
+import longhandAst._
+import shorthandAst.{Identifier, Literal, IntegerLiteral, StringLiteral}
 import shorthandAst.sugar._
 
 import scalaz.Scalaz._
@@ -23,7 +24,7 @@ object Typer {
 
   implicit val constructorAppTyper: Typer[ConstructorApp] = new Typer[ConstructorApp] {
     override def exactTypeOf(a: ConstructorApp) = a match {
-      case ConstructorApp(TpeConstructor1(t, _), _) => Set(t)
+      case ConstructorApp(TpeConstructor(t), _) => Set(t)
       case _ => Set()
     }
   }

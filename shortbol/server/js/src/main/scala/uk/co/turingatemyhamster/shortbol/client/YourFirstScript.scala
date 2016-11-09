@@ -170,11 +170,11 @@ case class YourFirstScript() extends TutorialContent {
           """LacI : CDS
             |""".stripMargin,
           check(
-            v"""set $name to "LacI"""", "LacI", "name" -> slLit("LacI")),
+            v"""set $name to "LacI"""", "LacI", "name" := slLit("LacI")),
           check(
-            v"""set $description to "LacI protein coding region"""", "LacI", "description" -> slLit("LacI protein coding region")),
+            v"""set $description to "LacI protein coding region"""", "LacI", "description" := slLit("LacI protein coding region")),
           check(
-            v"""set $displayId to "P03023"""", "LacI", "displayId" -> slLit("P03023"))
+            v"""set $displayId to "P03023"""", "LacI", "displayId" := slLit("P03023"))
         )
       )
     )

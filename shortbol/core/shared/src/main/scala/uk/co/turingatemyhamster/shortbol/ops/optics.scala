@@ -3,8 +3,7 @@ package uk.co.turingatemyhamster.shortbol.ops
 import monocle.macros.{GenLens, GenPrism}
 import monocle.{Iso, Optional, POptional, _}
 import monocle.Monocle.{none => _, _}
-import uk.co.turingatemyhamster.shortbol.longhandAst.SBFile
-import uk.co.turingatemyhamster.shortbol.shorthandAst._
+import uk.co.turingatemyhamster.shortbol.longhandAst
 
 import scalaz.{-\/, Applicative, \/-}
 

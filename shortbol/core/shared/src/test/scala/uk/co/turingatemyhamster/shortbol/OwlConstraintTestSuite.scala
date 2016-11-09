@@ -11,7 +11,7 @@ import utest._
   * @author Matthew Pocock
   */
 object OwlConstraintTestSuite extends TestSuite {
-  import ConstraintsTestSuite.{success, failure}
+//  import ConstraintsTestSuite.{success, failure}
 
   override def tests = TestSuite {
 

@@ -21,20 +21,7 @@ object LiteralConversion {
                        requiredType: Identifier) = f.lift((lit, requiredType))
   }
 
-  implicit def conversionAsRecovery(litC: LiteralConversion):
-  ConstraintRecovery[NestedViolation[Literal, Symbol, Set[Identifier]], Literal] = ConstraintRecovery(
-    (vig : NestedViolation[Literal, Symbol, Set[Identifier]]) =>
-      vig match {
-        case NestedViolation(lit, 'type, cf) =>
-          cf match {
-            case ConstraintFailure(MemberOf(expectedT : Identifier), observedT : Set[Identifier]) =>
-              litC.apply(lit, expectedT) map (None -> _)
-            case _ => None
-          }
-        case _ =>
-          None
-      }
-  )
+//  implicit def conver7342.3
 }
 
 

@@ -136,7 +136,7 @@ case class AddingSequences() extends TutorialContent {
                want to cut and paste this)""", "pTetRSeq",
           (slLit("tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac") : ValueExp)::Nil
         ),
-        check(v"Set the $sequence property of $pTetR equal to $pTetRSeq", "pTetR", "sequence" -> "pTetRSeq")
+        check(v"Set the $sequence property of $pTetR equal to $pTetRSeq", "pTetR", "sequence" := "pTetRSeq")
       )
     ),
     Section(
