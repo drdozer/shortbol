@@ -4,26 +4,6 @@ package  ops
 import shorthandAst._
 import sugar._
 
-
-//trait LiteralConversion {
-//  def apply(lit: Literal, requiredType: Identifier): Option[Literal]
-//}
-//
-//object LiteralConversion {
-//  def apply(c: LiteralConversion*): LiteralConversion = new LiteralConversion {
-//    override def apply(lit: Literal,
-//                       reqTpe: Identifier) =
-//      c.foldLeft(None: Option[Literal])((o, c) => if(o.isDefined) o else c(lit, reqTpe))
-//  }
-//
-//  def apply(f: PartialFunction[(Literal, Identifier), Literal]): LiteralConversion = new LiteralConversion {
-//    override def apply(lit: Literal,
-//                       requiredType: Identifier) = f.lift((lit, requiredType))
-//  }
-//
-//}
-
-
 object DNAFormatConversion {
   val XsdString = "xsd" :# "string"
 
