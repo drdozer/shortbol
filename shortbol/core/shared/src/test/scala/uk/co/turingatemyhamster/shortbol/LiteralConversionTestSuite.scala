@@ -26,74 +26,66 @@ object LiteralConversionTestSuite extends TestSuite {
     val expected = ShortbolParsers.StringLiteral.parse(
       "\"ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa\"").get.value
 
-    def matchingStrings(observed: Option[Literal], expected: StringLiteral) =
-      assert(observed exists (_.asInstanceOf[StringLiteral].style.asString == expected.style.asString))
+    def rewrittenTo(observed: RewriteRule.Rewritten[Literal], expected: StringLiteral) = new {
+      def in (c: EvalContext) =
+        for {
+          o <- observed
+        } {
+          o.eval(c) match {
+            case StringLiteral(s, _, _) =>
+              assert(s.asString == expected.style.asString)
+          }
+        }
+    }
+
+    def notRewritten(observed: RewriteRule.Rewritten[Literal]) =
+      assert(observed.isLeft)
 
     'fasta - {
       'forFasta - {
-        val c = DNAFormatConversion.fastaToDNA(
-          fastaString,
-          DNAFormatConversion.XsdString)
-
-        matchingStrings(c, expected)
+        val c = DNAFormatConversion.fastaToDNA(fastaString)
+        rewrittenTo(c, expected)
       }
 
       'forGenbank - {
-        val c = DNAFormatConversion.fastaToDNA(
-          genbankString,
-          DNAFormatConversion.XsdString)
-
-        assert(c.isEmpty)
+        val c = DNAFormatConversion.fastaToDNA(genbankString)
+        notRewritten(c)
       }
 
       'forFastaGenbank - {
-        val c = LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA)(
-          fastaString,
-          DNAFormatConversion.XsdString)
-
-        matchingStrings(c, expected)
+        val c = (DNAFormatConversion.fastaToDNA or DNAFormatConversion.genbankToDNA)(
+          fastaString)
+        rewrittenTo(c, expected)
       }
 
       'forGenbankFasta - {
-        val c = LiteralConversion(DNAFormatConversion.genbankToDNA, DNAFormatConversion.fastaToDNA)(
-          fastaString,
-          DNAFormatConversion.XsdString)
-
-        matchingStrings(c, expected)
+        val c = (DNAFormatConversion.genbankToDNA or DNAFormatConversion.fastaToDNA)(
+          fastaString)
+        rewrittenTo(c, expected)
       }
     }
 
     'genbank - {
       'forFasta - {
-        val c = DNAFormatConversion.genbankToDNA(
-          fastaString,
-          DNAFormatConversion.XsdString)
-
-        assert(c.isEmpty)
+        val c = DNAFormatConversion.genbankToDNA(fastaString)
+        notRewritten(c)
       }
 
       'forGenbank - {
-        val c = DNAFormatConversion.genbankToDNA(
-          genbankString,
-          DNAFormatConversion.XsdString)
-
-        matchingStrings(c, expected)
+        val c = DNAFormatConversion.genbankToDNA(genbankString)
+        rewrittenTo(c, expected)
       }
 
       'forFastaGenbank - {
-        val c = LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA)(
-          genbankString,
-          DNAFormatConversion.XsdString)
-
-        matchingStrings(c, expected)
+        val c = (DNAFormatConversion.fastaToDNA or DNAFormatConversion.genbankToDNA)(
+          genbankString)
+        rewrittenTo(c, expected)
       }
 
       'forGenbankFasta - {
-        val c = LiteralConversion(DNAFormatConversion.genbankToDNA, DNAFormatConversion.fastaToDNA)(
-          genbankString,
-          DNAFormatConversion.XsdString)
-
-        matchingStrings(c, expected)
+        val c = (DNAFormatConversion.genbankToDNA or DNAFormatConversion.fastaToDNA)(
+          genbankString)
+        rewrittenTo(c, expected)
       }
     }
 

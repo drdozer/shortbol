@@ -1,5 +1,7 @@
 package uk.co.turingatemyhamster.shortbol.ops
 
+import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
+
 import scalaz.Scalaz._
 import scalaz._
 
@@ -33,8 +35,33 @@ trait RewriteRule[T] {
 }
 
 object RewriteRule {
-  def noop[T]: RewriteRule[T] = new RewriteRule[T] {
-    override def apply(t: T) = -\/(t)
+  type Rewritten[T] = T \/ EvalState[T]
+
+  def apply[F, T](f: F)(implicit b: Builder[F, T]): RewriteRule[T] = b apply f
+
+  def noop[T]: RewriteRule[T] = RewriteRule { (t: T) => t.left[EvalState[T]] }
+
+  trait Builder[F, T] {
+    def apply(f: F): RewriteRule[T]
+  }
+
+  implicit def fromFunc[T]: Builder[(T => T \/ EvalState[T]), T] = new Builder[(T) => Disjunction[T, EvalState[T]], T] {
+    override def apply(f: (T) => Disjunction[T, EvalState[T]]) = new RewriteRule[T] {
+      override def apply(t: T) = f(t)
+    }
+  }
+
+  implicit def fromOptionFunc[T]: Builder[T => Option[T], T] = new Builder[(T) => Option[T], T] {
+    override def apply(f: (T) => Option[T]) = RewriteRule { (t: T) =>
+      f(t) match {
+        case None => t.left[EvalState[T]]
+        case Some(ft) => ft.point[EvalState].right[T]
+      }
+    }
+  }
+
+  implicit def fromPartialFunc[T]: Builder[PartialFunction[T, T], T] = new Builder[PartialFunction[T, T], T] {
+    override def apply(f: PartialFunction[T, T]) = RewriteRule(f.lift)
   }
 }
 
