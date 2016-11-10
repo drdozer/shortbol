@@ -13,6 +13,32 @@ import scalaz.{-\/, Applicative, \/-}
   * @author Matthew Pocock
   */
 object optics {
+
+  object longhand {
+    object PropertyValue {
+      val asLiteral = GenPrism[longhandAst.PropertyValue, longhandAst.PropertyValue.Literal]
+      val asReference = GenPrism[longhandAst.PropertyValue, longhandAst.PropertyValue.Reference]
+      val asNested = GenPrism[longhandAst.PropertyValue, longhandAst.PropertyValue.Nested]
+
+      object Literal {
+        val value = GenLens[longhandAst.PropertyValue.Literal](_.value)
+      }
+
+      object Reference {
+        val value = GenLens[longhandAst.PropertyValue.Reference](_.value)
+      }
+
+      object Nested {
+        val value = GenLens[longhandAst.PropertyValue.Nested](_.value)
+      }
+    }
+
+    object PropertyExp {
+      val property = GenLens[longhandAst.PropertyExp](_.property)
+      val value = GenLens[longhandAst.PropertyExp](_.value)
+    }
+  }
+
 //
 //  def seqListIso[A] = Iso[Seq[A], List[A]](_.to[List])(_.to[Seq])
 //

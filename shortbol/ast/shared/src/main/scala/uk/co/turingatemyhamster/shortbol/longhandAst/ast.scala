@@ -1,17 +1,17 @@
 package uk.co.turingatemyhamster.shortbol
 package longhandAst
 
-case class SBFile(tops: Seq[InstanceExp]) extends shorthandAst.AstNode
+case class SBFile(tops: List[InstanceExp]) extends shorthandAst.AstNode
 
 case class InstanceExp(identifier: shorthandAst.Identifier,
                        cstrApp: ConstructorApp) extends shorthandAst.AstNode
 
 case class ConstructorApp(cstr: TpeConstructor,
-                          body: Seq[PropertyExp]) extends shorthandAst.AstNode
+                          body: List[PropertyExp]) extends shorthandAst.AstNode
 
 object ConstructorApp {
   def apply[T](cstr: T, props: PropertyExp*)(implicit eT: T => TpeConstructor): ConstructorApp =
-    ConstructorApp(cstr, props)
+    ConstructorApp(cstr, props.to[List])
 }
 
 sealed trait PropertyValue

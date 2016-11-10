@@ -92,7 +92,7 @@ object ShortbolParsers {
     (_.length)
   lazy val MultiLineLiteral = P(MultiLineLiteralStart ~/ MultiLineLiteralLine.rep ~ MultiLineLiteralEnd map
     { case (ss, i) =>
-      shorthandAst.StringLiteral.MultiLine(ss map { s => if(s.length < i) s else  s substring i}, i) })
+      shorthandAst.StringLiteral.MultiLine(ss.to[List] map { s => if(s.length < i) s else  s substring i}, i) })
 
   lazy val DigitSign = P(Plus | Hyphen)
   lazy val IntegerLiteral = P((DigitSign.? ~ Digit.rep(1)).!.map(_.toInt).map(shorthandAst.IntegerLiteral))
@@ -110,7 +110,7 @@ object ShortbolParsers {
     valueExp.Identifier | valueExp.Literal
 
 
-  lazy val NoBody = Pass map (_ => Seq())
+  lazy val NoBody = Pass map (_ => List())
 
   lazy val ComaSep = P(Space.rep ~ Coma ~ Space.rep)
   lazy val NoArgs = P(Pass).map(_ => Nil)
@@ -121,7 +121,7 @@ object ShortbolParsers {
   lazy val ValueListO = P(ValueList | NoArgs)
 
   lazy val InfixConstructorApp: Parser[shorthandAst.ConstructorApp] = P(ValueExp ~ Space.rep ~ Identifier ~ Space.rep ~ ValueExp map
-    { case(a, r, b) => shorthandAst.ConstructorApp(shorthandAst.TpeConstructor1(r, Seq(a, b)), Seq()) }) map
+    { case(a, r, b) => shorthandAst.ConstructorApp(shorthandAst.TpeConstructor1(r, List(a, b)), List()) }) map
     (ca => {
       ca.cstr.region = ca.region
       ca})
@@ -136,12 +136,12 @@ object ShortbolParsers {
     (_ => shorthandAst.BlankLine()))
 
   lazy val Pragma: Parser[shorthandAst.Pragma] = P(At ~/ Identifier ~ Space.rep ~ ValueExp.rep(0, Space.rep) map
-    (shorthandAst.Pragma.apply _ tupled))
+    { case (id, ves) => shorthandAst.Pragma(id, ves.to[List]) })
 
   lazy val TpeConstructorStar: Parser[shorthandAst.TpeConstructorStar] = P(Star map
     (_ => shorthandAst.TpeConstructorStar()))
   lazy val TpeConstructor1: Parser[shorthandAst.TpeConstructor1] = P(Identifier ~ Space.rep ~ ValueListO map
-    (shorthandAst.TpeConstructor1.apply _ tupled))
+    { case (id, args) => shorthandAst.TpeConstructor1(id, args.to[List]) })
   lazy val TpeConstructor: Parser[shorthandAst.TpeConstructor] = TpeConstructor1 | TpeConstructorStar
 }
 
@@ -194,19 +194,19 @@ sealed class IndentingShortbolParser(indent: Int) {
     p(new IndentingShortbolParser(indent + extra)) //log s"block indented by $extra"
   } //log s"indent block $indent"
 
-  lazy val InstanceBody: Parser[Seq[shorthandAst.BodyStmt]] = P(BodyStmt.rep(sep = Nl ~ IndentSpaces)) //log "instance body"
+  lazy val InstanceBody: Parser[List[shorthandAst.BodyStmt]] = P(BodyStmt.rep(sep = Nl ~ IndentSpaces).map(_.to[List])) //log "instance body"
 
-  lazy val IndentedInstanceBody: Parser[Seq[shorthandAst.BodyStmt]] = P((SpNl ~ IndentBlock(_.InstanceBody)) | NoBody) //log "indented instance body"
+  lazy val IndentedInstanceBody: Parser[List[shorthandAst.BodyStmt]] = P((SpNl ~ IndentBlock(_.InstanceBody)) | NoBody) //log "indented instance body"
 
   lazy val PrefixConstructorApp: Parser[shorthandAst.ConstructorApp] = P(TpeConstructor ~ Space.rep ~ IndentedInstanceBody map
-    (shorthandAst.ConstructorApp.apply(_ : shorthandAst.TpeConstructor, _: Seq[shorthandAst.BodyStmt])).tupled)
+    (shorthandAst.ConstructorApp.apply(_ : shorthandAst.TpeConstructor, _: List[shorthandAst.BodyStmt])).tupled)
 
   lazy val InstanceExp: Parser[shorthandAst.InstanceExp] =
     P(Identifier ~ Space.rep ~ Colon ~/ Space.rep ~ PrefixConstructorApp map
       (shorthandAst.InstanceExp.apply _ tupled))
 
   lazy val ConstructorDef = P(Identifier ~ Space.rep ~ ArgListO ~ Space.rep ~ RightArr ~/ Space.rep ~ PrefixConstructorApp map
-      (shorthandAst.ConstructorDef.apply _ tupled))
+      { case (id, args, cstrApp) => shorthandAst.ConstructorDef(id, args.to[List], cstrApp) })
 }
 
 object ShortbolParser extends IndentingShortbolParser(0) {
@@ -231,7 +231,7 @@ object ShortbolParser extends IndentingShortbolParser(0) {
       topLevel.Assignment |
       topLevel.BlankLine
 
-  lazy val TopLevels: Parser[Seq[shorthandAst.TopLevel]] = P(TopLevel.rep(sep = SpNl))
+  lazy val TopLevels: Parser[List[shorthandAst.TopLevel]] = P(TopLevel.rep(sep = SpNl).map(_.to[List]))
 
   lazy val SBFile: Parser[shorthandAst.SBFile] = P(Start ~ TopLevels ~ End map
     (tops => shorthandAst.SBFile(tops = tops)))

@@ -59,7 +59,7 @@ trait ExporterEnv[DT <: Datatree] {
 
   def qnameToUri(qName: shorthandAst.QName) = bindings(qName.prefix.pfx) extendWith qName.localName.name
 
-  implicit def seqExporter[T, E](implicit ev: Exporter[T, E]): Exporter[Seq[T], Seq[E]] =
+  implicit def listExporter[T, E](implicit ev: Exporter[T, E]): Exporter[List[T], List[E]] =
     Exporter { _ map ev.export }
 
 //  def identityFor(i: shorthandAst.ConstructorApp) = i.body.collectFirst {

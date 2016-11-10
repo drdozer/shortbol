@@ -99,8 +99,8 @@ object AllNodes {
     override def apply(t: (A, B)): Seq[AstNode] = a(t._1) ++ b(t._2)
   }
 
-  implicit def seq[T](implicit e: AllNodes[T]): AllNodes[Seq[T]] = new AllNodes[Seq[T]] {
-    override def apply(t: Seq[T]) = t flatMap e.apply
+  implicit def list[T](implicit e: AllNodes[T]): AllNodes[List[T]] = new AllNodes[List[T]] {
+    override def apply(t: List[T]) = t flatMap e.apply
   }
 
 

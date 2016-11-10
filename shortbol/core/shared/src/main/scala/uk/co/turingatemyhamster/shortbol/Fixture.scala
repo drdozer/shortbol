@@ -32,7 +32,7 @@ object Fixture {
   )
 
   lazy val bootstrap = for {
-    _ <- bootstrapPragmas.register(Pragma("pragma", Seq("pragma")))
+    _ <- bootstrapPragmas.register(Pragma("pragma", List("pragma")))
     _ <- ShortbolParser.SBFile.withPositions("_bootstrap_", bootstrapPragmas.bootstrap).get.value.eval
     _ <- ShortbolParser.SBFile.withPositions("_peramble_", preamble).get.value.eval
   } yield ()

@@ -1,8 +1,11 @@
 package uk.co.turingatemyhamster.shortbol
 
 import shorthandAst._
+import shorthandAst.sugar._
 import ops._
 import utest._
+
+import scalaz.\/-
 
 /**
   *
@@ -10,46 +13,64 @@ import utest._
   * @author Matthew Pocock
   */
 object RewriteRuleTestSuite extends TestSuite {
+  val Ø = Fixture.emptyContext
 
-  def rewrittenTo(observed: RewriteRule.Rewritten[Literal], expected: StringLiteral) = new {
-    def in (c: EvalContext) =
-      for {
-        o <- observed
-      } {
-        o.eval(c) match {
-          case StringLiteral(s, _, _) =>
-            assert(s.asString == expected.style.asString)
-        }
+  def rewrittenToPropertyExp(observed: RewriteRule.Rewritten[longhandAst.PropertyExp], expectedProperty: Identifier, expectedValue: StringLiteral) = new {
+    def in (c: EvalContext) = {
+      observed match {
+        case \/-(pvExp) =>
+          pvExp eval c match {
+            case longhandAst.PropertyExp(pid, _) =>
+              assert(pid == expectedProperty)
+          }
       }
+      rewrittenToPropertyValue(observed.bimap(_ => ???, _ map (_.value)), expectedValue) in c
+    }
   }
 
-  def notRewritten(observed: RewriteRule.Rewritten[Literal]) =
+  def rewrittenToPropertyValue(observed: RewriteRule.Rewritten[longhandAst.PropertyValue], expected: StringLiteral) =
+    rewrittenToPropertyValueLiteral(observed.bimap(_ => ???, _ map (_.asInstanceOf[longhandAst.PropertyValue.Literal])), expected)
+
+  def rewrittenToPropertyValueLiteral(observed: RewriteRule.Rewritten[longhandAst.PropertyValue.Literal], expected: StringLiteral) =
+    rewrittenToLiteral(observed.bimap(_.value, _ map (_.value)), expected)
+
+  def rewrittenToLiteral(observed: RewriteRule.Rewritten[Literal], expected: StringLiteral) = new {
+    def in (c: EvalContext) =
+      observed.foreach(_ eval c match {
+        case StringLiteral(s, _, _) =>
+          assert(s.asString == expected.style.asString)
+      })
+  }
+
+
+  def notRewritten[T](observed: RewriteRule.Rewritten[T]) =
     assert(observed.isLeft)
-
-  val fastaString = ShortbolParsers.StringLiteral.parse(
-    """{
-      |  ttcagccaaa aaacttaaga ccgccggtct tgtccactac cttgcagtaa tgcggtggac
-      |  aggatcggcg gttttctttt ctcttctcaa
-      |  }^^edam:fasta""".stripMargin).get.value
-
-  val genbankString = ShortbolParsers.StringLiteral.parse(
-    """{
-      |        1 ttcagccaaa aaacttaaga ccgccggtct tgtccactac cttgcagtaa tgcggtggac
-      |       61 aggatcggcg gttttctttt ctcttctcaa
-      |}^^edam:genbank""".stripMargin).get.value
-
-  val expected = ShortbolParsers.StringLiteral.parse(
-    "\"ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa\"").get.value
 
   override def tests = TestSuite {
     'dnaFormatConversions - {
+
+      val fastaString = ShortbolParsers.StringLiteral.parse(
+        """{
+          |  ttcagccaaa aaacttaaga ccgccggtct tgtccactac cttgcagtaa tgcggtggac
+          |  aggatcggcg gttttctttt ctcttctcaa
+          |  }^^edam:fasta""".stripMargin).get.value
+
+      val genbankString = ShortbolParsers.StringLiteral.parse(
+        """{
+          |        1 ttcagccaaa aaacttaaga ccgccggtct tgtccactac cttgcagtaa tgcggtggac
+          |       61 aggatcggcg gttttctttt ctcttctcaa
+          |}^^edam:genbank""".stripMargin).get.value
+
+      val expected = ShortbolParsers.StringLiteral.parse(
+        "\"ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa\"").get.value
+
       val fromFastaOrGenbank = DNAFormatConversion.fastaToDNA or DNAFormatConversion.genbankToDNA
 
       'atLiteral - {
         'fasta - {
           'forFasta - {
             val c = DNAFormatConversion.fastaToDNA(fastaString)
-            rewrittenTo(c, expected)
+            rewrittenToLiteral(c, expected) in Ø
           }
 
           'forGenbank - {
@@ -59,12 +80,12 @@ object RewriteRuleTestSuite extends TestSuite {
 
           'forFastaGenbank - {
             val c = fromFastaOrGenbank(fastaString)
-            rewrittenTo(c, expected)
+            rewrittenToLiteral(c, expected) in Ø
           }
 
           'forGenbankFasta - {
-            val c = fromFataOrGenbank(fastaString)
-            rewrittenTo(c, expected)
+            val c = fromFastaOrGenbank(fastaString)
+            rewrittenToLiteral(c, expected) in Ø
           }
         }
 
@@ -76,51 +97,71 @@ object RewriteRuleTestSuite extends TestSuite {
 
           'forGenbank - {
             val c = DNAFormatConversion.genbankToDNA(genbankString)
-            rewrittenTo(c, expected)
+            rewrittenToLiteral(c, expected) in Ø
           }
 
           'forFastaGenbank - {
-            val c = fromFastaToGenbank(genbankString)
-            rewrittenTo(c, expected)
+            val c = fromFastaOrGenbank(genbankString)
+            rewrittenToLiteral(c, expected) in Ø
           }
 
           'forGenbankFasta - {
             val c = fromFastaOrGenbank(genbankString)
-            rewrittenTo(c, expected)
+            rewrittenToLiteral(c, expected) in Ø
           }
         }
       }
 
       'atPropertyValue - {
 
+        val fogAtPVL = fromFastaOrGenbank at
+          optics.longhand.PropertyValue.Literal.value
+        val fogAtPV = fromFastaOrGenbank at
+          optics.longhand.PropertyValue.Literal.value at
+          optics.longhand.PropertyValue.asLiteral
+        val fogAtPE = fromFastaOrGenbank at
+          optics.longhand.PropertyValue.Literal.value at
+          optics.longhand.PropertyValue.asLiteral at
+          optics.longhand.PropertyExp.value
+        val fogAtSequence = fogAtPE at ((_: longhandAst.PropertyExp).property == ("sequence": Identifier))
+        val fogAtSequences = fogAtSequence at RewriteAt.allElements
+
+        'propertyValue_Literal - {
+          val c = fogAtPVL(longhandAst.PropertyValue.Literal(fastaString))
+          rewrittenToPropertyValueLiteral(c, expected) in Ø
+        }
+
+        'propertyValue - {
+          val c = fogAtPV(longhandAst.PropertyValue.Literal(fastaString) : longhandAst.PropertyValue)
+          rewrittenToPropertyValue(c, expected) in Ø
+        }
+
+        'propertyExp - {
+          val c = fogAtPE(longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(fastaString)))
+          rewrittenToPropertyExp(c, "sequence", expected) in Ø
+        }
+
+        'propertyExpFilterFromSequence - {
+          val c = fogAtSequence(longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(fastaString)))
+          rewrittenToPropertyExp(c, "sequence", expected) in Ø
+        }
+
+        'propertyExpFilterFromOther - {
+          val c = fogAtSequence(longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString)))
+          notRewritten(c)
+        }
+
+        'propertyExpFilterAll - {
+          val c = fogAtSequences(List(
+            longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(fastaString)),
+            longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString))
+          ))
+//          rewrittenToPropertyExps(c, List(
+//            longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(expected)),
+//            longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString))))
+        }
       }
     }
-//    'typeError- {
-//      val ontology =
-//        """
-//          |Sequence : owl:Class
-//          |  elements : owl:propertyRestriction
-//          |    owl:allValuesFrom = xsd:string
-//        """.stripMargin
-//      import ast.sugar._
-//      import Eval.EvalOps
-//      import ShortbolParser.POps
-//      val ontologyCtxt = ShortbolParser.SBFile.withPositions("_ontology_", ontology).get.value.eval.exec(Fixture.configuredContext)
-//
-//      val owl = OWL.fromContext(ontologyCtxt)
-//
-//      val litConv = LiteralConversion(DNAFormatConversion.fastaToDNA, DNAFormatConversion.genbankToDNA)
-//
-//      'typeStringLiteral - {
-//        val expRec = Assignment("elements", expected) : BodyStmt
-//        val cstr = owl.allValuesFromConstraint("elements", Assignment("owl" :# "allValuesFrom", "xsd" :# "string"))
-//        val tpeCheck = cstr.get.apply(Assignment("elements", fastaString) : BodyStmt)
-//        val recovered = tpeCheck.leftMap(_.map(_.recoverWith(litConv)))
-//
-//        recovered.fold(
-//          nel => assert(nel.head.contains(None -> expRec)),
-//          a => assert(a != a))
-//      }
-//    }
+
   }
 }

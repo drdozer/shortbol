@@ -65,7 +65,7 @@ object StringLiteral {
     def isEscaped = escaped || asString.contains("\"")
   }
 
-  case class MultiLine(ss: Seq[String], indent: Int) extends Style {
+  case class MultiLine(ss: List[String], indent: Int) extends Style {
     def asString = ss mkString "\n"
   }
 }
@@ -76,7 +76,7 @@ case class Datatype(tpe: Identifier) extends AstNode
 case class Language(tag: String) extends AstNode
 
 // type constructors
-case class TpeConstructor1(id: Identifier, args: Seq[ValueExp]) extends TpeConstructor
+case class TpeConstructor1(id: Identifier, args: List[ValueExp]) extends TpeConstructor
 case class TpeConstructorStar() extends TpeConstructor
 
 // expressions
@@ -87,24 +87,24 @@ case class BlankLine() extends AstNode
 case class Comment(commentText: String) extends AstNode
 
 case class ConstructorApp(cstr: TpeConstructor,
-                          body: Seq[BodyStmt]) extends AstNode
+                          body: List[BodyStmt]) extends AstNode
 
 object ConstructorApp {
   def apply[T](cstr: T, bodys: BodyStmt*)(implicit e: T => TpeConstructor): ConstructorApp =
-    ConstructorApp(e(cstr), bodys)
+    ConstructorApp(e(cstr), bodys.to[List])
 }
 
 case class ConstructorDef(id: Identifier,
-                            args: Seq[Identifier],
+                            args: List[Identifier],
                             cstrApp: ConstructorApp) extends AstNode
 
 case class InstanceExp(identifier: Identifier,
                        cstrApp: ConstructorApp) extends AstNode
 
-case class Pragma(id: Identifier, values: Seq[shorthandAst.ValueExp]) extends AstNode
+case class Pragma(id: Identifier, values: List[shorthandAst.ValueExp]) extends AstNode
 
 // the whole thing
-case class SBFile(tops: Seq[TopLevel]) extends AstNode
+case class SBFile(tops: List[TopLevel]) extends AstNode
 
 case class PropertyExp(property: Identifier, value: PropertyValue) extends AstNode
 
@@ -129,7 +129,7 @@ object sugar {
 
   implicit class IdentifierToTpe[I](_i: I) {
     def withArgs(ves: ValueExp*)(implicit iE: I => Identifier): TpeConstructor =
-      TpeConstructor1(_i, ves)
+      TpeConstructor1(_i, ves.to[List])
   }
 
   implicit def bsBlankLine(bl: BlankLine): BodyStmt.BlankLine = BodyStmt.BlankLine(bl)

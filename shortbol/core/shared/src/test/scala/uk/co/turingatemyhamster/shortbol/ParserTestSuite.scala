@@ -381,7 +381,7 @@ object ParserTestSuite extends TestSuite{
     'IndentedInstanceBody - {
       * - shouldParse(
         "\n ", ShortbolParser.IndentedInstanceBody,
-        Seq(shorthandAst.BlankLine() : BodyStmt)
+        List(shorthandAst.BlankLine() : BodyStmt)
       )
     }
 
@@ -399,7 +399,7 @@ object ParserTestSuite extends TestSuite{
         ConstructorApp(
           TpeConstructor1(
             LocalName("DNAComponent"), Nil
-          ), Seq(shorthandAst.BlankLine() : BodyStmt)
+          ), List(shorthandAst.BlankLine() : BodyStmt)
         )
       )
     }
@@ -411,7 +411,7 @@ object ParserTestSuite extends TestSuite{
         ConstructorApp(
           TpeConstructor1(
             "sameOrientationAs",
-            Seq("lacI":ValueExp, "tetR":ValueExp)),
+            List("lacI":ValueExp, "tetR":ValueExp)),
           Nil)
       )
 
@@ -423,7 +423,7 @@ object ParserTestSuite extends TestSuite{
           ConstructorApp(
             TpeConstructor1(
               "sameOrientationAs",
-              Seq("lacI":ValueExp, "tetR":ValueExp)),
+              List("lacI":ValueExp, "tetR":ValueExp)),
             Nil)))
 
 
@@ -435,7 +435,7 @@ object ParserTestSuite extends TestSuite{
           ConstructorApp(
             TpeConstructor1(
               "precedes",
-              Seq("pTetR":ValueExp, "lacIRbs":ValueExp)),
+              List("pTetR":ValueExp, "lacIRbs":ValueExp)),
             Nil)))
 
 
@@ -447,7 +447,7 @@ object ParserTestSuite extends TestSuite{
             ConstructorApp(
               TpeConstructor1(
                 "precedes",
-                Seq("pTetR":ValueExp, "lacIRbs":ValueExp)),
+                List("pTetR":ValueExp, "lacIRbs":ValueExp)),
               Nil)))
 
     }
@@ -592,7 +592,7 @@ object ParserTestSuite extends TestSuite{
           InstanceExp(
             LocalName("dna_sequence"), ConstructorApp(
               TpeConstructor1(
-                LocalName("DNASequence"),Seq(LocalName("x"))
+                LocalName("DNASequence"),List(LocalName("x"))
               ),Nil
             )
           )
@@ -604,7 +604,7 @@ object ParserTestSuite extends TestSuite{
           InstanceExp(
             LocalName("dna_sequence"), ConstructorApp(
               TpeConstructor1(
-                LocalName("DNASequence"),Seq(StringLiteral.SingleLine("AAAAGTAAAACA"))
+                LocalName("DNASequence"),List(StringLiteral.SingleLine("AAAAGTAAAACA"))
               ),Nil
             )
           )
@@ -616,7 +616,7 @@ object ParserTestSuite extends TestSuite{
           InstanceExp(
             LocalName("dna_sequence"), ConstructorApp(
               TpeConstructor1(
-                LocalName("DNASequence"),Seq(StringLiteral.SingleLine("AAAAGTAAAACA"))
+                LocalName("DNASequence"),List(StringLiteral.SingleLine("AAAAGTAAAACA"))
               ),Nil
             )
           )
@@ -628,7 +628,7 @@ object ParserTestSuite extends TestSuite{
           InstanceExp(
             LocalName("i"), ConstructorApp(
               TpeConstructor1(
-                LocalName("Inline"),Seq(IntegerLiteral(20),IntegerLiteral(50))
+                LocalName("Inline"),List(IntegerLiteral(20),IntegerLiteral(50))
               ),Nil
             )
           )
@@ -640,7 +640,7 @@ object ParserTestSuite extends TestSuite{
           InstanceExp(
             LocalName("pass_qname"), ConstructorApp(
               TpeConstructor1(
-                LocalName("Test"),Seq(QName(NSPrefix("SBOL"),LocalName("DNA")))
+                LocalName("Test"),List(QName(NSPrefix("SBOL"),LocalName("DNA")))
               ),Nil
             )
           )
@@ -652,7 +652,7 @@ object ParserTestSuite extends TestSuite{
           InstanceExp(
             LocalName("pass_url"), ConstructorApp(
               TpeConstructor1(
-                LocalName("Test"),Seq(Url("www.google.co.uk"))
+                LocalName("Test"),List(Url("www.google.co.uk"))
               ),Nil
             )
           )
@@ -717,17 +717,17 @@ object ParserTestSuite extends TestSuite{
           """a : b
             |c : d""".stripMargin,
           ShortbolParser.TopLevels,
-          Seq(
+          List(
             TopLevel.InstanceExp(
               InstanceExp("a", ConstructorApp(
-                TpeConstructor1("b", Seq()),
-                Seq()
+                TpeConstructor1("b", List()),
+                List()
               ))
             ),
             TopLevel.InstanceExp(
               InstanceExp("c", ConstructorApp(
-                TpeConstructor1("d", Seq()),
-                Seq()
+                TpeConstructor1("d", List()),
+                List()
               ))
             )
           )
@@ -737,7 +737,7 @@ object ParserTestSuite extends TestSuite{
           """tetRInverter : DnaComponent
             |  sequenceConstraint = pTetR   precedes lacIRbs""".stripMargin,
           ShortbolParser.TopLevels,
-          Seq(
+          List(
             TopLevel.InstanceExp(
               InstanceExp(
                 "tetRInverter",
@@ -790,7 +790,7 @@ object ParserTestSuite extends TestSuite{
         "a drives b", ShortbolParsers.InfixConstructorApp,
         ConstructorApp(
           TpeConstructor1(
-            LocalName("drives"),Seq(LocalName("a"),LocalName("b"))
+            LocalName("drives"),List(LocalName("a"),LocalName("b"))
           ),Nil
         )
       )
@@ -802,7 +802,7 @@ object ParserTestSuite extends TestSuite{
         "1 is_not 2", ShortbolParsers.InfixConstructorApp,
         ConstructorApp(
           TpeConstructor1(
-            LocalName("is_not"), Seq(IntegerLiteral(1), IntegerLiteral(2))
+            LocalName("is_not"), List(IntegerLiteral(1), IntegerLiteral(2))
           ), Nil
         ))
 
@@ -810,7 +810,7 @@ object ParserTestSuite extends TestSuite{
         "\"a\" drives \"b\"",ShortbolParsers.InfixConstructorApp,
         ConstructorApp(
           TpeConstructor1(
-            LocalName("drives"), Seq(StringLiteral.SingleLine("a"), StringLiteral.SingleLine("b"))
+            LocalName("drives"), List(StringLiteral.SingleLine("a"), StringLiteral.SingleLine("b"))
           ), Nil
         ))
 
@@ -818,7 +818,7 @@ object ParserTestSuite extends TestSuite{
         "SBOL:google maps_to <www.google.co.uk>",ShortbolParsers.InfixConstructorApp,
         ConstructorApp(
           TpeConstructor1(
-            LocalName("maps_to"),Seq(QName(NSPrefix("SBOL"),LocalName("google")),Url("www.google.co.uk"))
+            LocalName("maps_to"),List(QName(NSPrefix("SBOL"),LocalName("google")),Url("www.google.co.uk"))
 
           ),Nil
         )
@@ -859,7 +859,7 @@ object ParserTestSuite extends TestSuite{
         TopLevel.ConstructorDef(
           ConstructorDef(
             "DNASequence",
-            Seq("x" : Identifier),
+            List("x" : Identifier),
             ConstructorApp(
               "Sequence"
             )
@@ -872,7 +872,7 @@ object ParserTestSuite extends TestSuite{
         TopLevel.ConstructorDef(
           ConstructorDef(
             "DNASequence",
-            Seq("x" : Identifier),
+            List("x" : Identifier),
             ConstructorApp("Sequence")
           )
         )
@@ -884,7 +884,7 @@ object ParserTestSuite extends TestSuite{
             LocalName("a"), Nil,
             ConstructorApp(
               TpeConstructor1(
-                LocalName("b"), Seq(LocalName("x"))
+                LocalName("b"), List(LocalName("x"))
 
               ), Nil
             )
@@ -995,7 +995,7 @@ object ParserTestSuite extends TestSuite{
       * - shouldParse(
         "@import <http://foo.bar.com/myLibrary>",
         ShortbolParsers.Pragma,
-        Pragma(id = "import", values = Seq(Url("http://foo.bar.com/myLibrary")))
+        Pragma(id = "import", values = List(Url("http://foo.bar.com/myLibrary")))
       )
     }
 

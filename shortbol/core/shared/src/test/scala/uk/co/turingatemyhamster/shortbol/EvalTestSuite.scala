@@ -35,9 +35,9 @@ object EvalTestSuite extends TestSuite {
         s.value
     }
 
-  def parse_instances(shortbol: String): Seq[longhandAst.InstanceExp] = {
+  def parse_instances(shortbol: String): List[longhandAst.InstanceExp] = {
     def process(ca: shorthandAst.ConstructorApp): longhandAst.ConstructorApp = ca match {
-      case ConstructorApp(TpeConstructor1(tpe, Seq()), body) =>
+      case ConstructorApp(TpeConstructor1(tpe, List()), body) =>
         longhandAst.ConstructorApp(longhandAst.TpeConstructor(tpe),
           body collect {
             case shorthandAst.BodyStmt.PropertyExp(shorthandAst.PropertyExp(p, v)) =>
@@ -81,8 +81,8 @@ object EvalTestSuite extends TestSuite {
         val (observedContext, observedResult) = eval(t).run(c0)
 
         if(expectedContext != ⊥) {
-          val obsCtxt = observedContext.copy(logms = Seq())
-          val expCtxt = expectedContext.copy(logms = Seq())
+          val obsCtxt = observedContext.copy(logms = List())
+          val expCtxt = expectedContext.copy(logms = List())
           assert(observedResult == expectedResult, obsCtxt == expCtxt)
         } else {
           assert(observedResult == expectedResult)
@@ -99,8 +99,8 @@ object EvalTestSuite extends TestSuite {
         val (observedContext, observedResult) = eval(t).run(c0)
 
         if(expectedContext != ⊥) {
-          val obsCtxt = observedContext.copy(logms = Seq())
-          val expCtxt = expectedContext.copy(logms = Seq())
+          val obsCtxt = observedContext.copy(logms = List())
+          val expCtxt = expectedContext.copy(logms = List())
           assert(observedResult == expectedResult, obsCtxt == expCtxt)
         } else {
           assert(observedResult == expectedResult)
@@ -112,15 +112,15 @@ object EvalTestSuite extends TestSuite {
   val tests = TestSuite {
 
     'blankline - {
-      * - { (BlankLine() : TopLevel) evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø }
-      * - { parse("", ShortbolParser.BodyStmt) evaluatesTo Seq.empty[longhandAst.PropertyExp] in Ø }
+      * - { (BlankLine() : TopLevel) evaluatesTo (List.empty[longhandAst.InstanceExp]) in Ø }
+      * - { parse("", ShortbolParser.BodyStmt) evaluatesTo List.empty[longhandAst.PropertyExp] in Ø }
     }
 
     'comment - {
       * - { (Comment("a comment") : TopLevel) evaluatesTo
-        (Seq.empty[longhandAst.InstanceExp]) in Ø }
+        (List.empty[longhandAst.InstanceExp]) in Ø }
       * - { parse("#a comment", ShortbolParser.BodyStmt) in Ø evaluatesWithRanges
-        Seq.empty[longhandAst.PropertyExp] in Ø }
+        List.empty[longhandAst.PropertyExp] in Ø }
     }
 
     'literal - {
@@ -128,10 +128,10 @@ object EvalTestSuite extends TestSuite {
         (StringLiteral.SingleLine("abc", false) : Literal) in Ø }
       * - { parse("\"abc\"", ShortbolParsers.Literal) in Ø evaluatesWithRanges
         (StringLiteral.SingleLine("abc", false) : Literal) in Ø }
-      * - { (StringLiteral.MultiLine(Seq("abc", "def"), 4) : Literal) evaluatesTo
-        (StringLiteral.MultiLine(Seq("abc", "def"), 4) : Literal) in Ø }
+      * - { (StringLiteral.MultiLine(List("abc", "def"), 4) : Literal) evaluatesTo
+        (StringLiteral.MultiLine(List("abc", "def"), 4) : Literal) in Ø }
       * - { parse("{\n    abc\n    def\n    }", ShortbolParsers.Literal) in Ø evaluatesWithRanges
-        (StringLiteral.MultiLine(Seq("abc\n", "def\n"), 4) : Literal) in Ø }
+        (StringLiteral.MultiLine(List("abc\n", "def\n"), 4) : Literal) in Ø }
       * - { (IntegerLiteral(42) : Literal) evaluatesTo
         (IntegerLiteral(42) : Literal) in Ø }
       * - { parse("42", ShortbolParsers.Literal) in Ø evaluatesWithRanges
@@ -257,8 +257,8 @@ object EvalTestSuite extends TestSuite {
       * - { parse("\"abc\"", ShortbolParsers.ValueExp) in Ø evaluatesWithRanges
         (StringLiteral.SingleLine("abc", false) : ValueExp) in Ø }
 
-      * - { (StringLiteral.MultiLine(Seq("abc", "def"), 4) : ValueExp) evaluatesTo
-        (StringLiteral.MultiLine(Seq("abc", "def"), 4) : ValueExp) in Ø }
+      * - { (StringLiteral.MultiLine(List("abc", "def"), 4) : ValueExp) evaluatesTo
+        (StringLiteral.MultiLine(List("abc", "def"), 4) : ValueExp) in Ø }
 
       * - { (42 : ValueExp) evaluatesTo (42 : ValueExp) in Ø }
     }
@@ -292,11 +292,11 @@ object EvalTestSuite extends TestSuite {
 
     'valueExps - {
       * - {
-        Seq[ValueExp](
+        List[ValueExp](
           StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42
-        ) evaluatesTo Seq[ValueExp](
+        ) evaluatesTo List[ValueExp](
           StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42
@@ -304,13 +304,13 @@ object EvalTestSuite extends TestSuite {
       }
 
       * - {
-        Seq[ValueExp](
+        List[ValueExp](
           StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42
         ) in Ø.withAssignments(
           "a" := "x"
-          ) evaluatesTo Seq[ValueExp](
+          ) evaluatesTo List[ValueExp](
           StringLiteral.SingleLine("abc", false),
           LocalName("x"),
           42
@@ -320,13 +320,13 @@ object EvalTestSuite extends TestSuite {
       }
 
       * - {
-        Seq[ValueExp](
+        List[ValueExp](
           StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42
         ) in Ø.withAssignments(
           "a" := 11
-          ) evaluatesTo Seq[ValueExp](
+          ) evaluatesTo List[ValueExp](
           StringLiteral.SingleLine("abc", false),
           11,
           42
@@ -403,49 +403,49 @@ object EvalTestSuite extends TestSuite {
       }
 
       'bodyStmt - {
-        * - { ("a" := "b" : BodyStmt) evaluatesTo Seq("a" := "b" : longhandAst.PropertyExp) in Ø }
+        * - { ("a" := "b" : BodyStmt) evaluatesTo List("a" := "b" : longhandAst.PropertyExp) in Ø }
 
         * - { ("a" := "b" : BodyStmt) in Ø.withAssignments("a" := "x") evaluatesTo
-          Seq("x" := "b" : longhandAst.PropertyExp) in Ø.withAssignments ("a" := "x") }
+          List("x" := "b" : longhandAst.PropertyExp) in Ø.withAssignments ("a" := "x") }
 
         * - { ("a" := "b" : BodyStmt) in Ø.withAssignments("b" := "y") evaluatesTo
-          Seq("a" := "y" : longhandAst.PropertyExp) in Ø.withAssignments ("b" := "y") }
+          List("a" := "y" : longhandAst.PropertyExp) in Ø.withAssignments ("b" := "y") }
       }
 
       'topLevel - {
-        * - { ("a" := "b" : TopLevel) evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø.withAssignments ("a" := "b") }
+        * - { ("a" := "b" : TopLevel) evaluatesTo (List.empty[longhandAst.InstanceExp]) in Ø.withAssignments ("a" := "b") }
 
         // withAssignments with matching keys doesn't merge values
-        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("a" := "x") evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø.withAssignments("a" := "x").withAssignments("a" := "b") }
+        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("a" := "x") evaluatesTo (List.empty[longhandAst.InstanceExp]) in Ø.withAssignments("a" := "x").withAssignments("a" := "b") }
 
-        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("b" := "y") evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø.withAssignments ("b" := "y", "a" := "b") }
+        * - { ("a" := "b" : TopLevel) in Ø.withAssignments("b" := "y") evaluatesTo (List.empty[longhandAst.InstanceExp]) in Ø.withAssignments ("b" := "y", "a" := "b") }
       }
     }
 
     'assignments - {
       * - {
-        Seq[TopLevel](
+        List[TopLevel](
           "b" := "c",
-          "a" := "b") evaluatesTo Seq[Seq[longhandAst.InstanceExp]](Nil, Nil) in Ø.withAssignments (
-          "b" := "c",
-          "a" := "b")
-      }
-
-      * - {
-        Seq[TopLevel](
-          "c" := "d",
-          "b" := "c",
-          "a" := "b") evaluatesTo Seq[Seq[longhandAst.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
-          "c" := "d",
+          "a" := "b") evaluatesTo List[List[longhandAst.InstanceExp]](Nil, Nil) in Ø.withAssignments (
           "b" := "c",
           "a" := "b")
       }
 
       * - {
-        Seq[TopLevel](
+        List[TopLevel](
+          "c" := "d",
+          "b" := "c",
+          "a" := "b") evaluatesTo List[List[longhandAst.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
+          "c" := "d",
+          "b" := "c",
+          "a" := "b")
+      }
+
+      * - {
+        List[TopLevel](
           "bx" := "cx",
           "cx" := "dx",
-          "ax" := "bx") evaluatesTo Seq[Seq[longhandAst.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
+          "ax" := "bx") evaluatesTo List[List[longhandAst.InstanceExp]](Nil, Nil, Nil) in Ø.withAssignments (
           "bx" := "cx",
           "cx" := "dx",
           "ax" := "bx")
@@ -455,41 +455,41 @@ object EvalTestSuite extends TestSuite {
     'tpeConstructor1 - {
       'rename - {
         * - {
-          TpeConstructor1("X", Seq()) evaluatesTo
-            (longhandAst.TpeConstructor("X"), Seq.empty[longhandAst.PropertyExp]) in Ø
+          TpeConstructor1("X", List()) evaluatesTo
+            (longhandAst.TpeConstructor("X"), List.empty[longhandAst.PropertyExp]) in Ø
         }
         * - {
-          TpeConstructor1("X", Seq()) in
+          TpeConstructor1("X", List()) in
             Ø.withAssignments("a" := "x") evaluatesTo
-            (longhandAst.TpeConstructor("X"), Seq.empty[longhandAst.PropertyExp]) in
+            (longhandAst.TpeConstructor("X"), List.empty[longhandAst.PropertyExp]) in
             Ø.withAssignments ("a" := "x")
         }
         * - {
-          TpeConstructor1("X", Seq()) in
+          TpeConstructor1("X", List()) in
             Ø.withAssignments("X" := "Y") evaluatesTo
-            (longhandAst.TpeConstructor("Y"), Seq.empty[longhandAst.PropertyExp]) in
+            (longhandAst.TpeConstructor("Y"), List.empty[longhandAst.PropertyExp]) in
             Ø.withAssignments ("X" := "Y") }
         * - {
-          TpeConstructor1("X", Seq()) in
+          TpeConstructor1("X", List()) in
             Ø.withAssignments(QName("ns", "X") := "Y") evaluatesTo
-            (longhandAst.TpeConstructor("Y"), Seq.empty[longhandAst.PropertyExp]) in
+            (longhandAst.TpeConstructor("Y"), List.empty[longhandAst.PropertyExp]) in
             Ø.withAssignments (QName("ns", "X") := "Y") }
       }
 
       'expand_body - {
         * - {
-          TpeConstructor1("X", Seq(
+          TpeConstructor1("X", List(
             StringLiteral.SingleLine("abc", false),
             LocalName("a"),
             42)
           ) evaluatesTo (
             longhandAst.TpeConstructor("X") ->
-              Seq[longhandAst.PropertyExp]()
+              List[longhandAst.PropertyExp]()
             ) in Ø
         }
 
         * - {
-          TpeConstructor1("X", Seq(
+          TpeConstructor1("X", List(
             StringLiteral.SingleLine("abc", false),
             LocalName("a"),
             42)
@@ -497,7 +497,7 @@ object EvalTestSuite extends TestSuite {
             "a" := "x"
           ) evaluatesTo (
             longhandAst.TpeConstructor("X"),
-            Seq.empty[longhandAst.PropertyExp]
+            List.empty[longhandAst.PropertyExp]
           ) in Ø.withAssignments (
             "a" := "x"
             )
@@ -505,7 +505,7 @@ object EvalTestSuite extends TestSuite {
       }
 
       'rename_and_expand - {
-        TpeConstructor1("Foo", Seq(
+        TpeConstructor1("Foo", List(
           StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42)
@@ -514,7 +514,7 @@ object EvalTestSuite extends TestSuite {
           "Foo" := "Bar"
         ) evaluatesTo (
           longhandAst.TpeConstructor("Bar") ->
-            Seq.empty[longhandAst.PropertyExp]
+            List.empty[longhandAst.PropertyExp]
           ) in Ø.withAssignments (
           "a" := "x",
           "Foo" := "Bar"
@@ -523,14 +523,14 @@ object EvalTestSuite extends TestSuite {
     }
 
 //    'tpeConstructorStar - {
-//      TpeConstructorStar() evaluatesTo (TpeConstructorStar() : TpeConstructor, Seq.empty[BodyStmt]) in Ø
+//      TpeConstructorStar() evaluatesTo (TpeConstructorStar() : TpeConstructor, List.empty[BodyStmt]) in Ø
 //    }
 
     'tpeConstructor - {
-//      * - { (TpeConstructorStar() : TpeConstructor) evaluatesTo ((TpeConstructorStar() : TpeConstructor, Seq.empty[BodyStmt])) in Ø }
+//      * - { (TpeConstructorStar() : TpeConstructor) evaluatesTo ((TpeConstructorStar() : TpeConstructor, List.empty[BodyStmt])) in Ø }
 
       * - {
-        (TpeConstructor1("X", Seq(
+        (TpeConstructor1("X", List(
           StringLiteral.SingleLine("abc", false),
           LocalName("a"),
           42)
@@ -538,7 +538,7 @@ object EvalTestSuite extends TestSuite {
           "a" := "x",
           "X" := "Y"
           ) evaluatesTo (
-          longhandAst.TpeConstructor("Y"), Seq.empty[longhandAst.PropertyExp]) in
+          longhandAst.TpeConstructor("Y"), List.empty[longhandAst.PropertyExp]) in
           Ø.withAssignments (
           "a" := "x",
           "X" := "Y"
@@ -551,14 +551,14 @@ object EvalTestSuite extends TestSuite {
         TopLevel.ConstructorDef(
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), List())
           )
-        ) evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø.withConstructors (
+        ) evaluatesTo (List.empty[longhandAst.InstanceExp]) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), List())
           )
         )
       }
@@ -567,16 +567,16 @@ object EvalTestSuite extends TestSuite {
         TopLevel.ConstructorDef(
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), List())
           )
         ) in Ø.withAssignments(
           "Foo" := "Bar"
-        ) evaluatesTo (Seq.empty[longhandAst.InstanceExp]) in Ø.withConstructors (
+        ) evaluatesTo (List.empty[longhandAst.InstanceExp]) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), List())
           )
         ).withAssignments(
           "Foo" := "Bar"
@@ -587,67 +587,67 @@ object EvalTestSuite extends TestSuite {
     'constructorApp - {
       * - {
         ConstructorApp(
-          TpeConstructor1("Foo", Seq()),
-          Seq()
+          TpeConstructor1("Foo", List()),
+          List()
         ) evaluatesTo longhandAst.ConstructorApp(
           longhandAst.TpeConstructor("Foo"),
-          Seq()
+          List()
         ) in Ø
       }
 
       * - {
         ConstructorApp(
-          TpeConstructor1("Foo", Seq()),
-          Seq()
+          TpeConstructor1("Foo", List()),
+          List()
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), List())
           )
         ) evaluatesTo longhandAst.ConstructorApp(
           longhandAst.TpeConstructor("Bar"),
-          Seq()
+          List()
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), List())
           )
         )
       }
 
       * - {
         ConstructorApp(
-          TpeConstructor1("Foo", Seq("a", "b")),
-          Seq()
+          TpeConstructor1("Foo", List("a", "b")),
+          List()
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), List())
           )
         ) evaluatesTo longhandAst.ConstructorApp(
           longhandAst.TpeConstructor("Bar"),
-          Seq()
+          List()
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), List())
           )
         )
       }
 
       * - {
         ConstructorApp(
-          TpeConstructor1("Foo", Seq()),
+          TpeConstructor1("Foo", List()),
           "a" := "b"
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), List())
           )
         ) evaluatesTo longhandAst.ConstructorApp(
           longhandAst.TpeConstructor("Bar"),
@@ -655,21 +655,21 @@ object EvalTestSuite extends TestSuite {
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), Seq())
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), List())
           )
         )
       }
 
       * - {
         ConstructorApp(
-          TpeConstructor1("Foo", Seq()),
-          Seq()
+          TpeConstructor1("Foo", List()),
+          List()
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), "x" := "y")
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), "x" := "y")
           )
         ) evaluatesTo longhandAst.ConstructorApp(
           longhandAst.TpeConstructor("Bar"),
@@ -677,21 +677,21 @@ object EvalTestSuite extends TestSuite {
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq(),
-            ConstructorApp(TpeConstructor1("Bar", Seq()), "x" := "y")
+            List(),
+            ConstructorApp(TpeConstructor1("Bar", List()), "x" := "y")
           )
         )
       }
 
       * - {
         ConstructorApp(
-          TpeConstructor1("Foo", Seq("matthew", 40)),
-          Seq()
+          TpeConstructor1("Foo", List("matthew", 40)),
+          List()
         ) in Ø.withConstructors(
           ConstructorDef(
             "Foo",
-            Seq("name", "age"),
-            ConstructorApp(TpeConstructor1("foaf" :# "Person", Seq()),
+            List("name", "age"),
+            ConstructorApp(TpeConstructor1("foaf" :# "Person", List()),
               ("foaf" :# "name") := "name",
               ("foaf" :# "age") := "age"
             )
@@ -703,8 +703,8 @@ object EvalTestSuite extends TestSuite {
         ) in Ø.withConstructors(
           ConstructorDef(
             "Foo",
-            Seq("name", "age"),
-            ConstructorApp(TpeConstructor1("foaf" :# "Person", Seq()),
+            List("name", "age"),
+            ConstructorApp(TpeConstructor1("foaf" :# "Person", List()),
               ("foaf" :# "name") := "name",
               ("foaf" :# "age") := "age"
             )
@@ -714,20 +714,20 @@ object EvalTestSuite extends TestSuite {
 
       * - {
         ConstructorApp(
-          TpeConstructor1("Foo", Seq("matthew", 40)),
+          TpeConstructor1("Foo", List("matthew", 40)),
           ("foaf" :# "knows") := "caroline"
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq("name", "a"),
-            ConstructorApp(TpeConstructor1("Bar", Seq("a")),
+            List("name", "a"),
+            ConstructorApp(TpeConstructor1("Bar", List("a")),
               ("foaf" :# "name") := "name"
             )
           ),
           ConstructorDef(
             "Bar",
-            Seq("age"),
-            ConstructorApp(TpeConstructor1(("foaf" :# "Person"), Seq()),
+            List("age"),
+            ConstructorApp(TpeConstructor1(("foaf" :# "Person"), List()),
               ("foaf" :# "age") := "age"
             )
           )
@@ -739,15 +739,15 @@ object EvalTestSuite extends TestSuite {
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
-            Seq("name", "a"),
-            ConstructorApp(TpeConstructor1(("Bar"), Seq("a")),
+            List("name", "a"),
+            ConstructorApp(TpeConstructor1(("Bar"), List("a")),
               ("foaf" :# "name") := "name"
             )
           ),
           ConstructorDef(
             "Bar",
-            Seq("age"),
-            ConstructorApp(TpeConstructor1(("foaf" :# "Person"), Seq()),
+            List("age"),
+            ConstructorApp(TpeConstructor1(("foaf" :# "Person"), List()),
               ("foaf" :# "age") := "age"
             )
           )
@@ -794,7 +794,7 @@ object EvalTestSuite extends TestSuite {
           |a : y
           |a : z""".stripMargin).eval.run(Ø)
       val aRes = ctxt.resolveInst("a")
-      assert(aRes == Some(longhandAst.InstanceExp("a", longhandAst.ConstructorApp(longhandAst.TpeConstructor("z"), Seq()))))
+      assert(aRes == Some(longhandAst.InstanceExp("a", longhandAst.ConstructorApp(longhandAst.TpeConstructor("z"), List()))))
       assert(ctxt.insts("a").length == 3)
     }
   }

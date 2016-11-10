@@ -4,6 +4,7 @@ import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 
 import scalaz.Scalaz._
 import scalaz._
+import monocle.{Lens, Prism}
 
 /**
   * Created by nmrp3 on 09/11/16.
@@ -67,5 +68,52 @@ object RewriteRule {
 
 trait RewriteAt[U, T] {
   def apply(rr: RewriteRule[T]): RewriteRule[U]
+}
+
+object RewriteAt {
+  implicit def rewriteAtLens[S, T](lens: Lens[S, T]): RewriteAt[S, T] = new RewriteAt[S, T] {
+    override def apply(rr: RewriteRule[T]) = RewriteRule { (s: S) =>
+      val lsets = lens.set(_: T)(s)
+      rr(lens.get(s)).bimap(
+        lsets,
+        _ map lsets
+      )
+    }
+  }
+
+  implicit def rewriteAtPrism[S, T](prism: Prism[S, T]): RewriteAt[S, T] = new RewriteAt[S, T] {
+    override def apply(rr: RewriteRule[T]) = RewriteRule { (s: S) =>
+      val psets = prism.set(_: T)(s)
+      prism.getOrModify(s) flatMap {
+        rr apply _ bimap (
+          psets,
+          _ map psets
+        )
+      }
+    }
+  }
+
+  implicit def filterRewrite[T](f: T => Boolean): RewriteAt[T, T] = new RewriteAt[T, T] {
+    override def apply(rr: RewriteRule[T]) = RewriteRule { (t: T) =>
+      if(f(t)) rr(t)
+      else -\/(t)
+    }
+  }
+
+  implicit def rewriteAtAllElements[T](ae: allElements.type): RewriteAt[List[T], T] = new RewriteAt[List[T], T] {
+    override def apply(rr: RewriteRule[T]) = RewriteRule { (ts: List[T]) =>
+      val rrts = ts map rr.apply
+      if(rrts exists (_.isRight)) {
+        (rrts collect {
+          case -\/(l) => l.point[EvalState]
+          case \/-(r) => r
+        }).sequenceU.right[List[T]]   : RewriteRule.Rewritten[List[T]]
+      } else {
+        (rrts collect { case -\/(l) => l }).left  : RewriteRule.Rewritten[List[T]]
+      }
+    }
+  }
+
+  object allElements
 }
 

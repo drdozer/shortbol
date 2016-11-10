@@ -54,7 +54,7 @@ object AllNodesTestSuite extends TestSuite {
     }
 
     'multiLine - {
-      assert(AllNodes.in(StringLiteral.MultiLine(Seq("I", "am", "me"), 3)) == Seq(StringLiteral.MultiLine(Seq("I", "am", "me"), 3)))
+      assert(AllNodes.in(StringLiteral.MultiLine(List("I", "am", "me"), 3)) == Seq(StringLiteral.MultiLine(List("I", "am", "me"), 3)))
     }
   }
 }
