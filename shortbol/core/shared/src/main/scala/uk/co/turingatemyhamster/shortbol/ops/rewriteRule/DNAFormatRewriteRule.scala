@@ -1,8 +1,7 @@
-package uk.co.turingatemyhamster.shortbol
-package  ops
+package uk.co.turingatemyhamster.shortbol.ops.rewriteRule
 
-import shorthandAst._
-import sugar._
+import uk.co.turingatemyhamster.shortbol.ops.RewriteRule
+import uk.co.turingatemyhamster.shortbol.shorthandAst.{Datatype, Literal, StringLiteral}
 
 object DNAFormatRewriteRule {
   val XsdString = "xsd" :# "string"

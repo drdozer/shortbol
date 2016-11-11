@@ -5,6 +5,7 @@ import shorthandAst.sugar._
 import ops._
 import uk.co.turingatemyhamster.shortbol.longhandAst.PropertyExp
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
+import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.DNAFormatRewriteRule
 import utest._
 
 import scalaz.{-\/, \/, \/-}
