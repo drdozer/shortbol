@@ -86,17 +86,17 @@ object RewriteRuleTestSuite extends TestSuite {
       val expected = ShortbolParsers.StringLiteral.parse(
         "\"ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa\"").get.value
 
-      val fromFastaOrGenbank = DNAFormatConversion.fastaToDNA or DNAFormatConversion.genbankToDNA
+      val fromFastaOrGenbank = DNAFormatRewriteRule.fastaToDNA or DNAFormatRewriteRule.genbankToDNA
 
       'atLiteral - {
         'fasta - {
           'forFasta - {
-            val c = DNAFormatConversion.fastaToDNA(fastaString)
+            val c = DNAFormatRewriteRule.fastaToDNA(fastaString)
             rewrittenToLiteral(c, expected) in Ø
           }
 
           'forGenbank - {
-            val c = DNAFormatConversion.fastaToDNA(genbankString)
+            val c = DNAFormatRewriteRule.fastaToDNA(genbankString)
             notRewritten(c)
           }
 
@@ -113,12 +113,12 @@ object RewriteRuleTestSuite extends TestSuite {
 
         'genbank - {
           'forFasta - {
-            val c = DNAFormatConversion.genbankToDNA(fastaString)
+            val c = DNAFormatRewriteRule.genbankToDNA(fastaString)
             notRewritten(c)
           }
 
           'forGenbank - {
-            val c = DNAFormatConversion.genbankToDNA(genbankString)
+            val c = DNAFormatRewriteRule.genbankToDNA(genbankString)
             rewrittenToLiteral(c, expected) in Ø
           }
 

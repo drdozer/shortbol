@@ -4,7 +4,7 @@ package  ops
 import shorthandAst._
 import sugar._
 
-object DNAFormatConversion {
+object DNAFormatRewriteRule {
   val XsdString = "xsd" :# "string"
 
   val EdamFasta = "edam" :# "fasta"
