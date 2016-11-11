@@ -11,7 +11,7 @@ import longhandAst.sugar._
   *
   * @author Matthew Pocock
   */
-object RepairIdenties {
+object RepairIdentities {
   final private val rdf_about = "rdf" :# "about"
 
   import optics.longhand.InstanceExp._
