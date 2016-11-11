@@ -21,7 +21,9 @@ object ImportPragma {
   def apply(resolver: Resolver): Hook = new Hook {
 
     override def register(p: Pragma) = for {
+      e1 <- get
       _ <- withPHooks(resolveImport)
+      e2 <- get[EvalContext]
     } yield List(p)
 
     def resolveImport(p: Pragma): EvalState[List[Pragma]] = p match {
@@ -31,15 +33,18 @@ object ImportPragma {
             resolver.resolve(id) flatMap {
               case \/-(imported) => for {
                 _ <- log(LogMessage.info(s"Importing $id", p.region))
+                _ = println(s"Importing $id as $imported")
               } yield List(p)
               case -\/(err) =>
                 for {
                   _ <- log(LogMessage.error(s"Import failed for $id", id.region, Some(err)))
+                  _ = println(s"Import failed for $id")
                 } yield Nil
             }
           case _ =>
             for {
               _ <- log(LogMessage.error(s"Malformed @import declaration", p.region))
+              _ = println(s"Malformed @import declaration")
             } yield Nil
         }
       case _ =>
@@ -61,13 +66,15 @@ trait Resolver {
 }
 
 object Resolver {
-  def fromValues(vs: (Identifier, SBFile)*): Resolver = new Resolver {
+  def fromValues(vs: (Identifier, shorthandAst.SBFile)*): Resolver = new Resolver {
     val id2F = Map(vs :_*)
 
     override def resolve(id: Identifier): EvalState[Throwable \/ SBFile] =
       id2F get id match {
         case Some(f) =>
-          f.right.point[Eval.EvalState]
+          for {
+            ef <- f.eval
+          } yield ef.right
         case None => (new NoSuchElementException(s"Unable to resolve shortbol for $id") : Throwable).left.point[EvalState]
       }
   }

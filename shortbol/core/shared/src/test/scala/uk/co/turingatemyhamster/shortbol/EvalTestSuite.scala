@@ -35,6 +35,8 @@ object EvalTestSuite extends TestSuite {
         s.value
     }
 
+  def parseLB(shortbol: String): longhandAst.SBFile = longhandAst.SBFile(parse_instances(shortbol))
+
   def parse_instances(shortbol: String): List[longhandAst.InstanceExp] = {
     def process(ca: shorthandAst.ConstructorApp): longhandAst.ConstructorApp = ca match {
       case ConstructorApp(TpeConstructor1(tpe, List()), body) =>

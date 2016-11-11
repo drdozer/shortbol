@@ -93,8 +93,10 @@ case class EvalContext(prgms: Map[sAst.Identifier, List[sAst.Pragma]] = Map.empt
 
   def resolveCstr(id: sAst.Identifier): Option[sAst.ConstructorDef] =
     cstrs get id map (_.head) orElse { // todo: log if there are multiple elements in the list
+      println(s"Could not find $id in ${cstrs.keys}")
       id match {
         case ln : sAst.LocalName =>
+          println(s"Attempting to look up by local name fragment")
           (resolveLocalName(ln) flatMap resolveCstr).headOption // todo: log clashes
         case _ => None
       }
@@ -456,8 +458,13 @@ object Eval {
         case None =>
           for {
             id <- t.id.eval
+            _ <-
+              if(args.nonEmpty)
+                Eval.log(LogMessage.error(s"Expected empty arguments list for ${t.id} but found $args", t.region))
+              else
+                ().point[EvalState]
           } yield {
-            val t1 = lAst.TpeConstructor(id) // fixme: args must be empty
+            val t1 = lAst.TpeConstructor(id)
             t1.region = t.region
             (t1, List.empty)
           }
@@ -466,6 +473,7 @@ object Eval {
 
     def resolveWithAssignment(id: sAst.Identifier): EvalState[Option[sAst.ConstructorDef]] = for {
       c <- cstr(id)
+      _ = println(s"Looked up $id and found $c")
       cc <- c match {
         case Some(_) =>
           c.point[EvalState]
