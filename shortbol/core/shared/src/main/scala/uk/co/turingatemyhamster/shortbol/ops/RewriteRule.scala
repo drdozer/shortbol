@@ -6,6 +6,8 @@ import scalaz.Scalaz._
 import scalaz._
 import monocle.{Lens, Prism}
 
+import scala.annotation.implicitNotFound
+
 /**
   * Created by nmrp3 on 09/11/16.
   */
@@ -42,13 +44,20 @@ object RewriteRule {
 
   def noop[T]: RewriteRule[T] = RewriteRule { (t: T) => t.left[EvalState[T]] }
 
+  @implicitNotFound("Don't know how to build a RewriteRule[${T}] from ${F}")
   trait Builder[F, T] {
     def apply(f: F): RewriteRule[T]
   }
 
-  implicit def fromFunc[T]: Builder[(T => T \/ EvalState[T]), T] = new Builder[(T) => Disjunction[T, EvalState[T]], T] {
+  implicit def fromDisjunction[T]: Builder[(T => T \/ EvalState[T]), T] = new Builder[(T) => Disjunction[T, EvalState[T]], T] {
     override def apply(f: (T) => Disjunction[T, EvalState[T]]) = new RewriteRule[T] {
       override def apply(t: T) = f(t)
+    }
+  }
+
+  implicit def fromFunc[T]: Builder[T => T, T] = new Builder[(T) => T, T] {
+    override def apply(f: (T) => T) = new RewriteRule[T] {
+      override def apply(t: T) = f(t).point[EvalState].right[T]
     }
   }
 

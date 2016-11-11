@@ -1,9 +1,9 @@
-package uk.co.turingatemyhamster.shortbol.ops
+package uk.co.turingatemyhamster.shortbol
+package ops
 
 import monocle.macros.{GenLens, GenPrism}
 import monocle.{Iso, Optional, POptional, _}
 import monocle.Monocle.{none => _, _}
-import uk.co.turingatemyhamster.shortbol.longhandAst
 
 import scalaz.{-\/, Applicative, \/-}
 
@@ -15,6 +15,16 @@ import scalaz.{-\/, Applicative, \/-}
 object optics {
 
   object longhand {
+    object InstanceExp {
+      val identifier = GenLens[longhandAst.InstanceExp](_.identifier)
+      val cstrApp = GenLens[longhandAst.InstanceExp](_.cstrApp)
+    }
+
+    object ConstructorApp {
+      val cstr = GenLens[longhandAst.ConstructorApp](_.cstr)
+      val body = GenLens[longhandAst.ConstructorApp](_.body)
+    }
+
     object PropertyValue {
       val asLiteral = GenPrism[longhandAst.PropertyValue, longhandAst.PropertyValue.Literal]
       val asReference = GenPrism[longhandAst.PropertyValue, longhandAst.PropertyValue.Reference]
