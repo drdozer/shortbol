@@ -31,7 +31,7 @@ object RepairIdentities {
   lazy val bodyRequiresDisplayId: RewriteRule[List[PropertyExp]] = RewriteRule { (ps: List[PropertyExp]) =>
     for {
       id <- Eval.nextIdentifier
-    } yield (displayId := slLit(id.name) : PropertyExp) :: ps
+    } yield (displayId := slLit(id.name)) ::: ps
   } at noDisplayId
 
   def bodyRequiresAbout(parentId: shorthandAst.Identifier): RewriteRule[List[PropertyExp]] = RewriteRule { (ps: List[PropertyExp]) =>
@@ -46,7 +46,7 @@ object RepairIdentities {
           Some(shorthandAst.Url(s"$url/${s.asString}"))
       }
     } yield {
-      (rdf_about := about : PropertyExp) :: ps
+      (rdf_about := about) ::: ps
     }
   }
 
@@ -71,12 +71,12 @@ object RepairIdentities {
       for {
         id <- DefaultPrefixPragma.rewrite(ie.identifier)
       } yield {
-        val withAbout = (rdf_about := id : PropertyExp) :: bdy
+        val withAbout = (rdf_about := id) ::: bdy
         id match {
           case shorthandAst.LocalName(ln) =>
-            (displayId := slLit(ln) : PropertyExp) :: withAbout
+            (displayId := slLit(ln)) ::: withAbout
           case shorthandAst.QName(_, shorthandAst.LocalName(ln)) =>
-            (displayId := slLit(ln) : PropertyExp) :: withAbout
+            (displayId := slLit(ln)) ::: withAbout
           case _ =>
             withAbout
         }
@@ -86,7 +86,7 @@ object RepairIdentities {
 
   lazy val instanceExpRequiresAbout: RewriteRule[InstanceExp] = RewriteRule { (ie: InstanceExp) =>
     (cstrApp composeLens body) modify
-      ((rdf_about := ie.identifier : PropertyExp) :: _) apply
+      ((rdf_about := ie.identifier) ::: _) apply
       ie
   } at { (ie: InstanceExp) =>
     ie.cstrApp.body.collectFirst{ case PropertyExp(`rdf_about`, _) => () }.isEmpty

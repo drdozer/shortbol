@@ -72,7 +72,7 @@ object EvalTestSuite extends TestSuite {
   implicit class TestOps[T](_t: T) {
 
     def in(c0: EvalContext) = new InContext(_t, c0)
-    def evaluatesTo[U](u: U)(implicit e: Eval.Aux[T, U], an: AllNodes[U]) =
+    def evaluatesTo[U, UU](u: UU)(implicit e: Eval.Aux[T, U], an: AllNodes[U], ev: UU => U) =
       (new InContext(_t, Ø)).evaluatesTo(u)
   }
 
@@ -95,10 +95,11 @@ object EvalTestSuite extends TestSuite {
       }
     }
 
-    def evaluatesTo[U](expectedResult: U)(implicit eval: Eval.Aux[T, U]) = new Object {
+    def evaluatesTo[U, UU](expectedResultU: UU)(implicit eval: Eval.Aux[T, U], ev: UU => U) = new Object {
       def in(expectedContext: EvalContext): Unit = {
         assert(eval != null)
         val (observedContext, observedResult) = eval(t).run(c0)
+        val expectedResult = ev(expectedResultU)
 
         if(expectedContext != ⊥) {
           val obsCtxt = observedContext.copy(logms = List())
@@ -341,40 +342,40 @@ object EvalTestSuite extends TestSuite {
     'propertyExp - {
       'literal - {
         'raw - {
-          ("a" := 42 : PropertyExp) evaluatesTo ("a" := 42 : longhandAst.PropertyExp) in Ø
+          ("a" := 42 : PropertyExp) evaluatesTo ("a" := 42).head in Ø
         }
 
         'renamed - {
           ("a" := 42 : PropertyExp) in
             Ø.withAssignments ("a" := "x") evaluatesTo
-            ("x" := 42 : longhandAst.PropertyExp) in
+            ("x" := 42).head in
             Ø.withAssignments ("a" := "x")
         }
       }
 
       'reference - {
         'raw - {
-          ("a" := "b" : PropertyExp) evaluatesTo ("a" := "b" : longhandAst.PropertyExp) in Ø
+          ("a" := "b" : PropertyExp) evaluatesTo ("a" := "b").head in Ø
         }
 
         'renamed - {
           ("a" := "b" : PropertyExp) in
             Ø.withAssignments ("a" := "x") evaluatesTo
-            ("x" := "b" : longhandAst.PropertyExp) in
+            ("x" := "b").head in
             Ø.withAssignments ("a" := "x")
         }
 
         'value_reference - {
           ("a" := "b" : PropertyExp) in
             Ø.withAssignments ("b" := "x") evaluatesTo
-            ("a" := "x" : longhandAst.PropertyExp) in
+            ("a" := "x").head in
             Ø.withAssignments ("b" := "x")
         }
 
         'value_literal - {
           ("a" := "b" : PropertyExp) in
             Ø.withAssignments ("b" := 42) evaluatesTo
-            ("a" := 42 : longhandAst.PropertyExp) in
+            ("a" := 42).head in
             Ø.withAssignments ("b" := 42)
         }
       }
@@ -405,13 +406,13 @@ object EvalTestSuite extends TestSuite {
       }
 
       'bodyStmt - {
-        * - { ("a" := "b" : BodyStmt) evaluatesTo List("a" := "b" : longhandAst.PropertyExp) in Ø }
+        * - { ("a" := "b" : BodyStmt) evaluatesTo ("a" := "b") in Ø }
 
         * - { ("a" := "b" : BodyStmt) in Ø.withAssignments("a" := "x") evaluatesTo
-          List("x" := "b" : longhandAst.PropertyExp) in Ø.withAssignments ("a" := "x") }
+          ("x" := "b") in Ø.withAssignments ("a" := "x") }
 
         * - { ("a" := "b" : BodyStmt) in Ø.withAssignments("b" := "y") evaluatesTo
-          List("a" := "y" : longhandAst.PropertyExp) in Ø.withAssignments ("b" := "y") }
+          ("a" := "y") in Ø.withAssignments ("b" := "y") }
       }
 
       'topLevel - {

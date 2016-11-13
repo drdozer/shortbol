@@ -4,6 +4,8 @@ package rewriteRule
 
 import scalaz._
 import Scalaz._
+import monocle._
+import Monocle._
 import shorthandAst.{Datatype, Literal, StringLiteral}
 import shorthandAst.sugar._
 import longhandAst.sugar._
@@ -31,11 +33,11 @@ object RepairComponents {
 
 object RepairSequence {
 
-  val EdamFasta = "edam" :# "fasta"
-  val EdamGenbank = "edam" :# "genbank"
-  val XsdString = "xsd" :# "string"
-  val elements = "sbol" :# "elements"
-  val Sequence = "sbol" :# "Sequence"
+  final private val EdamFasta = "edam" :# "fasta"
+  final private val EdamGenbank = "edam" :# "genbank"
+  final private val XsdString = "xsd" :# "string"
+  final private val elements = "sbol" :# "elements"
+  final private val Sequence = "sbol" :# "Sequence"
 
   lazy val fastaToDNA = RewriteRule ({
     case StringLiteral(style, Some(Datatype(EdamFasta)), _) =>
@@ -77,14 +79,15 @@ object RepairSequence {
 }
 
 object RepairComponentDefinition {
-  val sequence = "sbol" :# "sequence"
-  val component = "sbol" :# "component"
-  val access = "sbol" :# "access"
-  val access_public = "sbol" :# "public"
-  val definition = "sbol" :# "definition"
+  final private val displayId = "sbol" :# "displayId"
+  final private val sequence = "sbol" :# "sequence"
+  final private val component = "sbol" :# "component"
+  final private val access = "sbol" :# "access"
+  final private val access_public = "sbol" :# "public"
+  final private val definition = "sbol" :# "definition"
 
-  val ComponentDefinition = "sbol" :# "ComponentDefinition"
-  val Component = "sbol" :# "Component"
+  final private val ComponentDefinition = "sbol" :# "ComponentDefinition"
+  final private val Component = "sbol" :# "Component"
 
   lazy val hoistNestedSequence = RewriteRule { (pv: longhandAst.PropertyValue) =>
     for {
@@ -110,9 +113,16 @@ object RepairComponentDefinition {
     for {
       ref <- (asReference composeLens referenceValue) getOrModify pv
     } yield {
+      val lnO = ref match {
+        case shorthandAst.LocalName(ln) => Some(ln)
+        case shorthandAst.QName(_, shorthandAst.LocalName(ln)) => Some(ln)
+        case _ => None
+      }
+      // fixme: pull out local name from ref, use as displayId if possible
       longhandAst.PropertyValue.Nested(
         longhandAst.ConstructorApp(
           Component,
+          displayId := lnO map slLit,
           access := access_public,
           definition := ref)) : longhandAst.PropertyValue
     }

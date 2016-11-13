@@ -6,7 +6,10 @@ lazy val sharedSettings = Seq(
 lazy val ast = crossProject.settings(
   name := "shortbol-ast",
   libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.3",
-  testFrameworks += new TestFramework("utest.runner.Framework")
+  libraryDependencies += "com.github.julien-truffaut"  %%%  "monocle-core" % "1.2.2",
+  libraryDependencies += "com.github.julien-truffaut"  %%%  "monocle-macro" % "1.2.2",
+  testFrameworks += new TestFramework("utest.runner.Framework"),
+  addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 ).settings(sharedSettings : _*)
 
 lazy val astJs = ast.js
@@ -16,8 +19,6 @@ lazy val astJVM = ast.jvm
 lazy val core = crossProject.settings(
   name := "shortbol-core",
   libraryDependencies += "com.chuusai" %%% "shapeless" % "2.3.0",
-  libraryDependencies += "com.github.julien-truffaut"  %%%  "monocle-core" % "1.2.2",
-  libraryDependencies += "com.github.julien-truffaut"  %%%  "monocle-macro" % "1.2.2",
   libraryDependencies += "com.lihaoyi" %%% "fastparse" % "0.3.7",
   libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.3" % "test",
   libraryDependencies += "uk.co.turingatemyhamster" %%% "datatree-core" % "0.2.2",
