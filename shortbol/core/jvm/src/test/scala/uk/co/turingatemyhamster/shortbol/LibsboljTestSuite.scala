@@ -11,10 +11,12 @@ import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
 import uk.co.turingatemyhamster.shortbol.ops._
+import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairIdentities}
 import utest._
 
 import scala.util.{Random, Try}
 import scalaz._
+import Scalaz._
 
 /**
   * Created by nmrp3 on 22/07/16.
@@ -35,7 +37,15 @@ object LibsboljTestSuite extends TestSuite {
 
   def toLibSBOLj(shortbol: String) = {
     val sb = ShortbolParser.SBFile.withPositions("_test_", shortbol).get.value
-    val (c, v) = (sb.eval).run(Fixture.configuredContext)
+    val (is, (c, v)) = (for {
+      e <- sb.eval.lift : RewriteRule.Rewritten[longhandAst.SBFile]
+      rcds <- RepairComponents.repairAll.eval(e)
+      iera <- RepairIdentities.repairAll.eval(rcds)
+    } yield iera).run(Fixture.configuredContext).run
+
+    println("--- scala ---")
+    println(v)
+    println("--- scala ---")
 
     val doc = Exporter[datatree.ast.AstDatatree](c).apply(v)
 

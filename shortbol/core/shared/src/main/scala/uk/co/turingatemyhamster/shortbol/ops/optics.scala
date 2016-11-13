@@ -15,6 +15,10 @@ import scalaz.{-\/, Applicative, \/-}
 object optics {
 
   object longhand {
+    object SBFile {
+      val tops = GenLens[longhandAst.SBFile](_.tops)
+    }
+
     object InstanceExp {
       val identifier = GenLens[longhandAst.InstanceExp](_.identifier)
       val cstrApp = GenLens[longhandAst.InstanceExp](_.cstrApp)
@@ -23,6 +27,10 @@ object optics {
     object ConstructorApp {
       val cstr = GenLens[longhandAst.ConstructorApp](_.cstr)
       val body = GenLens[longhandAst.ConstructorApp](_.body)
+    }
+
+    object TpeConstructor {
+      val tpe = GenLens[longhandAst.TpeConstructor](_.tpe)
     }
 
     object PropertyValue {

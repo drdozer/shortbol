@@ -48,42 +48,6 @@ object DefaultPrefixPragma {
       aa <- ChangeIdentifiers.at(rewrite).assignment(a)
     } yield aa::Nil
 
-    def rewrite(i: Identifier): EvalState[Identifier] = i match {
-      case ln : LocalName =>
-        for {
-          dns <- gets((_: EvalContext).prgms.get(ID).flatMap(_.headOption))
-          rewritten <- dns match {
-            case Some(ps) =>
-              ps.values.head match {
-                case ValueExp.Identifier(LocalName(pfx)) =>
-                  for {
-                    _ <- log(LogMessage.info(s"Applying prefix $pfx to $ln", ln.region))
-                  } yield {
-                    val nsp = NSPrefix(pfx)
-                    val qn = QName(nsp, ln)
-                    for( lnr <- Option(ln.region) ) {
-                      nsp.region = lnr.copy(endsAt = lnr.startsAt)
-                      qn.region = lnr
-                    }
-                    (qn : Identifier).point[EvalState]
-                  }
-                case _ =>
-                  for {
-                    _ <- log(LogMessage.error(s"Malformed @defaultPrefix declaration", ps.region))
-                  } yield i.point[EvalState]
-              }
-            case None =>
-              for {
-                _ <- log(LogMessage.warning(
-                  s"Can't resolve local name $i because no @defaultPrefix declaration is in scope", i.region))
-              } yield i.point[EvalState]
-          }
-          is <- rewritten
-        } yield is
-      case _ =>
-        i.point[EvalState]
-    }
-
     override val ID: LocalName = self.ID
 
     override val bootstrap: String = self.bootstrap
@@ -102,4 +66,40 @@ object DefaultPrefixPragma {
     t <- f
     _ <- reset(a)
   } yield t
+
+  def rewrite(i: Identifier): EvalState[Identifier] = i match {
+    case ln : LocalName =>
+      for {
+        dns <- gets((_: EvalContext).prgms.get(ID).flatMap(_.headOption))
+        rewritten <- dns match {
+          case Some(ps) =>
+            ps.values.head match {
+              case ValueExp.Identifier(LocalName(pfx)) =>
+                for {
+                  _ <- log(LogMessage.info(s"Applying prefix $pfx to $ln", ln.region))
+                } yield {
+                  val nsp = NSPrefix(pfx)
+                  val qn = QName(nsp, ln)
+                  for( lnr <- Option(ln.region) ) {
+                    nsp.region = lnr.copy(endsAt = lnr.startsAt)
+                    qn.region = lnr
+                  }
+                  (qn : Identifier).point[EvalState]
+                }
+              case _ =>
+                for {
+                  _ <- log(LogMessage.error(s"Malformed @defaultPrefix declaration", ps.region))
+                } yield i.point[EvalState]
+            }
+          case None =>
+            for {
+              _ <- log(LogMessage.warning(
+                s"Can't resolve local name $i because no @defaultPrefix declaration is in scope", i.region))
+            } yield i.point[EvalState]
+        }
+        is <- rewritten
+      } yield is
+    case _ =>
+      i.point[EvalState]
+  }
 }

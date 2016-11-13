@@ -5,10 +5,12 @@ import shorthandAst.sugar._
 import ops._
 import uk.co.turingatemyhamster.shortbol.longhandAst.PropertyExp
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
-import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.DNAFormatRewriteRule
+import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairSequence}
 import utest._
+import RewriteRule.Filtering
 
-import scalaz.{-\/, \/, \/-}
+import scalaz.{-\/, Scalaz, \/, \/-}
+import Scalaz._
 
 /**
   *
@@ -18,38 +20,46 @@ import scalaz.{-\/, \/, \/-}
 object RewriteRuleTestSuite extends TestSuite {
   val Ø = Fixture.emptyContext
 
-  def rewrittenToPropertyExp(observed: RewriteRule.Rewritten[longhandAst.PropertyExp], expectedProperty: Identifier, expectedValue: StringLiteral) = new {
-    def in (c: EvalContext) = {
-      observed match {
-        case \/-(pvExp) =>
-          pvExp eval c match {
-            case longhandAst.PropertyExp(pid, _) =>
-              assert(pid == expectedProperty)
-          }
+  def rewrittenToPropertyExp(observed: RewriteRule.MaybeRewritten[longhandAst.PropertyExp], expectedProperty: Identifier, expectedValue: StringLiteral) = new {
+    def producing(expInstances: List[longhandAst.InstanceExp]) = new {
+      def in (c: EvalContext) = {
+        observed match {
+          case \/-(pvExp) =>
+            val (newInstances, v) = (pvExp eval c).run
+            v match {
+              case longhandAst.PropertyExp(pid, _) =>
+                assert(pid == expectedProperty, expInstances == newInstances)
+            }
+        }
+        rewrittenToPropertyValue(observed.bimap(_ => ???, _ map (_.value)), expectedValue) in c
       }
-      rewrittenToPropertyValue(observed.bimap(_ => ???, _ map (_.value)), expectedValue) in c
     }
+
+    def in (c: EvalContext) = producing(Nil) in c
   }
 
-  def rewrittenToPropertyValue(observed: RewriteRule.Rewritten[longhandAst.PropertyValue], expected: StringLiteral) =
+  def rewrittenToPropertyValue(observed: RewriteRule.MaybeRewritten[longhandAst.PropertyValue], expected: StringLiteral) =
     rewrittenToPropertyValueLiteral(observed.bimap(_ => ???, _ map (_.asInstanceOf[longhandAst.PropertyValue.Literal])), expected)
 
-  def rewrittenToPropertyValueLiteral(observed: RewriteRule.Rewritten[longhandAst.PropertyValue.Literal], expected: StringLiteral) =
+  def rewrittenToPropertyValueLiteral(observed: RewriteRule.MaybeRewritten[longhandAst.PropertyValue.Literal], expected: StringLiteral) =
     rewrittenToLiteral(observed.bimap(_.value, _ map (_.value)), expected)
 
-  def rewrittenToLiteral(observed: RewriteRule.Rewritten[Literal], expected: StringLiteral) = new {
+  def rewrittenToLiteral(observed: RewriteRule.MaybeRewritten[Literal], expected: StringLiteral) = new {
     def in (c: EvalContext) =
-      observed.foreach(_ eval c match {
-        case StringLiteral(s, _, _) =>
-          assert(s.asString == expected.style.asString)
-      })
+      observed.foreach { o =>
+        val (newInds, v) = (o eval c).run
+        v match {
+          case StringLiteral(s, _, _) =>
+            assert(s.asString == expected.style.asString)
+        }
+      }
   }
 
 
-  def notRewritten[T](observed: RewriteRule.Rewritten[T]) =
+  def notRewritten[T](observed: RewriteRule.MaybeRewritten[T]) =
     assert(observed.isLeft)
 
-  def notRewritten[T](observed: RewriteRule.Rewritten[T], expected: T) = {
+  def notRewritten[T](observed: RewriteRule.MaybeRewritten[T], expected: T) = {
     assert(observed.isLeft)
     observed match {
       case -\/(value) =>
@@ -58,7 +68,7 @@ object RewriteRuleTestSuite extends TestSuite {
   }
 
 
-  def rewrittenTo[T](r: RewriteRule.Rewritten[T], expected: T) = new {
+  def rewrittenTo[T](r: RewriteRule.MaybeRewritten[T], expected: T) = new {
     def in (c: EvalContext) = {
       assert(r.isRight)
       r match {
@@ -87,17 +97,17 @@ object RewriteRuleTestSuite extends TestSuite {
       val expected = ShortbolParsers.StringLiteral.parse(
         "\"ttcagccaaaaaacttaagaccgccggtcttgtccactaccttgcagtaatgcggtggacaggatcggcggttttcttttctcttctcaa\"").get.value
 
-      val fromFastaOrGenbank = DNAFormatRewriteRule.fastaToDNA or DNAFormatRewriteRule.genbankToDNA
+      val fromFastaOrGenbank = RepairSequence.repairToDNA
 
       'atLiteral - {
         'fasta - {
           'forFasta - {
-            val c = DNAFormatRewriteRule.fastaToDNA(fastaString)
+            val c = RepairSequence.fastaToDNA(fastaString)
             rewrittenToLiteral(c, expected) in Ø
           }
 
           'forGenbank - {
-            val c = DNAFormatRewriteRule.fastaToDNA(genbankString)
+            val c = RepairSequence.fastaToDNA(genbankString)
             notRewritten(c)
           }
 
@@ -114,12 +124,12 @@ object RewriteRuleTestSuite extends TestSuite {
 
         'genbank - {
           'forFasta - {
-            val c = DNAFormatRewriteRule.genbankToDNA(fastaString)
+            val c = RepairSequence.genbankToDNA(fastaString)
             notRewritten(c)
           }
 
           'forGenbank - {
-            val c = DNAFormatRewriteRule.genbankToDNA(genbankString)
+            val c = RepairSequence.genbankToDNA(genbankString)
             rewrittenToLiteral(c, expected) in Ø
           }
 
@@ -146,8 +156,9 @@ object RewriteRuleTestSuite extends TestSuite {
           optics.longhand.PropertyValue.Literal.value at
           optics.longhand.PropertyValue.asLiteral at
           optics.longhand.PropertyExp.value
-        val fogAtSequence = fogAtPE at ((_: longhandAst.PropertyExp).property == ("sequence": Identifier))
-        val fogAtSequences = fogAtSequence at RewriteAt.allElements
+        val fogAtPropertyExp = fogAtPE at
+          (optics.longhand.PropertyExp.property :== "elements")
+        val fogAtElements = fogAtPropertyExp at RewriteAt.allElements
 
         'propertyValue_Literal - {
           val c = fogAtPVL(longhandAst.PropertyValue.Literal(fastaString))
@@ -160,50 +171,50 @@ object RewriteRuleTestSuite extends TestSuite {
         }
 
         'propertyExp - {
-          val c = fogAtPE(longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(fastaString)))
-          rewrittenToPropertyExp(c, "sequence", expected) in Ø
+          val c = fogAtPE(longhandAst.PropertyExp("elements", longhandAst.PropertyValue.Literal(fastaString)))
+          rewrittenToPropertyExp(c, "elements", expected) in Ø
         }
 
         'propertyExpFilterFromSequence - {
-          val c = fogAtSequence(longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(fastaString)))
-          rewrittenToPropertyExp(c, "sequence", expected) in Ø
+          val c = fogAtPropertyExp(longhandAst.PropertyExp("elements", longhandAst.PropertyValue.Literal(fastaString)))
+          rewrittenToPropertyExp(c, "elements", expected) in Ø
         }
 
         'propertyExpFilterFromOther - {
-          val c = fogAtSequence(longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString)))
+          val c = fogAtPropertyExp(longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString)))
           notRewritten(c)
         }
 
         'propertyExpFilterAll - {
           'ss - {
-            val c = fogAtSequences(List(
-              longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(fastaString)),
-              longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(fastaString))
+            val c = fogAtElements(List(
+              longhandAst.PropertyExp("elements", longhandAst.PropertyValue.Literal(fastaString)),
+              longhandAst.PropertyExp("elements", longhandAst.PropertyValue.Literal(fastaString))
             ))
             rewrittenTo(c, List(
-              longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(expected)),
-              longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(expected)))) in Ø
+              longhandAst.PropertyExp("elements", longhandAst.PropertyValue.Literal(expected)),
+              longhandAst.PropertyExp("elements", longhandAst.PropertyValue.Literal(expected)))) in Ø
           }
           'so - {
-            val c = fogAtSequences(List(
-              longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(fastaString)),
+            val c = fogAtElements(List(
+              longhandAst.PropertyExp("elements", longhandAst.PropertyValue.Literal(fastaString)),
               longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString))
             ))
             rewrittenTo(c, List(
-              longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(expected)),
+              longhandAst.PropertyExp("elements", longhandAst.PropertyValue.Literal(expected)),
               longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString)))) in Ø
           }
           'os - {
-            val c = fogAtSequences(List(
+            val c = fogAtElements(List(
               longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString)),
-              longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(fastaString))
+              longhandAst.PropertyExp("elements", longhandAst.PropertyValue.Literal(fastaString))
             ))
             rewrittenTo(c, List(
               longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString)),
-              longhandAst.PropertyExp("sequence", longhandAst.PropertyValue.Literal(expected)))) in Ø
+              longhandAst.PropertyExp("elements", longhandAst.PropertyValue.Literal(expected)))) in Ø
           }
           'oo - {
-            val c = fogAtSequences(List(
+            val c = fogAtElements(List(
               longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString)),
               longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString))
             ))

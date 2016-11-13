@@ -57,7 +57,8 @@ case class EvalContext(prgms: Map[sAst.Identifier, List[sAst.Pragma]] = Map.empt
                        insts: Map[sAst.Identifier, List[lAst.InstanceExp]] = Map.empty,
                        qnams: Map[sAst.LocalName, Set[sAst.QName]] = Map.empty,
                        hooks: Hooks = Hooks(),
-                       logms: List[LogMessage] = List.empty)
+                       logms: List[LogMessage] = List.empty,
+                       newLN: () => sAst.LocalName = EvalContext.localNameMaker("syntheticId"))
 {
 
   def withQNams(qs: sAst.QName*) =
@@ -122,6 +123,17 @@ case class EvalContext(prgms: Map[sAst.Identifier, List[sAst.Pragma]] = Map.empt
 
   def withAHooks(as: (sAst.Assignment => Eval.EvalState[List[sAst.Assignment]])*): EvalContext =
     copy(hooks = hooks.withAHooks(as :_*))
+}
+
+object EvalContext {
+  def localNameMaker(pfx: String) = {
+    var i = 0
+    () => {
+      val ln = sAst.LocalName(s"${pfx}_$i")
+      i += 1
+      ln
+    }
+  }
 }
 
 sealed trait Eval[T] {
@@ -192,7 +204,8 @@ object Eval {
 
   import TypeclassFactory._
 
-  type EvalState[R] = State[EvalContext, R]
+  type EvalState[R] = EvalStateT[Id, R]
+  type EvalStateT[M[_], R] = StateT[M, EvalContext, R]
 
   def log(logMessage: LogMessage) = modify((_: EvalContext).withLog(logMessage))
   def withPHooks(pHook: sAst.Pragma => Eval.EvalState[List[sAst.Pragma]]) = modify((_: EvalContext).withPHooks(pHook))
@@ -560,4 +573,6 @@ object Eval {
   def resolveBinding(id: sAst.Identifier): State[EvalContext, Option[sAst.ValueExp]] =
     gets ((_: EvalContext).resolveValue(id))
 
+  def nextIdentifier: State[EvalContext, sAst.LocalName] =
+    gets ((_: EvalContext).newLN) map (_.apply())
 }

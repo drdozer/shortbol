@@ -102,7 +102,7 @@ trait ExporterEnv[DT <: Datatree] {
           qnameToUri(qn)
         case ln : shorthandAst.LocalName =>
           throw new IllegalStateException(
-            s"Unable to export a local name as an instance URI: ${ln.name} at ${ln.region.pretty}")
+            s"Unable to export a local name as an instance URI: ${ln.name}${if(ln.region != null) s" at ${ln.region.pretty}" else ""}")
       }
     }
 

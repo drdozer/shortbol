@@ -1,10 +1,11 @@
-package uk.co.turingatemyhamster.shortbol.ops
-
-import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
+package uk.co.turingatemyhamster.shortbol
+package ops
 
 import scalaz.Scalaz._
 import scalaz._
 import monocle.{Lens, Prism}
+import RewriteRule.{MaybeRewritten, Rewritten}
+import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 
 import scala.annotation.implicitNotFound
 
@@ -14,7 +15,9 @@ import scala.annotation.implicitNotFound
 trait RewriteRule[T] {
   self =>
 
-  def apply(t: T): T \/ Eval.EvalState[T]
+  def apply(t: T): MaybeRewritten[T]
+
+  def eval(t: T): Rewritten[T] = apply(t).fold(_.point[Rewritten], identity)
 
   def at[AT, U](at: AT)(implicit rwAt: AT => RewriteAt[U, T]): RewriteRule[U] = rwAt(at)(this)
 
@@ -32,46 +35,101 @@ trait RewriteRule[T] {
       case -\/(l) =>
         rr apply l
       case \/-(r) =>
-        \/-(r map rr.apply flatMap (_.fold(_.point[Eval.EvalState], identity)))
+        \/-(r map rr.apply flatMap (_.fold(_.point[Rewritten], identity)))
+    }
+  }
+
+  def description: Option[String] = None
+
+  def log(name: String): RewriteRule[T] = new RewriteRule[T] {
+    override def description = self.description
+
+    private def descriptionString = description getOrElse ""
+
+    override def apply(t: T) = {
+      println(s"$name <i> $descriptionString at $t")
+      val res = self(t)
+      println(s"$name <o> $descriptionString at $res from $t")
+      res
     }
   }
 }
 
 object RewriteRule {
-  type Rewritten[T] = T \/ EvalState[T]
+  implicit class Filtering[S, T](_l: Lens[S, T]) {
+    def :==(t: T): RewriteAt[S, S] = RewriteAt.filterRewrite { (s: S) =>
+      _l.get(s) == t
+    }
+  }
+
+  type MaybeRewritten[T] = T \/ Rewritten[T]
+  type InstanceExpWriter[T] = Writer[List[longhandAst.InstanceExp], T]
+  type Rewritten[T] = Eval.EvalStateT[InstanceExpWriter, T]
+
 
   def apply[F, T](f: F)(implicit b: Builder[F, T]): RewriteRule[T] = b apply f
 
-  def noop[T]: RewriteRule[T] = RewriteRule { (t: T) => t.left[EvalState[T]] }
+  def noop[T]: RewriteRule[T] = RewriteRule { (t: T) => t.left[Rewritten[T]] }
 
   @implicitNotFound("Don't know how to build a RewriteRule[${T}] from ${F}")
   trait Builder[F, T] {
     def apply(f: F): RewriteRule[T]
   }
 
-  implicit def fromDisjunction[T]: Builder[(T => T \/ EvalState[T]), T] = new Builder[(T) => Disjunction[T, EvalState[T]], T] {
-    override def apply(f: (T) => Disjunction[T, EvalState[T]]) = new RewriteRule[T] {
+  implicit def fromRewrittenDisjunction[T]: Builder[(T => T \/ Rewritten[T]), T] = new Builder[(T) => Disjunction[T, Rewritten[T]], T] {
+    override def apply(f: (T) => Disjunction[T, Rewritten[T]]) = new RewriteRule[T] {
       override def apply(t: T) = f(t)
+    }
+  }
+
+  implicit def fromStateDisjunction[T]: Builder[(T => T \/ Eval.EvalState[T]), T] = new Builder[(T) => Disjunction[T, EvalState[T]], T] {
+    override def apply(f: (T) => Disjunction[T, EvalState[T]]) = new RewriteRule[T] {
+      override def apply(t: T) = f(t).map(_.lift : Rewritten[T])
+    }
+  }
+
+  implicit def fromDisjunction[T]: Builder[(T => T \/ T), T] = new Builder[(T) => Disjunction[T, T], T] {
+    override def apply(f: (T) => Disjunction[T, T]) = new RewriteRule[T] {
+      override def apply(t: T): MaybeRewritten[T] = f(t).map(_.point[Rewritten])
+    }
+  }
+
+  implicit def fromState[T]: Builder[T => EvalState[T], T] = new Builder[(T) => EvalState[T], T] {
+    override def apply(f: (T) => EvalState[T]) = new RewriteRule[T] {
+      override def apply(t: T) = (f(t).lift : Rewritten[T]).right[T]
     }
   }
 
   implicit def fromFunc[T]: Builder[T => T, T] = new Builder[(T) => T, T] {
     override def apply(f: (T) => T) = new RewriteRule[T] {
-      override def apply(t: T) = f(t).point[EvalState].right[T]
+      override def apply(t: T) = f(t).point[Rewritten].right[T]
     }
   }
 
   implicit def fromOptionFunc[T]: Builder[T => Option[T], T] = new Builder[(T) => Option[T], T] {
     override def apply(f: (T) => Option[T]) = RewriteRule { (t: T) =>
       f(t) match {
-        case None => t.left[EvalState[T]]
-        case Some(ft) => ft.point[EvalState].right[T]
+        case None => t.left[Rewritten[T]]
+        case Some(ft) => ft.point[Rewritten].right[T]
       }
     }
   }
 
   implicit def fromPartialFunc[T]: Builder[PartialFunction[T, T], T] = new Builder[PartialFunction[T, T], T] {
     override def apply(f: PartialFunction[T, T]) = RewriteRule(f.lift)
+  }
+
+  implicit def fromFlatMap[T]: Builder[T => RewriteRule[T], T] = new Builder[(T) => RewriteRule[T], T] {
+    override def apply(f: (T) => RewriteRule[T]) = RewriteRule { (t: T) =>
+      f(t)(t)
+    }
+  }
+
+  implicit def fromOptionFlatMap[T]: Builder[T => Option[RewriteRule[T]], T] = new Builder[(T) => Option[RewriteRule[T]], T] {
+
+    override def apply(f: (T) => Option[RewriteRule[T]]) = RewriteRule { (t: T) =>
+      f(t).map(_ apply t).fold(t.left[Rewritten[T]])(identity)
+    }
   }
 }
 
@@ -80,6 +138,7 @@ trait RewriteAt[U, T] {
 }
 
 object RewriteAt {
+
   implicit def rewriteAtLens[S, T](lens: Lens[S, T]): RewriteAt[S, T] = new RewriteAt[S, T] {
     override def apply(rr: RewriteRule[T]) = RewriteRule { (s: S) =>
       val lsets = lens.set(_: T)(s)
@@ -114,11 +173,11 @@ object RewriteAt {
       val rrts = ts map rr.apply
       if(rrts exists (_.isRight)) {
         (rrts collect {
-          case -\/(l) => l.point[EvalState]
+          case -\/(l) => l.point[Rewritten]
           case \/-(r) => r
-        }).sequenceU.right[List[T]]   : RewriteRule.Rewritten[List[T]]
+        }).sequenceU.right[List[T]]   : RewriteRule.MaybeRewritten[List[T]]
       } else {
-        (rrts collect { case -\/(l) => l }).left  : RewriteRule.Rewritten[List[T]]
+        (rrts collect { case -\/(l) => l }).left  : RewriteRule.MaybeRewritten[List[T]]
       }
     }
   }
