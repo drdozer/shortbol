@@ -23,3 +23,7 @@ project/plugins/project/
 # python compiled files
 *.pyc
 
+/shortbol/examples/*.lbol
+/shortbol/examples/*.fbol
+/shortbol/examples/*.xml
+/shortbol/examples/*.log
