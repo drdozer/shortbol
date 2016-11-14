@@ -68,13 +68,13 @@ object RewriteRuleTestSuite extends TestSuite {
   }
 
 
-  def rewrittenTo[T](r: RewriteRule.MaybeRewritten[T], expected: T) = new {
+  def rewrittenTo[T](r: RewriteRule.MaybeRewritten[T], expected: T, expectedExtras: List[longhandAst.InstanceExp] = Nil) = new {
     def in (c: EvalContext) = {
       assert(r.isRight)
       r match {
         case \/-(rr) =>
-          val value = rr.eval(c)
-          assert(value == expected)
+          val (extras, value) = rr.eval(c).run
+          assert(value == expected, extras == expectedExtras)
       }
     }
   }
