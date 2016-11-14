@@ -70,14 +70,14 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
     editorP.complete(scala.util.Success(ed))
   }
 
-  case class AssignmentSbolCheck(description: View, instId: Identifier, ass: Assignment) extends SbolCheck {
+  case class PropertyExpSbolCheck(description: View, instId: Identifier, pe: PropertyExp) extends SbolCheck {
     lazy val checker = lastSuccess.map { s =>
       (s.tops collect {
         case TopLevel.InstanceExp(i@InstanceExp(id, _)) if id == instId =>
           i.cstrApp.body
       }).flatten exists {
         case BodyStmt.PropertyExp(PropertyExp(p, v)) =>
-          p == ass.property && v == ass.value
+          p == pe.property && v == pe.value
         case _ =>
           false
       }
@@ -90,7 +90,7 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
         (s.tops collect {
           case TopLevel.InstanceExp(i@InstanceExp(id, ConstructorApp(TpeConstructor1(tpeName, _), _))) =>
             id == instId && tpeName == ofType
-        }).exists(_ == true)
+        }).contains(true)
     }
   }
 
@@ -100,7 +100,7 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
         (s.tops collect {
           case TopLevel.InstanceExp(i@InstanceExp(id, ConstructorApp(TpeConstructor1(_, a), _))) =>
             id == instId && a == args
-        }).exists(_ == true)
+        }).contains(true)
     }
   }
 

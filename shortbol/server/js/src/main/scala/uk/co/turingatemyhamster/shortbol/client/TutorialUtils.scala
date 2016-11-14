@@ -58,8 +58,8 @@ object TutorialUtils {
     ).css("exercise")
   }
 
-  def check(description: View, instId: Identifier, ass: Assignment) =
-    (ae: AceEditor) => ae.AssignmentSbolCheck(description, instId, ass)
+  def check(description: View, instId: Identifier, pe: PropertyExp) =
+    (ae: AceEditor) => ae.PropertyExpSbolCheck(description, instId, pe)
 
   def check(description: View, instId: Identifier, ofType: Identifier) =
     (ae: AceEditor) => ae.TypeSbolCheck(description, instId, ofType)
