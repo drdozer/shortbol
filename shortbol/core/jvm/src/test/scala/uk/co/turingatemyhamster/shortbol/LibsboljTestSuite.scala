@@ -37,11 +37,10 @@ object LibsboljTestSuite extends TestSuite {
 
   def toLibSBOLj(shortbol: String) = {
     val sb = ShortbolParser.SBFile.withPositions("_test_", shortbol).get.value
-    val (is, (c, v)) = (for {
-      e <- sb.eval.lift : RewriteRule.Rewritten[longhandAst.SBFile]
-      rcds <- RepairComponents.repairAll.eval(e)
-      iera <- RepairIdentities.repairAll.eval(rcds)
-    } yield iera).run(Fixture.configuredContext).run
+    val (c, v) = (for {
+      e <- sb.eval
+      r <- RewriteRule.rewrite(RepairComponents.repairAll andThen RepairIdentities.repairAll, e)
+    } yield r).run(Fixture.configuredContext)
 
     println("--- scala ---")
     println(v)
@@ -299,7 +298,7 @@ object LibsboljTestSuite extends TestSuite {
           toLibSBOLj(
             """@import stdlib:sbol
               |
-              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/composingDeigns/1#>
+              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/composingDesigns/1#>
               |@defaultPrefix tutorial
               |
               |# The genetic parts of the TetR inverter
@@ -322,7 +321,7 @@ object LibsboljTestSuite extends TestSuite {
           toLibSBOLj(
             """@import stdlib:sbol
               |
-              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/composingDeigns/2#>
+              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/composingDesigns/2#>
               |@defaultPrefix tutorial
               |
               |# The composite device for the TetR inverter
@@ -345,7 +344,7 @@ object LibsboljTestSuite extends TestSuite {
           toLibSBOLj(
             """@import stdlib:sbol
               |
-              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/composingDeigns/3#>
+              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/composingDesigns/3#>
               |@defaultPrefix tutorial
               |
               |# The composite device for the TetR inverter
@@ -363,7 +362,7 @@ object LibsboljTestSuite extends TestSuite {
           toLibSBOLj(
             """@import stdlib:sbol
               |
-              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/composingDeigns/4#>
+              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/composingDesigns/4#>
               |@defaultPrefix tutorial
               |
               |dc : DnaComponent
@@ -379,7 +378,7 @@ object LibsboljTestSuite extends TestSuite {
           toLibSBOLj(
             """@import stdlib:sbol
               |
-              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/composingDeigns/5#>
+              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/composingDesigns/5#>
               |@defaultPrefix tutorial
               |
               |# The composite device for the TetR inverter

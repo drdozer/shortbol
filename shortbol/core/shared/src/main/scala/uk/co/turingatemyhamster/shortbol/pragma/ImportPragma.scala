@@ -33,18 +33,15 @@ object ImportPragma {
             resolver.resolve(id) flatMap {
               case \/-(imported) => for {
                 _ <- log(LogMessage.info(s"Importing $id", p.region))
-                _ = println(s"Importing $id as $imported")
               } yield List(p)
               case -\/(err) =>
                 for {
                   _ <- log(LogMessage.error(s"Import failed for $id", id.region, Some(err)))
-                  _ = println(s"Import failed for $id")
                 } yield Nil
             }
           case _ =>
             for {
               _ <- log(LogMessage.error(s"Malformed @import declaration", p.region))
-              _ = println(s"Malformed @import declaration")
             } yield Nil
         }
       case _ =>

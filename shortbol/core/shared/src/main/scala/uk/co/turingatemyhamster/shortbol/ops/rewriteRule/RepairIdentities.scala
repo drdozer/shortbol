@@ -48,7 +48,7 @@ object RepairIdentities {
     } yield {
       (rdf_about := about) ::: ps
     }
-  }
+  } at noAbout
 
   lazy val recurseOverBody: RewriteRule[List[PropertyExp]] = RewriteRule { (ps: List[PropertyExp]) =>
     for {
