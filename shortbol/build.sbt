@@ -55,15 +55,15 @@ lazy val serverJvm = server.jvm
   .dependsOn(serverJs).settings(Revolver.settings: _*).settings(
   libraryDependencies += "com.typesafe.akka" %% "akka-http-experimental" % "2.4.7",
   (resources in Assets) += {
-    (fastOptJS in (serverJs, Compile)).value
-    (artifactPath in (serverJs, Compile, fastOptJS)).value
+    (fullOptJS in (serverJs, Compile)).value
+    (artifactPath in (serverJs, Compile, fullOptJS)).value
   },
 //  (resources in Assets) += {
 //    (fastOptJS in (serverJs, Compile)).value
 //    (artifactPath in (serverJs, Compile, packageScalaJSLauncher)).value
 //  },
   (resources in Assets) += {
-    (fastOptJS in (serverJs, Compile)).value
+    (fullOptJS in (serverJs, Compile)).value
     (artifactPath in (serverJs, Compile, packageJSDependencies)).value
   },
   (managedClasspath in Runtime) += (packageBin in Assets).value,
