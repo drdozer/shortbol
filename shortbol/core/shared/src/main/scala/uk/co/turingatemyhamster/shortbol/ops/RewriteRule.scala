@@ -7,7 +7,7 @@ import monocle.{Lens, Prism}
 import RewriteRule.{MaybeRewritten, Rewritten}
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 
-import scala.annotation.implicitNotFound
+import scala.annotation.{implicitNotFound, tailrec}
 
 /**
   * Created by nmrp3 on 09/11/16.
@@ -49,7 +49,7 @@ trait RewriteRule[T] {
     override def apply(t: T) = {
       println(s"$name <i> $descriptionString at $t")
       val res = self(t)
-      println(s"$name <o> $descriptionString at $res from $t")
+      println(s"$name <o> $descriptionString ${res.fold(_ => "unchanged", _ => "rewritten")} at $t")
       res
     }
   }
@@ -66,6 +66,27 @@ object RewriteRule {
   type InstanceExpWriter[T] = Writer[List[longhandAst.InstanceExp], T]
   type Rewritten[T] = Eval.EvalStateT[InstanceExpWriter, T]
 
+  def Rewritten[T](w: InstanceExpWriter[T]): Rewritten[T] =
+    IndexedStateT[InstanceExpWriter, EvalContext, EvalContext, T](s => w.map(s -> _))
+
+  def rewrite(r: RewriteRule[longhandAst.SBFile], sf: longhandAst.SBFile): EvalState[longhandAst.SBFile] = {
+    var depth = 0
+    def rewriteStep(sf: longhandAst.SBFile): EvalState[longhandAst.SBFile] = {
+      if(depth > 2) ???
+      depth += 1
+      r(sf).fold(
+        _.point[EvalState],
+        rsf =>
+          for {
+            s <- get[EvalContext]
+            (extraIs, (newC, newSf)) = rsf.run(s).run
+            _ = println(s"Extras: $extraIs")
+            r <- rewriteStep(longhandAst.SBFile(newSf.tops ::: extraIs))
+          } yield r
+      )
+    }
+    rewriteStep(sf)
+  }
 
   def apply[F, T](f: F)(implicit b: Builder[F, T]): RewriteRule[T] = b apply f
 

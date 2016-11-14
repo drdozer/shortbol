@@ -9,7 +9,7 @@ import Monocle._
 import shorthandAst.{Datatype, Literal, StringLiteral}
 import shorthandAst.sugar._
 import longhandAst.sugar._
-import RewriteRule.Filtering
+import RewriteRule.{Filtering, Rewritten}
 import RewriteAt.allElements
 import optics.{longhand => ol}
 import ol.SBFile._
@@ -96,12 +96,14 @@ object RepairComponentDefinition {
       val refForNested = for {
         nextId <- Eval.nextIdentifier
         seqId <- DefaultPrefixPragma.rewrite(nextId)
-      } yield longhandAst.PropertyValue.Reference(seqId) : longhandAst.PropertyValue
-      val x = for {
-        ref <- refForNested.lift : RewriteRule.Rewritten[longhandAst.PropertyValue]
-        _ <- Writer.set(nested).point[RewriteRule.Rewritten]
-      } yield ref
-      x : RewriteRule.Rewritten[longhandAst.PropertyValue]
+      } yield seqId
+      for {
+        seqId <- refForNested.lift : RewriteRule.Rewritten[shorthandAst.Identifier]
+        ref = longhandAst.PropertyValue.Reference(seqId) : longhandAst.PropertyValue
+        newSeq = longhandAst.InstanceExp(seqId, nested)
+        refWithSeq <- Rewritten(ref.set(newSeq::Nil))
+        _ = println(s"Writer.set for $refWithSeq")
+      } yield refWithSeq
     }
   }
 
