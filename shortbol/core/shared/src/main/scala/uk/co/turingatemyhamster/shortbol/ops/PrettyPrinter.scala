@@ -55,7 +55,7 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   import PrintApp._
 
   def apply(s: sAst.SBFile) = s.append
-  def apply(s: lAst.SBFile) = s.append
+  def apply(s: lAst.SBFile) = lAst.sugar.toShorthand(s).append
   def apply(t: sAst.TpeConstructor1) = t.append
   def apply(c: sAst.ConstructorApp) = c.append
   def apply(c: sAst.TopLevel.ConstructorDef) = c.append

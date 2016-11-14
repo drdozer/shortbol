@@ -1,101 +1,68 @@
 package uk.co.turingatemyhamster
 package shortbol
 
-import java.io.{FileWriter, File}
+import java.io.{File, FileWriter, PrintWriter}
 import javax.xml.stream.XMLOutputFactory
 
-//import fastparse.core.Result.{Failure, Success}
+import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter
+import fastparse.core.Parsed.{Failure, Success}
+import uk.co.turingatemyhamster.shortbol.ops._
+import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
+import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
+import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
+
+import scala.util.Try
 import scopt.OptionParser
 import uk.co.turingatemyhamster.datatree.io.RdfIo
+import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairIdentities}
 
 import scala.io.Source
 
 /**
- * Created by nmrp3 on 16/06/15.
- */
+  * Created by nmrp3 on 16/06/15.
+  */
 object Shortbol {
 
   val parser = new OptionParser[Config]("shortbol") {
     head("shortbol", "0.1")
-    cmd("preprocess") text "preprocess shortbol into longbol" children {
-      arg[File]("...") unbounded() required() text "shortbol files to preprocess" action { (f, c) =>
-        val p0 = c.cmd match {
-          case NoCmd => Preprocess()
-          case p : Preprocess => p
-          case _ =>
-            reportError("Internal error")
-            Preprocess()
-        }
-        val p1 = p0.copy(files = p0.files :+ f)
-        c.copy(cmd = p1)
-      }
-    }
-    cmd("export") text "export longbol to RDF" children {
-      arg[File]("...") unbounded() required() text "longbol files to preprocess" action { (f, c) =>
-        val ex0 = c.cmd match {
-          case NoCmd => Export()
-          case ex: Export => ex
-          case _ =>
-            reportError("Internal error")
-            Export()
-        }
-        val ex1 = ex0.copy(files = ex0.files :+ f)
-        c.copy(cmd = ex1)
-      }
-    }
-    checkConfig {
-      case Config(NoCmd) => failure("No command supplied")
-      case _ => success
-    }
+
+    opt[Boolean]("exportLonghand")
+      .action((e, c) => c.copy(exportLonghand = e))
+      .text("export the longhand form, after template expansion")
+    opt[Boolean]("exportFixedup")
+      .action((e, c) => c.copy(exportFixedup = e))
+      .text("export the longhand reperesentation, after fixup rules are applied")
+    opt[Boolean]("exportRdf")
+      .action((e, c) => c.copy(exportRdf = e))
+      .text("export the SBOl rdf representation")
+    opt[Boolean]("exportLog")
+      .action((e, c) => c.copy(exportLog = e))
+      .text("export logs")
+    arg[File]("<file>...")
+      .unbounded()
+      .required()
+      .action((f, c) => c.copy(inFiles = c.inFiles :+ f))
   }
 
   def main(args: Array[String]): Unit = {
+    for {
+      c <- parser.parse(args, Config()).to[List]
+      inFile <- c.inFiles
+    } yield {
+      ShortbolParser.SBFile.withPositions(inFile.getAbsolutePath, Source.fromFile(inFile).mkString) match {
+        case s: Success[shorthandAst.SBFile] =>
+          val (evalCtxt, evaluated) = s.value.eval.run(Fixture.configuredContext)
+          val (fuCtxt, fixedUp) =
+            RewriteRule.rewrite(RepairComponents.repairAll andThen RepairIdentities.repairAll, evaluated).run(evalCtxt)
 
-    parser.parse(args, Config()) match {
-      case Some(Config(p : Preprocess)) =>
-        preprocess(p)
-      case Some(Config(ex : Export)) =>
-        export(ex)
-      case None =>
-        // parser will have shown a usage error
+          if(c.exportLonghand) exportLonghand(c, inFile, evaluated)
+          if(c.exportFixedup) exportFixedup(c, inFile, fixedUp)
+          if(c.exportRdf) exportRdf(c, inFile, fuCtxt, fixedUp)
+          if(c.exportLog) exportLog(c, inFile, fuCtxt.logms)
+        case e: Failure =>
+          System.err.println(s"Problem parsing $inFile")
+      }
     }
-
-  }
-
-  def preprocess(p: Preprocess): Unit = {
-    ???
-//    import Expander.ExpanderOps
-//    for (file <- p.files) {
-//      println(s"Processing $file")
-//      Fixture.parser.SBFile.parse(Source.fromFile(file).mkString) match {
-//        case f: Failure =>
-//          System.err.println(f.traced)
-//        case Success(sbf, _) =>
-//          val out = new FileWriter(shortToLongFile(file))
-//          val pp = Fixture.prettyPrinter(out)
-//          for(expanded <- sbf.expansion.eval(Fixture.emptyContext))
-//            pp.append(expanded)
-//          out.close()
-//      }
-//    }
-  }
-
-  def export(ex: Export): Unit = {
-    ???
-//    for (file <- ex.files) {
-//      println(s"Exporting $file to ${longToRdfFile(file)}")
-//      Fixture.parser.SBFile.parse(Source.fromFile(file).mkString) match {
-//        case f : Failure =>
-//          System.err.println(f.traced)
-//        case Success(lbf, _) =>
-//          import datatree.ast._
-//          val docRoot = Fixture.toDatatree[AstDatatree](lbf)
-//          val writer = XMLOutputFactory.newInstance.createXMLStreamWriter(
-//            new FileWriter(longToRdfFile(file)))
-//          RdfIo.write(writer, docRoot)
-//          writer.close()
-//      }
-//    }
   }
 
   def rewriteExtension(file: File, oldExt: String, newExt: String) =
@@ -104,13 +71,51 @@ object Shortbol {
     else
       new File(s"${file.getCanonicalPath}.$newExt")
 
-  def shortToLongFile(shortFile: File): File = rewriteExtension(shortFile, "sbol", "lbol")
-  def longToRdfFile(longFile: File): File = rewriteExtension(longFile, "lbol", "rdf")
+  def exportLonghand(c: Config, shorthandFile: File, sf: longhandAst.SBFile): Try[File] = Try {
+    val longhandFile = rewriteExtension(shorthandFile, c.shortbolExtn, c.longhandExtn)
+    val w = new FileWriter(longhandFile)
+    PrettyPrinter(w)(sf)
+    w.close()
+    longhandFile
+  }
+
+  def exportFixedup(c: Config, shorthandFile: File, sf: longhandAst.SBFile): Try[File] = Try {
+    val fixedupFile = rewriteExtension(shorthandFile, c.shortbolExtn, c.fixedupExtn)
+    val w = new FileWriter(fixedupFile)
+    PrettyPrinter(w)(sf)
+    w.close()
+    fixedupFile
+  }
+
+  def exportRdf(c: Config, shorthandFile: File, ctxt: EvalContext, sf: longhandAst.SBFile): Try[File] = Try {
+    val rdfFile = rewriteExtension(shorthandFile, c.shortbolExtn, c.rdfExtn)
+    val doc = Exporter[datatree.ast.AstDatatree](ctxt).apply(sf)
+    val rdfIo = implicitly[RdfIo[datatree.ast.AstDatatree]]
+    val xmlWriter = new IndentingXMLStreamWriter(
+      XMLOutputFactory.newInstance.createXMLStreamWriter(
+        new FileWriter(rdfFile)))
+    rdfIo.write(xmlWriter, doc)
+    rdfFile
+  }
+
+  def exportLog(c: Config, shorthandFile: File, log: List[LogMessage]): Try[File] = Try {
+    val logFile = rewriteExtension(shorthandFile, c.shortbolExtn, c.logExtn)
+    val w = new PrintWriter(new FileWriter(logFile))
+    for(l <- log) w println l.pretty
+    w.close()
+    logFile
+  }
 }
 
-trait Cmd
-case class Config(cmd: Cmd = NoCmd)
-
-object NoCmd extends Cmd
-case class Preprocess(files: Seq[File] = Seq()) extends Cmd
-case class Export(files: Seq[File] = Seq()) extends Cmd
+case class Config(
+                   shortbolExtn: String = "sbol",
+                   longhandExtn: String = "lbol",
+                   fixedupExtn: String = "fbol",
+                   rdfExtn: String = "xml",
+                   logExtn: String = "log",
+                   inFiles: List[File] = Nil,
+                   exportLonghand: Boolean = false,
+                   exportFixedup: Boolean = false,
+                   exportRdf: Boolean = true,
+                   exportLog: Boolean = false
+                 )
