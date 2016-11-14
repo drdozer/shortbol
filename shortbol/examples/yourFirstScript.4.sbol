@@ -1,0 +1,8 @@
+@import stdlib:sbol
+
+@prefix tutorial <http://shortbol.ico2s.org/tutorial/yourFirstScript/5#>
+@defaultPrefix tutorial
+
+pTetR : Promoter
+  # give pTetR a description
+  description = "pTet promoter"

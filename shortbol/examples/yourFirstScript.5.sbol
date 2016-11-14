@@ -1,0 +1,9 @@
+@import stdlib:sbol
+
+@prefix tutorial <http://shortbol.ico2s.org/tutorial/yourFirstScript/6#>
+@defaultPrefix tutorial
+
+pTetR : Promoter
+  name = "pTetR"
+  description = "pTetR promoter"
+  displayId = "BBa_R0040"

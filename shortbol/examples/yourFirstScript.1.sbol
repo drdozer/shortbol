@@ -1,0 +1,5 @@
+@import stdlib:sbol
+@prefix tutorial <http://shortbol.ico2s.org/tutorial/yourFirstScript/2#>
+@defaultPrefix tutorial
+pTetR : Promoter
+LacI : CDS

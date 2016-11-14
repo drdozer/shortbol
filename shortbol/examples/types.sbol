@@ -1,0 +1,16 @@
+@import stdlib:sbol
+
+@prefix tutorial <http://shortbol.ico2s.org/tutorial/types/1#>
+@defaultPrefix tutorial
+
+# Declare an instance named pTetR, of type Promoter
+pTetR : Promoter
+  name = "pTetR"
+  description = "pTetR promoter"
+  displayId = "BBa_R0040"
+
+# Declare an instance named LacI, of type CDS
+LacI : CDS
+  name = "LacI"
+  description = "LacI protein coding region"
+  displayId = "P03023"

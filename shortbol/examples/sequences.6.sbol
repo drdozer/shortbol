@@ -1,0 +1,8 @@
+@import stdlib:sbol
+
+@prefix tutorial <http://shortbol.ico2s.org/tutorial/addingSequences/7#>
+@defaultPrefix tutorial
+
+pTetR : Promoter
+    sequence : DnaSequence("tccctatcagtgatagagattgacatccctatcagtgatagagatactgagcac")
+    
