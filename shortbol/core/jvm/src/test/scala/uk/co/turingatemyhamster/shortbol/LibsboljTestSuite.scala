@@ -39,7 +39,7 @@ object LibsboljTestSuite extends TestSuite {
     val sb = ShortbolParser.SBFile.withPositions("_test_", shortbol).get.value
     val (c, v) = (for {
       e <- sb.eval
-      r <- RewriteRule.rewrite(RepairComponents.repairAll andThen RepairIdentities.repairAll, e)
+      r <- Fixture.doFixup(e)
     } yield r).run(Fixture.configuredContext)
 
     println("--- scala ---")

@@ -57,7 +57,7 @@ object ShortbolServer {
                 ShortbolParser.SBFile.parse(text) match {
                   case s: Success[shorthandAst.SBFile] =>
                     val (evalCtxt, evaluated) = s.value.eval.run(Fixture.configuredContext)
-                    RewriteRule.rewrite(RepairComponents.repairAll andThen RepairIdentities.repairAll, evaluated).run(evalCtxt)
+                    Fixture.doFixup(evaluated).run(evalCtxt)
                   case f: Failure =>
                     throw new IllegalArgumentException(f.extra.traced.trace)
                 }

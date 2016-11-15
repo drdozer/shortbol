@@ -53,7 +53,7 @@ object Shortbol {
         case s: Success[shorthandAst.SBFile] =>
           val (evalCtxt, evaluated) = s.value.eval.run(Fixture.configuredContext)
           val (fuCtxt, fixedUp) =
-            RewriteRule.rewrite(RepairComponents.repairAll andThen RepairIdentities.repairAll, evaluated).run(evalCtxt)
+            Fixture.doFixup(evaluated).run(evalCtxt)
 
           if(c.exportLonghand) exportLonghand(c, inFile, evaluated)
           if(c.exportFixedup) exportFixedup(c, inFile, fixedUp)

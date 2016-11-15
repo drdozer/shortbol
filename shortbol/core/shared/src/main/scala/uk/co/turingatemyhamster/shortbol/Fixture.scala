@@ -7,9 +7,10 @@ import relations._
 import web._
 import shorthandAst.{Pragma, SBFile}
 import shorthandAst.sugar._
-import ops.{Eval, EvalContext, ShortbolParser}
+import ops.{Eval, EvalContext, RewriteRule, ShortbolParser}
 import ShortbolParser.POps
 import pragma._
+import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairIdentities}
 
 import scalaz.Scalaz._
 import scalaz._
@@ -40,6 +41,10 @@ object Fixture {
   lazy val preamble =
     """@prefix stdlib <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/>
       |""".stripMargin
+
+  lazy val fixup = RepairComponents.repairAll andThen RepairIdentities.repairAll
+
+  lazy val doFixup = RewriteRule.rewrite(fixup, _: longhandAst.SBFile)
 
 //
 //  def toDatatree[DT <: Datatree](file: SBFile)(implicit  ee: ExporterEnv[DT]): DT#DocumentRoot

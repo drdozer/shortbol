@@ -108,8 +108,7 @@ object Sandbox extends PageApplication {
 
           longbol.getSession().setValue(stringify(v1).toString)
 
-          val (c2, v2) = RewriteRule.rewrite(
-            RepairComponents.repairAll andThen RepairIdentities.repairAll, v1).run(c1)
+          val (c2, v2) = Fixture.doFixup(v1).run(c1)
 
           fixedbol.getSession().setValue(stringify(v2).toString)
 
