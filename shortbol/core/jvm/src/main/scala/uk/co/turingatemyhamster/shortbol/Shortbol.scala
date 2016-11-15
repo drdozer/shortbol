@@ -95,6 +95,7 @@ object Shortbol {
       XMLOutputFactory.newInstance.createXMLStreamWriter(
         new FileWriter(rdfFile)))
     rdfIo.write(xmlWriter, doc)
+    xmlWriter.close()
     rdfFile
   }
 

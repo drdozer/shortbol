@@ -2,17 +2,23 @@ package uk.co.turingatemyhamster.shortbol
 package server
 
 
+import java.io.{FileWriter, StringWriter}
+import javax.xml.stream.XMLOutputFactory
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import fastparse.core.Parsed.{Failure, Success}
-
-import scala.io.StdIn
-import shorthandAst._
+import akka.http.scaladsl.marshalling.Marshaller
+import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter
 import com.typesafe.config.ConfigFactory
 import ops._
+import uk.co.turingatemyhamster.datatree
+import uk.co.turingatemyhamster.datatree.io.RdfIo
+import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairIdentities}
+import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 
 
 /**
@@ -29,6 +35,19 @@ object ShortbolServer {
     implicit val materializer = ActorMaterializer()
     implicit val executionContext = system.dispatcher
 
+    implicit val sbMarshaller = Marshaller.StringMarshaller.compose { (ctxt_sf : (EvalContext, longhandAst.SBFile)) =>
+      val (ctxt, sf) = ctxt_sf
+      val doc = Exporter[datatree.ast.AstDatatree](ctxt).apply(sf)
+      val rdfIo = implicitly[RdfIo[datatree.ast.AstDatatree]]
+      val res = new StringWriter()
+      val xmlWriter = new IndentingXMLStreamWriter(
+        XMLOutputFactory.newInstance.createXMLStreamWriter(
+          res))
+      rdfIo.write(xmlWriter, doc)
+      xmlWriter.close()
+      res.toString
+    }
+
     val routes: Route = {
       pathPrefix("shortbol") {
         path("expand") {
@@ -36,13 +55,11 @@ object ShortbolServer {
             entity(as[String]) { text =>
               complete {
                 ShortbolParser.SBFile.parse(text) match {
-                  case s: Success[SBFile] =>
-                    val out = new java.lang.StringBuilder
-                    val pp = PrettyPrinter(out)
-                    pp(s.value)
-                      out.toString()
+                  case s: Success[shorthandAst.SBFile] =>
+                    val (evalCtxt, evaluated) = s.value.eval.run(Fixture.configuredContext)
+                    RewriteRule.rewrite(RepairComponents.repairAll andThen RepairIdentities.repairAll, evaluated).run(evalCtxt)
                   case f: Failure =>
-                    f.extra.traced.trace
+                    throw new IllegalArgumentException(f.extra.traced.trace)
                 }
               }
             }
