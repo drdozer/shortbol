@@ -109,7 +109,6 @@ object RepairComponentDefinition {
         ref = PropertyValue.Reference(seqId) : PropertyValue
         newSeq = InstanceExp(seqId, nested)
         refWithSeq <- Rewritten(ref.set(newSeq::Nil))
-        _ = println(s"Writer.set for $refWithSeq")
       } yield refWithSeq
     }
   }

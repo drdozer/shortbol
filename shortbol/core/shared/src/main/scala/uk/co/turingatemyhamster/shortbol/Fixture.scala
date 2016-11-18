@@ -10,7 +10,7 @@ import shorthandAst.sugar._
 import ops.{Eval, EvalContext, RewriteRule, ShortbolParser}
 import ShortbolParser.POps
 import pragma._
-import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairIdentities}
+import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairModule, RepairIdentities}
 
 import scalaz.Scalaz._
 import scalaz._
@@ -42,7 +42,7 @@ object Fixture {
     """@prefix stdlib <https://raw.githubusercontent.com/drdozer/shortbolCommunity/master/>
       |""".stripMargin
 
-  lazy val fixup = RepairComponents.repairAll andThen RepairIdentities.repairAll
+  lazy val fixup = RepairComponents.repairAll andThen RepairModule.repairAll andThen RepairIdentities.repairAll
 
   lazy val doFixup = RewriteRule.rewrite(fixup, _: longhandAst.SBFile)
 

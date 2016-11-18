@@ -393,5 +393,85 @@ object LibsboljTestSuite extends TestSuite {
         }
       }
     }
+
+    'others - {
+      'subtlinReceiver - {
+        toLibSBOLj(
+          """@import stdlib:sbol
+            |
+            |@prefix test <http://me.name/test#>
+            |@prefix psimi <http://identifiers.org/psimi/MI:>
+            |@prefix ico2s <http://ico2s.org/subtlinExample#>
+            |@defaultPrefix ico2s
+            |
+            |Phosphorylation = <http://identifiers.org/biomodels.sbo/SBO:0000216>
+            |Acceptor   = <http://identifiers.org/psimi/MI:0843>
+            |Donor      = <http://identifiers.org/psimi/MI:0842>
+            |Modifier   = <http://identifiers.org/biomodels.sbo/SBO:0000019>
+            |Product    = <http://identifiers.org/biomodels.sbo/SBO:0000011>
+            |GeneticProduction   = <http://identifiers.org/biomodels.sbo/SBO:0000589>
+            |
+            |phosphorylates(sbj, obj) => sbol:Interaction
+            |  sbol:type = Phosphorylation
+            |  sbol:participation : sbol:Participation
+            |      sbol:participant = sbj
+            |      sbol:role = Donor
+            |  sbol:participation : sbol:Participation
+            |      sbol:participant = obj
+            |      sbol:role = Acceptor
+            |
+            |encodes(sbj, obj) => sbol:Interaction
+            |  sbol:type = GeneticProduction
+            |  sbol:participation : sbol:Participation
+            |      sbol:participant = sbj
+            |      sbol:role = Modifier
+            |  sbol:participation : sbol:Participation
+            |      sbol:participant = obj
+            |      sbol:role = Product
+            |
+            |SubtilinReceiver : DnaComponent
+            |    component= pspark
+            |    component = rbs1
+            |    component = rbs1
+            |    component = spaR
+            |    component = rb2
+            |    component = spaK
+            |    component = ter1
+            |    component = pspas
+            |    component = rbs3
+            |    component = gfp
+            |    component = ter2
+            |
+            |pspark : Promoter
+            |  displayId = "pspark"
+            |  name = "PspaRK"
+            |  description = "Constitutive promoter"
+            |
+            |rbs1 : RBS
+            |spaK : CDS
+            |rbs2 : RBS
+            |spaR : CDS
+            |ter1 : Terminator
+            |
+            |pspas : Promoter
+            |rbs3 : RBS
+            |gfp : CDS
+            |ter2 : Terminator
+            |
+            |SpaKP : ProteinComponent
+            |SpaRP : ProteinComponent
+            |GFPP : ProteinComponent
+            |
+            |Subtilin: SmallMoleculeComponent
+            |
+            |SubtilinReceiverModule : ModuleDefinition
+            |   interaction = SpaKP phosphorylates SpaRP
+            |   interaction = Subtilin phosphorylates SpaKP
+            |   interaction = spaK encodes SpaKP
+            |   interaction = spaR encodes SpaRP
+            |   interaction = gfp encodes GFPP""".stripMargin
+        )
+      }
+    }
   }
 }

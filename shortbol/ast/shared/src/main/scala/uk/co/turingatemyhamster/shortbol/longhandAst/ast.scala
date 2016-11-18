@@ -1,7 +1,6 @@
 package uk.co.turingatemyhamster.shortbol
 package longhandAst
 
-import monocle.Traversal
 import monocle.function.Each
 
 case class SBFile(tops: List[InstanceExp]) extends shorthandAst.AstNode

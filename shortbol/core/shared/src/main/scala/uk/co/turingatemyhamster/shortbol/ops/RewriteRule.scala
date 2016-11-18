@@ -58,6 +58,7 @@ trait RewriteRule[T] {
 object RewriteRule {
   implicit class Filtering[S, T](_l: Lens[S, T]) {
     def :==(t: T): RewriteAt[S, S] = RewriteAt.filterRewrite { (s: S) =>
+      println(s"Comparing ${_l.get(s)} to $t: ${_l.get(s) == t}")
       _l.get(s) == t
     }
   }
