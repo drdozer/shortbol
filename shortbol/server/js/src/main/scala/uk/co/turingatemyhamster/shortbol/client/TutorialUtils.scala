@@ -74,6 +74,7 @@ object TutorialUtils {
   def projectName(v: View*) = Container.Inline(v :_*).css("projectName")
   def code(v: View*) = Container.Inline(v :_*).css("code")
   def gene(v: View*) = Container.Inline(v :_*).css("gene")
+  def protein(v: View*) = Container.Inline(v :_*).css("protein")
   def defn(v: View*) = Container.Inline(v :_*).css("definition")
   def emph(v: View*) = Container.Inline(v :_*).css("emph")
 
@@ -84,6 +85,9 @@ object TutorialUtils {
   def TetR_gene = gene("TetR")
   def pTetR_gene = gene("pTetR")
   def LacI_gene = gene("LacI")
+
+  def TetR_protein = protein("TetR")
+  def LacI_protein = protein("LacI")
 
   def pTetR = code("pTetR")
   def pTetRSeq = code("pTetRSeq")
@@ -112,6 +116,7 @@ object TutorialUtils {
   def DnaComponent = code("DnaComponent")
   def ComponentDefinition = code("ComponentDefinition")
   def SequenceConstraint = code("SequenceConstraint")
+  def ModuleDefinition = code("ModuleDefinition")
 
   def Promoter = code("Promoter")
   def CDS = code("CDS")

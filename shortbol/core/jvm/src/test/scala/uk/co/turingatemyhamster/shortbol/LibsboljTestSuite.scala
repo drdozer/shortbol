@@ -392,6 +392,25 @@ object LibsboljTestSuite extends TestSuite {
           )
         }
       }
+
+      'modules - {
+        * - toLibSBOLj(
+          """@import stdlib:sbol
+            |@prefix tutorial <http://shortbol.ico2s.org/tutorial/modules/1#>
+            |@defaultPrefix tutorial
+            |
+            |# The TetR and LacI proteins
+            |TetR : ProteinComponent
+            |LacI : ProteinComponent
+            |
+            |# The TetR inverter
+            |TetR_inverter : ModuleDefinition
+            |  description = "TetR inverter."
+            |  functionalComponent = TetR
+            |  functionalComponent = LacI
+            |  """.stripMargin
+        )
+      }
     }
 
     'others - {

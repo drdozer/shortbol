@@ -28,6 +28,7 @@ import uk.co.turingatemyhamster.shortbol.shorthandAst.{Datatype, Literal, String
   */
 object RepairModule {
 
+  final private val displayId = "sbol" :# "displayId"
   private final val interaction = "sbol" :# "interaction"
   private final val participation = "sbol" :# "participation"
   private final val participant = "sbol" :# "participant"
@@ -98,18 +99,37 @@ object RepairModule {
       )
     } yield cmpt
 
-    println(s"Participants: $fromParticipants")
-    println(s"defs: $defs")
-    println(s"abouts: $abouts")
-    println(s"orphaned: $orphaned")
-    println(s"cmpts: $cmpts")
-
     if(cmpts.isEmpty) None else Some(cmpts ::: ps)
-  } log "componentsForRefs"
+  }
 
-  lazy val repairAtModuleDefinition = (componentsForRefs andThen repairParticipants) at
+  lazy val replaceComponentReferenceWithComponent = RewriteRule { (pv: PropertyValue) =>
+    for {
+      ref <- (asReference composeLens referenceValue) getOrModify pv
+    } yield {
+      val lnO = ref match {
+        case LocalName(ln) => Some(ln)
+        case QName(_, LocalName(ln)) => Some(ln)
+        case _ => None
+      }
+
+      PropertyValue.Nested(
+        ConstructorApp(
+          FunctionalComponent,
+          displayId := lnO map slLit,
+          access := access_public,
+          definition := ref,
+          direction := inout)) : PropertyValue
+    }
+  }
+
+  lazy val repairAtComponent = replaceComponentReferenceWithComponent at
+    value at
+    (property :== functionalComponent) at
+    allElements
+
+  lazy val repairAtModuleDefinition = (repairAtComponent andThen componentsForRefs andThen repairParticipants) at
     body log "body" at
-    ((cstr composeLens tpe) :== ModuleDefinition) log "repairAtModuleDefinition"
+    ((cstr composeLens tpe) :== ModuleDefinition)
 
   lazy val repairAll = repairAtModuleDefinition at
     cstrApp at
