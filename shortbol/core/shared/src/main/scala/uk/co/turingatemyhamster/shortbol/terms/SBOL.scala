@@ -33,5 +33,7 @@ object SBOL {
   val ComponentDefinition = sbol :# "ComponentDefinition"
   val Component           = sbol :# "Component"
   val SequenceConstraint  = sbol :# "SequenceConstraint"
+  val module              = sbol :# "module"
+  val Module              = sbol :# "Module"
 
 }

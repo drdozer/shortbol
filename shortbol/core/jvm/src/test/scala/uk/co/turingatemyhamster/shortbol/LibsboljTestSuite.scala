@@ -408,6 +408,20 @@ object LibsboljTestSuite extends TestSuite {
             |  description = "TetR inverter."
             |  functionalComponent = TetR
             |  functionalComponent = LacI
+            |  interaction = TetR represses LacI
+            |  """.stripMargin
+        )
+
+        * - toLibSBOLj(
+          """@import stdlib:sbol
+            |@prefix tutorial <http://shortbol.ico2s.org/tutorial/modules/1#>
+            |@defaultPrefix tutorial
+            |
+            |# The full toggle-switch
+            |ToggleSwitch : ModuleDefinition
+            |  description = "TetR/LacI toggle-switch."
+            |  module = TetR_inverter
+            |  module = LacI_inverter
             |  """.stripMargin
         )
       }

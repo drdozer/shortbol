@@ -25,7 +25,6 @@ import shorthandAst.{Datatype, Identifier, Literal, LocalName, QName, StringLite
 import terms.RDF
 import terms.SBOL._
 import terms.EDAM
-import terms.XSD
 
 object RepairComponents {
 

@@ -52,7 +52,7 @@ object Sandbox extends PageApplication {
     div().id("longbol").css("shortbol_ace"),
     h2("Fixed up"),
     div().id("fixedbol").css("shortbol_ace"),
-    h2("SBOl RDF"),
+    h2("SBOL XML/RDF"),
     div().id("xml-rdf").css("shortbol_ace"),
     h2("Log messages"),
     div(logMsgs map { m => div(m.pretty).css(m.level.pretty) }).id("log")

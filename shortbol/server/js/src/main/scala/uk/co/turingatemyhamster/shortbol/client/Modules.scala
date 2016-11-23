@@ -56,6 +56,7 @@ case class Modules() extends TutorialContent {
               |  description = "TetR inverter."
               |  functionalComponent = TetR
               |  functionalComponent = LacI
+              |  interaction : TetR represses LacI
             """.stripMargin
           )
     )

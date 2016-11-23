@@ -113,9 +113,39 @@ object RepairModule {
     (property :== functionalComponent) at
     allElements
 
-  lazy val repairAtModuleDefinition = (repairAtComponent andThen componentsForRefs andThen repairParticipants) at
-    body log "body" at
-    ((cstr composeLens tpe) :== ModuleDefinition)
+  lazy val replaceModuleReferenceWithModule = RewriteRule { (pv: PropertyValue) =>
+    for {
+      ref <- (asReference composeLens referenceValue) getOrModify pv
+    } yield {
+      val lnO = ref match {
+        case LocalName(ln) => Some(ln)
+        case QName(_, LocalName(ln)) => Some(ln)
+        case _ => None
+      }
+
+      PropertyValue.Nested(
+        Module(
+          displayId := lnO map slLit,
+          definition := ref
+        )
+      ) : PropertyValue
+    }
+  }
+
+  lazy val repairAtModule = replaceModuleReferenceWithModule at
+    value at
+    (property :== module) at
+    allElements
+
+  lazy val repairAtModuleDefinition =
+    (
+      repairAtComponent andThen
+        componentsForRefs andThen
+        repairParticipants andThen
+        repairAtModule
+      ) at
+      body at
+      ((cstr composeLens tpe) :== ModuleDefinition)
 
   lazy val repairAll = repairAtModuleDefinition at
     cstrApp at
