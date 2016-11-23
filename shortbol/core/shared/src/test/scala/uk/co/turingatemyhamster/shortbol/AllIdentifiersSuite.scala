@@ -17,10 +17,10 @@ object AllIdentifiersSuite extends TestSuite {
       * - {
         val f = parse(
           """@prefix foo <http://some.com/stuff#>
-            |foo:me : foaf:person""".stripMargin)
+            |foo:me : foaf:Person""".stripMargin)
         val is = AllIdentifiers[SBFile].apply(f)
         assert(is == List[Identifier](
-          "prefix", "foo", Url("http://some.com/stuff#"), ("foo":#"me"), ("foaf":#"person")))
+          "prefix", "foo", Url("http://some.com/stuff#"), ("foo":#"me"), ("foaf":#"Person")))
       }
 
       * - {

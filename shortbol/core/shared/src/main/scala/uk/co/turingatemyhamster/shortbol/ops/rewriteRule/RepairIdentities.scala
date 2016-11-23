@@ -3,10 +3,12 @@ package ops
 package rewriteRule
 
 import shorthandAst.sugar._
-import longhandAst.{ConstructorApp, InstanceExp, PropertyExp, SBFile}
+import longhandAst.{InstanceExp, PropertyExp, SBFile}
 import longhandAst.sugar._
 import RewriteAt.allElements
 import pragma.DefaultPrefixPragma
+import terms.RDF
+import terms.SBOL.displayId
 
 /**
   *
@@ -14,11 +16,9 @@ import pragma.DefaultPrefixPragma
   * @author Matthew Pocock
   */
 object RepairIdentities {
-  final private val displayId = "sbol" :# "displayId"
-  final private val rdf_about = "rdf" :# "about"
 
   final private val noDisplayId = (_: List[PropertyExp]).forall(_.property != displayId)
-  final private val noAbout = (_: List[PropertyExp]).forall(_.property != rdf_about)
+  final private val noAbout = (_: List[PropertyExp]).forall(_.property != RDF.about)
 
   import optics.longhand.InstanceExp._
   import optics.longhand.ConstructorApp._
@@ -46,13 +46,13 @@ object RepairIdentities {
           Some(shorthandAst.Url(s"$url/${s.asString}"))
       }
     } yield {
-      (rdf_about := about) ::: ps
+      (RDF.about := about) ::: ps
     }
   } at noAbout
 
   lazy val recurseOverBody: RewriteRule[List[PropertyExp]] = RewriteRule { (ps: List[PropertyExp]) =>
     for {
-      longhandAst.PropertyExp(_, longhandAst.PropertyValue.Reference(about)) <- ps find (_.property == rdf_about)
+      longhandAst.PropertyExp(_, longhandAst.PropertyValue.Reference(about)) <- ps find (_.property == RDF.about)
     } yield
       (bodyRequiresDisplayId andThen bodyRequiresAbout(about) andThen recurseOverBody) at
         body at
@@ -71,7 +71,7 @@ object RepairIdentities {
       for {
         id <- DefaultPrefixPragma.rewrite(ie.identifier)
       } yield {
-        val withAbout = (rdf_about := id) ::: bdy
+        val withAbout = (RDF.about := id) ::: bdy
         id match {
           case shorthandAst.LocalName(ln) =>
             (displayId := slLit(ln)) ::: withAbout
@@ -86,10 +86,10 @@ object RepairIdentities {
 
   lazy val instanceExpRequiresAbout: RewriteRule[InstanceExp] = RewriteRule { (ie: InstanceExp) =>
     (cstrApp composeLens body) modify
-      ((rdf_about := ie.identifier) ::: _) apply
+      ((RDF.about := ie.identifier) ::: _) apply
       ie
   } at { (ie: InstanceExp) =>
-    ie.cstrApp.body.collectFirst{ case PropertyExp(`rdf_about`, _) => () }.isEmpty
+    ie.cstrApp.body.collectFirst{ case PropertyExp(RDF.about, _) => () }.isEmpty
   }
 
   lazy val repairAll: RewriteRule[SBFile] = (

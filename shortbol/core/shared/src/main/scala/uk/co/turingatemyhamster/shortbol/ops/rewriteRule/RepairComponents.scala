@@ -19,9 +19,13 @@ import ol.PropertyValue._
 import ol.PropertyExp._
 import ol.PropertyValue.Nested.{value => nestedValue}
 import ol.PropertyValue.Reference.{value => referenceValue}
-import uk.co.turingatemyhamster.shortbol.longhandAst.{ConstructorApp, InstanceExp, PropertyExp, PropertyValue}
-import uk.co.turingatemyhamster.shortbol.pragma.DefaultPrefixPragma
-import uk.co.turingatemyhamster.shortbol.shorthandAst.{Datatype, Literal, StringLiteral, Identifier, QName, LocalName}
+import longhandAst.{InstanceExp, PropertyExp, PropertyValue}
+import pragma.DefaultPrefixPragma
+import shorthandAst.{Datatype, Identifier, Literal, LocalName, QName, StringLiteral}
+import terms.RDF
+import terms.SBOL._
+import terms.EDAM
+import terms.XSD
 
 object RepairComponents {
 
@@ -34,14 +38,8 @@ object RepairComponents {
 
 object RepairSequence {
 
-  final private val EdamFasta = "edam" :# "fasta"
-  final private val EdamGenbank = "edam" :# "genbank"
-  final private val XsdString = "xsd" :# "string"
-  final private val elements = "sbol" :# "elements"
-  final private val Sequence = "sbol" :# "Sequence"
-
   lazy val fastaToDNA = RewriteRule ({
-    case StringLiteral(style, Some(Datatype(EdamFasta)), _) =>
+    case StringLiteral(style, Some(Datatype(EDAM.fasta)), _) =>
       val s = style.asString
       val trimmed = if (s startsWith ">") {
         s.substring(s.indexOf('\n') + 1)
@@ -54,7 +52,7 @@ object RepairSequence {
   }: PartialFunction[Literal, Literal])
 
   lazy val genbankToDNA = RewriteRule ({
-    case StringLiteral(style, Some(Datatype(EdamGenbank)), _) =>
+    case StringLiteral(style, Some(Datatype(EDAM.genbank)), _) =>
       val s = style.asString
 
       StringLiteral(
@@ -80,21 +78,6 @@ object RepairSequence {
 }
 
 object RepairComponentDefinition {
-  final private val displayId = "sbol" :# "displayId"
-  final private val sequence = "sbol" :# "sequence"
-  final private val component = "sbol" :# "component"
-  final private val access = "sbol" :# "access"
-  final private val access_public = "sbol" :# "public"
-  final private val definition = "sbol" :# "definition"
-  final private val rdf_about = "rdf" :# "about"
-  final private val sequenceConstraint = "sbol" :# "sequenceConstraint"
-  final private val subject = "sbol" :# "subject"
-  final private val `object` = "sbol" :# "object"
-  final private val sequenceAnnotation = "sbol" :# "sequenceAnnotation"
-
-  final private val ComponentDefinition = "sbol" :# "ComponentDefinition"
-  final private val Component = "sbol" :# "Component"
-  final private val SequenceConstraint = "sbol" :# "SequenceConstraint"
 
   lazy val hoistNestedSequence = RewriteRule { (pv: PropertyValue) =>
     for {
@@ -117,7 +100,7 @@ object RepairComponentDefinition {
     val defToAbout = (for {
       cds <- ps collect { case PropertyExp(`component`, PropertyValue.Nested(ca)) => ca }
       defnt <- cds.body collect { case PropertyExp(`definition`, PropertyValue.Reference(r)) => r }
-      about <- cds.body collect { case PropertyExp(`rdf_about`, PropertyValue.Reference(r)) => r }
+      about <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
     } yield (defnt, about)).toMap
 
     val repairRef = RewriteRule { (ref: PropertyValue.Reference) =>
@@ -162,15 +145,14 @@ object RepairComponentDefinition {
 
     val abouts = for {
       cds <- ps collect { case PropertyExp(`component`, PropertyValue.Nested(ca)) => ca }
-      abs <- cds.body collect { case PropertyExp(`rdf_about`, PropertyValue.Reference(r)) => r }
+      abs <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
     } yield abs
 
     val orphaned = fromScs ++ fromSans -- defs -- abouts
 
     val cmpts = for {
       ref <- orphaned.to[List]
-      cmpt <- component := ConstructorApp(
-        Component,
+      cmpt <- component := Component(
         access := access_public,
         definition := ref
       )
@@ -195,8 +177,7 @@ object RepairComponentDefinition {
       }
       // fixme: pull out local name from ref, use as displayId if possible
       PropertyValue.Nested(
-        ConstructorApp(
-          Component,
+        Component(
           displayId := lnO map slLit,
           access := access_public,
           definition := ref)) : PropertyValue

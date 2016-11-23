@@ -9,6 +9,7 @@ import web._
 import shortbol.{shorthandAst => sa}
 import uk.co.turingatemyhamster.shortbol.longhandAst.SBFile
 import uk.co.turingatemyhamster.shortbol.shorthandAst.IntegerLiteral
+import terms.RDF.{about => rdf_about}
 
 /**
  * Created by nmrp3 on 23/09/15.
@@ -196,7 +197,4 @@ trait ExporterEnv[DT <: Datatree] {
           txts.mkString
       }
     }
-
-  import shorthandAst.sugar._
-  val rdf_about = "rdf" :# "about"
 }

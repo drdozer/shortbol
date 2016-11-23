@@ -19,34 +19,22 @@ import ol.PropertyValue._
 import ol.PropertyExp._
 import ol.PropertyValue.Nested.{value => nestedValue}
 import ol.PropertyValue.Reference.{value => referenceValue}
-import uk.co.turingatemyhamster.shortbol.longhandAst.{ConstructorApp, InstanceExp, PropertyExp, PropertyValue}
-import uk.co.turingatemyhamster.shortbol.pragma.DefaultPrefixPragma
-import uk.co.turingatemyhamster.shortbol.shorthandAst.{Datatype, Literal, StringLiteral, Identifier, QName, LocalName}
+import longhandAst.{ConstructorApp, InstanceExp, PropertyExp, PropertyValue}
+import pragma.DefaultPrefixPragma
+import shorthandAst.{Datatype, Identifier, Literal, LocalName, QName, StringLiteral}
+import terms.RDF
+import terms.SBOL._
 
 /**
   * Created by nmrp3 on 17/11/16.
   */
 object RepairModule {
 
-  final private val displayId = "sbol" :# "displayId"
-  private final val interaction = "sbol" :# "interaction"
-  private final val participation = "sbol" :# "participation"
-  private final val participant = "sbol" :# "participant"
-  private final val functionalComponent = "sbol" :# "functionalComponent"
-  private final val FunctionalComponent = "sbol" :# "FunctionalComponent"
-  final private val access = "sbol" :# "access"
-  final private val access_public = "sbol" :# "public"
-  private final val definition = "sbol" :# "definition"
-  private final val direction = "sbol" :# "direction"
-  private final val inout = "sbol" :# "inout"
-  private final val rdf_about = "rdf" :# "about"
-  private final val ModuleDefinition = "sbol" :# "ModuleDefinition"
-
   lazy val repairParticipants = RewriteRule { (ps: List[PropertyExp]) =>
     val defToAbout = (for {
       cds <- ps collect { case PropertyExp(`functionalComponent`, PropertyValue.Nested(ca)) => ca }
       defnt <- cds.body collect { case PropertyExp(`definition`, PropertyValue.Reference(r)) => r }
-      about <- cds.body collect { case PropertyExp(`rdf_about`, PropertyValue.Reference(r)) => r }
+      about <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
     } yield (defnt, about)).toMap
 
     RewriteRule { (ref: PropertyValue.Reference) =>
@@ -84,15 +72,14 @@ object RepairModule {
 
     val abouts = for {
       cds <- ps collect { case PropertyExp(`functionalComponent`, PropertyValue.Nested(ca)) => ca }
-      abs <- cds.body collect { case PropertyExp(`rdf_about`, PropertyValue.Reference(r)) => r }
+      abs <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
     } yield abs
 
     val orphaned = fromParticipants -- defs -- abouts
 
     val cmpts = for {
       ref <- orphaned.to[List]
-      cmpt <- functionalComponent := ConstructorApp(
-        FunctionalComponent,
+      cmpt <- functionalComponent := FunctionalComponent(
         access := access_public,
         definition := ref,
         direction := inout
@@ -113,8 +100,7 @@ object RepairModule {
       }
 
       PropertyValue.Nested(
-        ConstructorApp(
-          FunctionalComponent,
+        FunctionalComponent(
           displayId := lnO map slLit,
           access := access_public,
           definition := ref,

@@ -13,6 +13,7 @@ import shorthandAst.sugar._
 import pragma.{ImportPragma, Resolver}
 import ShortbolParser.POps
 import longhandAst.sugar._
+import uk.co.turingatemyhamster.shortbol.terms.FOAF
 
 
 /**
@@ -281,8 +282,7 @@ object EvalTestSuite extends TestSuite {
         val qnams = ctxt.qnams
         assert(qnams.nonEmpty)
         assert(qnams.get("name").nonEmpty)
-        val fName = "foaf" :# "name"
-        assert(qnams("name").contains(fName))
+        assert(qnams("name").contains(FOAF.Core.name))
 
         parse("""me : foaf:person
                   |  name = "matthew"""".stripMargin) in ctxt evaluatesTo
@@ -694,22 +694,21 @@ object EvalTestSuite extends TestSuite {
           ConstructorDef(
             "Foo",
             List("name", "age"),
-            ConstructorApp(TpeConstructor1("foaf" :# "Person", List()),
-              ("foaf" :# "name") := "name",
-              ("foaf" :# "age") := "age"
+            ConstructorApp(TpeConstructor1(FOAF.Core.Person, List()),
+              FOAF.Core.name := "name",
+              FOAF.Core.age := "age"
             )
           )
-        ) evaluatesTo longhandAst.ConstructorApp(
-          longhandAst.TpeConstructor("foaf" :# "Person"),
-            ("foaf" :# "name") := "matthew",
-            ("foaf" :# "age") := 40
+        ) evaluatesTo FOAF.Core.Person(
+            FOAF.Core.name := "matthew",
+            FOAF.Core.age := 40
         ) in Ø.withConstructors(
           ConstructorDef(
             "Foo",
             List("name", "age"),
-            ConstructorApp(TpeConstructor1("foaf" :# "Person", List()),
-              ("foaf" :# "name") := "name",
-              ("foaf" :# "age") := "age"
+            ConstructorApp(TpeConstructor1(FOAF.Core.Person, List()),
+              FOAF.Core.name := "name",
+              FOAF.Core.age := "age"
             )
           )
         )
@@ -718,40 +717,39 @@ object EvalTestSuite extends TestSuite {
       * - {
         ConstructorApp(
           TpeConstructor1("Foo", List("matthew", 40)),
-          ("foaf" :# "knows") := "caroline"
+          FOAF.Core.knows := "caroline"
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
             List("name", "a"),
             ConstructorApp(TpeConstructor1("Bar", List("a")),
-              ("foaf" :# "name") := "name"
+              FOAF.Core.name := "name"
             )
           ),
           ConstructorDef(
             "Bar",
             List("age"),
-            ConstructorApp(TpeConstructor1(("foaf" :# "Person"), List()),
-              ("foaf" :# "age") := "age"
+            ConstructorApp(TpeConstructor1(FOAF.Core.Person, List()),
+              FOAF.Core.age := "age"
             )
           )
-        ) evaluatesTo longhandAst.ConstructorApp(
-          "foaf" :# "Person",
-          ("foaf" :# "age") := 40,
-          ("foaf" :# "name") := "matthew",
-          ("foaf" :# "knows") := "caroline"
+        ) evaluatesTo FOAF.Core.Person(
+          FOAF.Core.age := 40,
+          FOAF.Core.name := "matthew",
+          FOAF.Core.knows := "caroline"
         ) in Ø.withConstructors (
           ConstructorDef(
             "Foo",
             List("name", "a"),
             ConstructorApp(TpeConstructor1(("Bar"), List("a")),
-              ("foaf" :# "name") := "name"
+              FOAF.Core.name := "name"
             )
           ),
           ConstructorDef(
             "Bar",
             List("age"),
-            ConstructorApp(TpeConstructor1(("foaf" :# "Person"), List()),
-              ("foaf" :# "age") := "age"
+            ConstructorApp(TpeConstructor1(FOAF.Core.Person, List()),
+              FOAF.Core.age := "age"
             )
           )
         )
