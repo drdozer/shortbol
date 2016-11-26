@@ -8,15 +8,13 @@ import monocle._
 import Monocle._
 import shorthandAst.sugar._
 import longhandAst.sugar._
-import RewriteRule.{Filtering, Rewritten}
-import RewriteAt.allElements
+import RewriteRule.{ofType, Rewritten, allElements, *}
 import optics.{longhand => ol}
 import ol.SBFile._
 import ol.InstanceExp._
 import ol.ConstructorApp._
 import ol.TpeConstructor._
 import ol.PropertyValue._
-import ol.PropertyExp._
 import ol.PropertyValue.Nested.{value => nestedValue}
 import ol.PropertyValue.Reference.{value => referenceValue}
 import longhandAst.{InstanceExp, PropertyExp, PropertyValue}
@@ -25,6 +23,7 @@ import shorthandAst.{Datatype, Identifier, Literal, LocalName, QName, StringLite
 import terms.RDF
 import terms.SBOL._
 import terms.EDAM
+import PropertyStep.PropertyStepOps
 
 object RepairComponents {
 
@@ -62,18 +61,9 @@ object RepairSequence {
 
   lazy val repairToDNA = fastaToDNA or genbankToDNA
 
-  lazy val repairAtElement = repairToDNA at
-    ol.PropertyValue.Literal.value at
-    asLiteral at
-    value at
-    (property :== elements)
-
-  lazy val repairAtConstructorApp = repairAtElement at
-    allElements at
-    body
-
-  lazy val repairAtSequence = repairAtConstructorApp at
-    ((cstr composeLens tpe) :== Sequence)
+  lazy val repairAtSequence = repairToDNA at
+    elements at
+    ofType(Sequence)
 }
 
 object RepairComponentDefinition {
@@ -93,7 +83,7 @@ object RepairComponentDefinition {
         refWithSeq <- Rewritten(ref.set(newSeq::Nil))
       } yield refWithSeq
     }
-  }
+  } at sequence
 
   lazy val repairConstraints = RewriteRule { (ps: List[PropertyExp]) =>
     val defToAbout = (for {
@@ -102,68 +92,20 @@ object RepairComponentDefinition {
       about <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
     } yield (defnt, about)).toMap
 
-    val repairRef = RewriteRule { (ref: PropertyValue.Reference) =>
+    RewriteRule { (ref: PropertyValue.Reference) =>
       defToAbout get ref.value map PropertyValue.Reference
-    } at asReference at
-      value at
-      allElements at
-      body at
-      nestedValue at
-      asNested at
-      value
-
-    val repairSeqCons = repairRef at
-      (property :== sequenceConstraint)
-
-    val repairSeqAnn = repairRef at
-      (property :== sequenceAnnotation)
-
-    (repairSeqCons andThen repairSeqAnn) at allElements
+    } at ((sequenceConstraint, sequenceAnnotation) --> *)
   }
 
-  lazy val componentsForRefs = RewriteRule { (ps: List[PropertyExp]) =>
-    val fromScs = (for {
-      scs <- ps collect { case PropertyExp(`sequenceConstraint`, PropertyValue.Nested(sc)) => sc }
-      ref <- scs.body.collect {
-        case PropertyExp(`subject`, PropertyValue.Reference(r)) => r
-        case PropertyExp(`object`, PropertyValue.Reference(r)) => r
-      }
-    } yield ref).to[Set]
-
-    val fromSans = (for {
-      scs <- ps collect { case PropertyExp(`sequenceAnnotation`, PropertyValue.Nested(sc)) => sc }
-      ref <- scs.body.collect {
-        case PropertyExp(`component`, PropertyValue.Reference(r)) => r
-      }
-    } yield ref).to[Set]
-
-    val defs = for {
-      cds <- ps collect { case PropertyExp(`component`, PropertyValue.Nested(ca)) => ca }
-      defnt <- cds.body collect { case PropertyExp(`definition`, PropertyValue.Reference(r)) => r }
-    } yield defnt
-
-    val abouts = for {
-      cds <- ps collect { case PropertyExp(`component`, PropertyValue.Nested(ca)) => ca }
-      abs <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
-    } yield abs
-
-    val orphaned = fromScs ++ fromSans -- defs -- abouts
-
-    val cmpts = for {
-      ref <- orphaned.to[List]
-      cmpt <- component := Component(
-        access := access_public,
-        definition := ref
-      )
-    } yield cmpt
-
-    if(cmpts.isEmpty) None else Some(cmpts ::: ps)
-  }
-
-
-  lazy val repairAtSequence = hoistNestedSequence at
-    value at
-    (property :== sequence)
+  lazy val componentsForRefs = RepairOps build { (ref: Identifier) =>
+    component := Component(
+      access := access_public,
+      definition := ref
+    )
+  } from
+    (sequenceConstraint --> (subject, `object`),
+      sequenceAnnotation --> component) excluding
+    (component --> (definition, RDF.about))
 
   lazy val replaceComponentReferenceWithComponent = RewriteRule { (pv: PropertyValue) =>
     for {
@@ -184,15 +126,12 @@ object RepairComponentDefinition {
   }
 
   lazy val repairAtComponent = replaceComponentReferenceWithComponent at
-    value at
-    (property :== component)
+    component
 
-  lazy val repairSequenceAndComponent = (repairAtSequence or repairAtComponent) at
-      allElements
-
-  lazy val repairAtConstructorApp = (repairSequenceAndComponent andThen repairConstraints andThen componentsForRefs) at
-    body
-
-  lazy val repairAtComponentDefinition = repairAtConstructorApp at
-    ((cstr composeLens tpe) :== ComponentDefinition)
+  lazy val repairAtComponentDefinition = (
+    hoistNestedSequence andThen
+      repairAtComponent andThen
+      repairConstraints andThen
+      componentsForRefs) at
+    ofType(ComponentDefinition)
 }

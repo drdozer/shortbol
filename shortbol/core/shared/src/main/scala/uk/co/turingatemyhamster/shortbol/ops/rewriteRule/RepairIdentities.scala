@@ -5,7 +5,7 @@ package rewriteRule
 import shorthandAst.sugar._
 import longhandAst.{InstanceExp, PropertyExp, SBFile}
 import longhandAst.sugar._
-import RewriteAt.allElements
+import RewriteRule.allElements
 import pragma.DefaultPrefixPragma
 import terms.RDF
 import terms.SBOL.displayId

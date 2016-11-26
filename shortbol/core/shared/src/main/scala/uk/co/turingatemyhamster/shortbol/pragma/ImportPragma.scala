@@ -63,9 +63,8 @@ trait Resolver {
 }
 
 object Resolver {
-  def fromValues(vs: (Identifier, shorthandAst.SBFile)*): Resolver = new Resolver {
-    val id2F = Map(vs :_*)
 
+  case class MapResolver(id2F: Map[Identifier, shorthandAst.SBFile]) extends Resolver {
     override def resolve(id: Identifier): EvalState[Throwable \/ SBFile] =
       id2F get id match {
         case Some(f) =>
@@ -75,6 +74,8 @@ object Resolver {
         case None => (new NoSuchElementException(s"Unable to resolve shortbol for $id") : Throwable).left.point[EvalState]
       }
   }
+
+  def fromValues(vs: (Identifier, shorthandAst.SBFile)*): Resolver = MapResolver(Map(vs :_*))
 
   def fromWeb: Resolver = new Resolver {
     override def resolve(id: Identifier): EvalState[Throwable \/ SBFile] = id.eval flatMap {
@@ -115,5 +116,20 @@ object Resolver {
 
     def relativeUrl(b: Option[Url], l: Url): Url = b map { bu =>
       Url(bu.url.substring(0, bu.url.lastIndexOf("/")) ++ "/" ++ l.url) } getOrElse l
+  }
+
+  def cache(r: Resolver) = new Resolver {
+    private var csh = Map.empty[Identifier, EvalState[Throwable \/ SBFile]]
+
+    def clear() = csh = Map.empty
+
+    override def resolve(id: Identifier): EvalState[Throwable \/ SBFile] = csh get id match {
+      case Some(f) =>
+        f
+      case None =>
+        val f = r.resolve(id)
+        csh = csh + (id -> f)
+        f
+    }
   }
 }
