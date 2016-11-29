@@ -74,9 +74,12 @@ case class AceEditor(src: String*) extends Widget[AceEditor] {
     lazy val checker = lastSuccess.map { s =>
       (s.tops collect {
         case TopLevel.InstanceExp(i@InstanceExp(id, _)) if id == instId =>
+          println(s"Got an instance with matching ID $id == $instId")
           i.cstrApp.body
       }).flatten exists {
         case BodyStmt.PropertyExp(PropertyExp(p, v)) =>
+          println(s"Comparing: $p == ${pe.property} ~> ${p == pe.property}")
+          println(s"Comparing: $v == ${pe.value} ~> ${v == pe.value}")
           p == pe.property && v == pe.value
         case _ =>
           false

@@ -11,11 +11,6 @@ case class InstanceExp(identifier: shorthandAst.Identifier,
 case class ConstructorApp(cstr: TpeConstructor,
                           body: List[PropertyExp]) extends shorthandAst.AstNode
 
-object ConstructorApp {
-  def apply[T](cstr: T, props: List[PropertyExp]*)(implicit eT: T => TpeConstructor): ConstructorApp =
-    new ConstructorApp(cstr, props.to[List].flatten) // new keyword required to force the case-class constructor
-}
-
 sealed trait PropertyValue
 
 object PropertyValue {
@@ -31,6 +26,11 @@ case class TpeConstructor(tpe: shorthandAst.Identifier) extends shorthandAst.Ast
 object sugar {
   import scala.language.implicitConversions
   import shorthandAst.sugar.IvPair
+
+  implicit class ConstructorAppSugar[T](val _cstr: T) {
+    def apply(props: List[PropertyExp]*)(implicit eT: T => TpeConstructor): ConstructorApp =
+      ConstructorApp(_cstr, props.to[List].flatten)
+  }
 
   implicit def l_idToTpe[I](i: I)(implicit e: I => shorthandAst.Identifier): TpeConstructor =
     TpeConstructor(i)

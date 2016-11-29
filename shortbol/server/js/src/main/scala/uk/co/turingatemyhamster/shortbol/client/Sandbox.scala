@@ -52,7 +52,7 @@ object Sandbox extends PageApplication {
     div().id("longbol").css("shortbol_ace"),
     h2("Fixed up"),
     div().id("fixedbol").css("shortbol_ace"),
-    h2("SBOl RDF"),
+    h2("SBOL XML/RDF"),
     div().id("xml-rdf").css("shortbol_ace"),
     h2("Log messages"),
     div(logMsgs map { m => div(m.pretty).css(m.level.pretty) }).id("log")
@@ -112,17 +112,18 @@ object Sandbox extends PageApplication {
 
           fixedbol.getSession().setValue(stringify(v2).toString)
 
-//          println("Exporting to datatree")
+
+          logMsgs.clear()
+          logMsgs ++= c2.logms
+
+          //          println("Exporting to datatree")
           val doc = Exporter[AstDatatree](c2).apply(v2)
-//          println("Exporting to xml-rdf")
+          //          println("Exporting to xml-rdf")
           val rdfIo = RdfIo.rdfIo[AstDatatree]
           val xml = RdfIo.write[AstDatatree](doc)
           val xmlText = xml.render(2)
 
           xmlRdf.getSession().setValue(xmlText)
-
-          logMsgs.clear()
-          logMsgs ++= c2.logms
       }
     }
   }

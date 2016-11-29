@@ -7,7 +7,7 @@ import uk.co.turingatemyhamster.shortbol.longhandAst.PropertyExp
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairSequence}
 import utest._
-import RewriteRule.Filtering
+import RewriteRule.FilteringOps
 
 import scalaz.{-\/, Scalaz, \/, \/-}
 import Scalaz._
@@ -158,7 +158,7 @@ object RewriteRuleTestSuite extends TestSuite {
           optics.longhand.PropertyExp.value
         val fogAtPropertyExp = fogAtPE at
           (optics.longhand.PropertyExp.property :== "elements")
-        val fogAtElements = fogAtPropertyExp at RewriteAt.allElements
+        val fogAtElements = fogAtPropertyExp at RewriteRule.allElements
 
         'propertyValue_Literal - {
           val c = fogAtPVL(longhandAst.PropertyValue.Literal(fastaString))
