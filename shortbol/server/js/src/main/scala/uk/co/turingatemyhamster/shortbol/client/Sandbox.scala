@@ -112,17 +112,18 @@ object Sandbox extends PageApplication {
 
           fixedbol.getSession().setValue(stringify(v2).toString)
 
-//          println("Exporting to datatree")
+
+          logMsgs.clear()
+          logMsgs ++= c2.logms
+
+          //          println("Exporting to datatree")
           val doc = Exporter[AstDatatree](c2).apply(v2)
-//          println("Exporting to xml-rdf")
+          //          println("Exporting to xml-rdf")
           val rdfIo = RdfIo.rdfIo[AstDatatree]
           val xml = RdfIo.write[AstDatatree](doc)
           val xmlText = xml.render(2)
 
           xmlRdf.getSession().setValue(xmlText)
-
-          logMsgs.clear()
-          logMsgs ++= c2.logms
       }
     }
   }

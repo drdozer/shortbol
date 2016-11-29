@@ -20,6 +20,10 @@ import PropertyStep.PropertyStepOps
   */
 object RepairModule {
 
+  lazy val repairMapsTo = RewriteRule { (ps: List[PropertyExp]) =>
+    val
+  }
+
   lazy val repairParticipants = RewriteRule { (ps: List[PropertyExp]) =>
     val defToAbout = (for {
       cds <- ps collect { case PropertyExp(`functionalComponent`, PropertyValue.Nested(ca)) => ca }

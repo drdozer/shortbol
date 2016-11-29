@@ -107,16 +107,21 @@ object TutorialUtils {
   def at = code("at")
   def inline = code("inline")
   def reverseComplement = code("reverseComplement")
+  def functionalComponent = code("functionalComponent")
+  def mapsTo = code("mapsTo")
+  def definition = code("definition")
 
   def precedes = code("precedes")
   def sameOrientationAs = code("sameOrientationAs")
   def differentOrientationAs = code("differentOrientationAs")
+  def represses = code("represses")
 
   def DnaSequence = code("DnaSequence")
   def DnaComponent = code("DnaComponent")
   def ComponentDefinition = code("ComponentDefinition")
   def SequenceConstraint = code("SequenceConstraint")
   def ModuleDefinition = code("ModuleDefinition")
+  def Module = code("Module")
 
   def Promoter = code("Promoter")
   def CDS = code("CDS")
