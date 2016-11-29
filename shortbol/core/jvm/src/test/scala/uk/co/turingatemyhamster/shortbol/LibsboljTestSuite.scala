@@ -408,6 +408,7 @@ object LibsboljTestSuite extends TestSuite {
             |  description = "TetR inverter."
             |  functionalComponent = TetR
             |  functionalComponent = LacI
+            |  interaction = TetR represses LacI
             |  """.stripMargin
         )
       }

@@ -41,23 +41,25 @@ case class Modules() extends TutorialContent {
            $LacI_protein.
           To capture this, we first need to create a module, and add components for $TetR_protein and $LacI_protein to
            it.
+           Then we add an interaction to say that $TetR_protein represses $LacI_protein.
           """),
       aceExample(
-            """@import stdlib:sbol
-              |@prefix tutorial <http://shortbol.ico2s.org/tutorial/modules/1#>
-              |@defaultPrefix tutorial
-              |
-              |# The TetR and LacI proteins
-              |TetR : ProteinComponent
-              |LacI : ProteinComponent
-              |
-              |# The TetR inverter
-              |TetR_inverter : ModuleDefinition
-              |  description = "TetR inverter."
-              |  functionalComponent = TetR
-              |  functionalComponent = LacI
-            """.stripMargin
-          )
+        """@import stdlib:sbol
+          |@prefix tutorial <http://shortbol.ico2s.org/tutorial/modules/1#>
+          |@defaultPrefix tutorial
+          |
+          |# The TetR and LacI proteins
+          |TetR : ProteinComponent
+          |LacI : ProteinComponent
+          |
+          |# The TetR inverter
+          |TetR_inverter : ModuleDefinition
+          |  description = "TetR inverter."
+          |  functionalComponent = TetR
+          |  functionalComponent = LacI
+          |  interaction = TetR represses LacI
+        """.stripMargin
+      )
     )
   )
 }
