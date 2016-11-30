@@ -28,6 +28,11 @@ object RepairOps {
     }
   }
 
+  def deReference[T](t: T)(implicit tp: ReferencePath[T]) = new {
+    def in(pes: List[PropertyExp]): List[Identifier] = pes flatMap in
+    def in(pe: PropertyExp): List[Identifier] = tp(t, pe)
+  }
+
   def build[PE](builder: Identifier => List[PE])(implicit pe: PE => PropertyExp): FromBuilder = new FromBuilder {
     override def from[F](f: F)(implicit ppF: ReferencePath[F]) = new ExcludingBuilder {
       override def excluding[E](e: E)(implicit ppE: ReferencePath[E]) = RewriteRule { (ps: List[PropertyExp]) =>

@@ -4,7 +4,7 @@ package ops
 import scalaz.Scalaz._
 import scalaz._
 import monocle.{Lens, Prism}
-import RewriteRule.{FilteringEq, MaybeRewritten, Rewritten}
+import RewriteRule.{FilteringEq, Logging, MaybeRewritten, Rewritten}
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 import uk.co.turingatemyhamster.shortbol.shorthandAst.{Identifier, Literal}
 
@@ -62,6 +62,12 @@ object RewriteRule {
   }
 
   case class FilteringEq[S, T](l: Lens[S, T], t: T)
+
+  implicit class LoggingOps[T](_t: T) {
+    def log(msg: String): Logging[T] = Logging(msg, _t)
+  }
+
+  case class Logging[T](msg: String, t: T)
 
   def ofType[I](i: I) = OfType(i)
 
@@ -173,6 +179,12 @@ trait RewriteAt[U, T] {
 }
 
 object RewriteAtBuilder {
+
+  implicit def rewriteAtLog[AT, S, T](rab: RewriteAtBuilder[AT, S, T]): RewriteAtBuilder[RewriteRule.Logging[AT], S, T] = new RewriteAtBuilder[Logging[AT], S, T] {
+    override def apply(at: Logging[AT]) = new RewriteAt[S, T] {
+      override def apply(rr: RewriteRule[T]) = rab(at.t)(rr).log(at.msg)
+    }
+  }
 
   implicit def rewriteAtLens[S, T]: RewriteAtBuilder[Lens[S, T], S, T] = new RewriteAtBuilder[Lens[S, T], S, T] {
     override def apply(at: Lens[S, T]) = new RewriteAt[S, T] {

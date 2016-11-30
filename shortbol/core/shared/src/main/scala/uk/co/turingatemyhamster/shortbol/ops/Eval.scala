@@ -567,6 +567,9 @@ object Eval {
   def cstr(id: sAst.Identifier): State[EvalContext, Option[sAst.ConstructorDef]] =
     gets ((_: EvalContext).resolveCstr(id))
 
+  def inst(id: sAst.Identifier): State[EvalContext, Option[lAst.InstanceExp]] =
+    gets ((_: EvalContext).resolveInst(id))
+
   def resolveBinding(id: sAst.Identifier): State[EvalContext, Option[sAst.ValueExp]] =
     gets ((_: EvalContext).resolveValue(id))
 

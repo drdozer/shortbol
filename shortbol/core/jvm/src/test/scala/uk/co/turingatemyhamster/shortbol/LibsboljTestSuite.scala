@@ -430,11 +430,48 @@ object LibsboljTestSuite extends TestSuite {
             |  """.stripMargin
         )
 
-
         * - toLibSBOLj(
           """@import stdlib:sbol
             |@prefix tutorial <http://shortbol.ico2s.org/tutorial/modules/4#>
             |@defaultPrefix tutorial
+            |
+            |ToggleSwitch : ModuleDefinition
+            |  description = "LacI/TetR toggle switch"
+            |  functionalComponent = OurLacI
+            |  functionalComponent = OurTetR
+            |  module : Module
+            |    definition = TetR_Inverter
+            |    mapsTo = OurLacI mergedWith LacI
+            |    mapsTo = OurTetR mergedWith TetR
+            |  module : Module
+            |    definition = LacI_Inverter
+            |    mapsTo = OurLacI mergedWith LacI
+            |    mapsTo = OurTetR mergedWith TetR
+            |    """.stripMargin
+        )
+
+        * - toLibSBOLj(
+          """@import stdlib:sbol
+            |@prefix tutorial <http://shortbol.ico2s.org/tutorial/modules/4-complete#>
+            |@defaultPrefix tutorial
+            |
+            |# The TetR and LacI proteins
+            |TetR : ProteinComponent
+            |LacI : ProteinComponent
+            |
+            |# The TetR inverter
+            |TetR_inverter : ModuleDefinition
+            |  description = "TetR inverter"
+            |  functionalComponent = TetR
+            |  functionalComponent = LacI
+            |  interaction = TetR represses LacI
+            |
+            |# The LacI inverter
+            |LacI_inverter : ModuleDefinition
+            |  description = "LacI inverter"
+            |  functionalComponent = TetR
+            |  functionalComponent = LacI
+            |  interaction = LacI represses TetR
             |
             |ToggleSwitch : ModuleDefinition
             |  description = "LacI/TetR toggle switch"

@@ -2,6 +2,8 @@ package uk.co.turingatemyhamster.shortbol
 package ops
 package rewriteRule
 
+import scalaz._
+import Scalaz._
 import monocle.Monocle._
 import shorthandAst.sugar._
 import longhandAst.sugar._
@@ -20,21 +22,42 @@ import PropertyStep.PropertyStepOps
   */
 object RepairModule {
 
-  lazy val repairMapsTo = RewriteRule { (ps: List[PropertyExp]) =>
-    val
-  }
+  private def defToAbout(ps: List[PropertyExp]): Map[Identifier, Identifier] = (for {
+    cds <- ps collect { case PropertyExp(`functionalComponent`, PropertyValue.Nested(ca)) => ca }
+    defnt <- cds.body collect { case PropertyExp(`definition`, PropertyValue.Reference(r)) => r }
+    about <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
+  } yield (defnt, about)).toMap
 
-  lazy val repairParticipants = RewriteRule { (ps: List[PropertyExp]) =>
-    val defToAbout = (for {
-      cds <- ps collect { case PropertyExp(`functionalComponent`, PropertyValue.Nested(ca)) => ca }
-      defnt <- cds.body collect { case PropertyExp(`definition`, PropertyValue.Reference(r)) => r }
-      about <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
-    } yield (defnt, about)).toMap
+  lazy val repairParticipantsAndMapsToLocal = RewriteRule { (ps: List[PropertyExp]) =>
+    val d2a = defToAbout(ps)
 
     RewriteRule { (ref: PropertyValue.Reference) =>
-      defToAbout get ref.value map PropertyValue.Reference
-    } at (interaction --> participation --> participant)
+      d2a get ref.value map PropertyValue.Reference
+    } at (
+      interaction --> participation --> participant,
+      module --> mapsTo --> local
+    )
   }
+
+  // @ module: Module
+  //
+  // Follow `definition` to an instance of ModuleDefinition.
+  // @ mapsTo
+  // find
+  lazy val repairMapsToRemote = RewriteRule { (ps: List[PropertyExp]) =>
+    for {
+      remoteRef <- (RepairOps deReference definition in ps).point[Eval.EvalState]
+      remoteModuleDefinitions <- remoteRef.traverseU(r => Eval.inst(r).map(_.to[List]))
+    } yield {
+      val d2a = remoteModuleDefinitions.flatten.map(i => defToAbout(i.cstrApp.body)).reduce(_ ++ _)
+
+      RewriteRule { (ref: PropertyValue.Reference) =>
+        d2a get ref.value map PropertyValue.Reference
+      } at (
+        mapsTo --> remote
+      )
+    }
+  } at module
 
 
   lazy val componentsForRefs = RepairOps build { (ref: Identifier) =>
@@ -78,7 +101,7 @@ object RepairModule {
     (
       repairAtComponent andThen
         componentsForRefs andThen
-        repairParticipants andThen
+        repairParticipantsAndMapsToLocal andThen
         repairAtModule
       ) at
       ofType(ModuleDefinition)

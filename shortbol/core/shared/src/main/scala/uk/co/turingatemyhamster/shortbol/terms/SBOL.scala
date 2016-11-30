@@ -35,5 +35,9 @@ object SBOL {
   val SequenceConstraint  = sbol :# "SequenceConstraint"
   val module              = sbol :# "module"
   val Module              = sbol :# "Module"
+  val MapsTo              = sbol :# "MapsTo"
+  val mapsTo              = sbol :# "mapsTo"
+  val local               = sbol :# "local"
+  val remote              = sbol :# "remote"
 
 }
