@@ -8,7 +8,7 @@ import monocle._
 import Monocle._
 import shorthandAst.sugar._
 import longhandAst.sugar._
-import RewriteRule.{ofType, Rewritten, allElements, *}
+import RewriteRule.{*, Rewritten, allElements, ofType}
 import optics.{longhand => ol}
 import ol.SBFile._
 import ol.InstanceExp._
@@ -24,6 +24,7 @@ import terms.RDF
 import terms.SBOL._
 import terms.EDAM
 import PropertyStep.PropertyStepOps
+import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 
 object RepairComponents {
 
@@ -69,20 +70,15 @@ object RepairSequence {
 object RepairComponentDefinition {
 
   lazy val hoistNestedSequence = RewriteRule { (pv: PropertyValue) =>
-    for {
-      nested <- (asNested composeLens nestedValue) getOrModify pv
-    } yield {
-      val refForNested = for {
+    (asNested composeLens nestedValue) getOrModify pv fold (
+      _ => pv.left[Rewritten[PropertyValue]].point[EvalState],
+      nested => for {
         nextId <- Eval.nextIdentifier
         seqId <- DefaultPrefixPragma.rewrite(nextId)
-      } yield seqId
-      for {
-        seqId <- refForNested.lift : RewriteRule.Rewritten[Identifier]
         ref = PropertyValue.Reference(seqId) : PropertyValue
         newSeq = InstanceExp(seqId, nested)
-        refWithSeq <- Rewritten(ref.set(newSeq::Nil))
-      } yield refWithSeq
-    }
+      } yield ref.set(newSeq::Nil).right[PropertyValue]
+    )
   } at sequence
 
   lazy val repairConstraints = RewriteRule { (ps: List[PropertyExp]) =>

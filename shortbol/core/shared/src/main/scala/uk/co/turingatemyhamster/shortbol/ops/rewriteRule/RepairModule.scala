@@ -102,6 +102,7 @@ object RepairModule {
       repairAtComponent andThen
         componentsForRefs andThen
         repairParticipantsAndMapsToLocal andThen
+        repairMapsToRemote andThen
         repairAtModule
       ) at
       ofType(ModuleDefinition)

@@ -166,4 +166,9 @@ object sugar {
     def :# (ln: LocalName)(implicit ne: N => NSPrefix): QName = QName(_pfx, ln)
   }
 
+  def toLonghand(pv: PropertyValue): longhandAst.PropertyValue = pv match {
+    case PropertyValue.Literal(lit) => longhandAst.PropertyValue.Literal(lit)
+    case PropertyValue.Reference(ref) => longhandAst.PropertyValue.Reference(ref)
+    case PropertyValue.Nested(nest) => ??? /* longhandAst.PropertyValue.Nested(toLonghand(nest)) */
+  }
 }

@@ -7,7 +7,7 @@ import uk.co.turingatemyhamster.shortbol.longhandAst.PropertyExp
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairSequence}
 import utest._
-import RewriteRule.FilteringOps
+import RewriteRule.{FilteringOps, Rewritten}
 
 import scalaz.{-\/, Scalaz, \/, \/-}
 import Scalaz._
@@ -23,59 +23,74 @@ object RewriteRuleTestSuite extends TestSuite {
   def rewrittenToPropertyExp(observed: RewriteRule.MaybeRewritten[longhandAst.PropertyExp], expectedProperty: Identifier, expectedValue: StringLiteral) = new {
     def producing(expInstances: List[longhandAst.InstanceExp]) = new {
       def in (c: EvalContext) = {
-        observed match {
+        observed.eval(c) match {
           case \/-(pvExp) =>
-            val (newInstances, v) = (pvExp eval c).run
+            val (newInstances, v) = pvExp.run
             v match {
-              case longhandAst.PropertyExp(pid, _) =>
+              case longhandAst.PropertyExp(pid, v) =>
                 assert(pid == expectedProperty, expInstances == newInstances)
+                rewrittenToPropertyValue(v.point[Rewritten].right[longhandAst.PropertyValue].point[EvalState], expectedValue) in c
             }
         }
-        rewrittenToPropertyValue(observed.bimap(_ => ???, _ map (_.value)), expectedValue) in c
       }
     }
 
     def in (c: EvalContext) = producing(Nil) in c
   }
 
-  def rewrittenToPropertyValue(observed: RewriteRule.MaybeRewritten[longhandAst.PropertyValue], expected: StringLiteral) =
-    rewrittenToPropertyValueLiteral(observed.bimap(_ => ???, _ map (_.asInstanceOf[longhandAst.PropertyValue.Literal])), expected)
+  def rewrittenToPropertyValue(observed: RewriteRule.MaybeRewritten[longhandAst.PropertyValue], expected: StringLiteral) = new {
+    def in (c: EvalContext) =
+      observed.eval(c) match {
+        case \/-(r) =>
+          val (newInds, v) = r.run
+          rewrittenToPropertyValueLiteral(v.asInstanceOf[longhandAst.PropertyValue.Literal].point[Rewritten].right[longhandAst.PropertyValue.Literal].point[EvalState], expected) in c
+      }
+  }
 
-  def rewrittenToPropertyValueLiteral(observed: RewriteRule.MaybeRewritten[longhandAst.PropertyValue.Literal], expected: StringLiteral) =
-    rewrittenToLiteral(observed.bimap(_.value, _ map (_.value)), expected)
+  def rewrittenToPropertyValueLiteral(observed: RewriteRule.MaybeRewritten[longhandAst.PropertyValue.Literal], expected: StringLiteral) = new {
+    def in (c: EvalContext) = observed.eval(c) match {
+      case \/-(r) =>
+        val (newInds, v) = r.run
+        rewrittenToLiteral(v.value.point[Rewritten].right[Literal].point[EvalState], expected) in c
+    }
+  }
 
   def rewrittenToLiteral(observed: RewriteRule.MaybeRewritten[Literal], expected: StringLiteral) = new {
     def in (c: EvalContext) =
-      observed.foreach { o =>
-        val (newInds, v) = (o eval c).run
-        v match {
-          case StringLiteral(s, _, _) =>
-            assert(s.asString == expected.style.asString)
-        }
+      observed.eval(c) match {
+        case \/-(r) =>
+          val (newInds, v) = r.run
+          v match {
+            case StringLiteral(s, _, _) =>
+              assert(s.asString == expected.style.asString)
+          }
       }
   }
 
 
-  def notRewritten[T](observed: RewriteRule.MaybeRewritten[T]) =
-    assert(observed.isLeft)
+  def notRewritten[T](observed: RewriteRule.MaybeRewritten[T]) = new {
+    def in (c: EvalContext) = observed.eval(c) match {
+      case -\/(_) =>
+      case \/-(_) =>
+        assert(false)
+    }
+  }
 
-  def notRewritten[T](observed: RewriteRule.MaybeRewritten[T], expected: T) = {
-    assert(observed.isLeft)
-    observed match {
+  def notRewritten[T](observed: RewriteRule.MaybeRewritten[T], expected: T) = new {
+    def in (c: EvalContext) = observed.eval(c) match {
       case -\/(value) =>
         assert(value == expected)
+      case \/-(_) =>
+        assert(false)
     }
   }
 
 
   def rewrittenTo[T](r: RewriteRule.MaybeRewritten[T], expected: T, expectedExtras: List[longhandAst.InstanceExp] = Nil) = new {
-    def in (c: EvalContext) = {
-      assert(r.isRight)
-      r match {
-        case \/-(rr) =>
-          val (extras, value) = rr.eval(c).run
-          assert(value == expected, extras == expectedExtras)
-      }
+    def in (c: EvalContext) = r.eval(c) match {
+      case \/-(rr) =>
+        val (extras, value) = rr.run
+        assert(value == expected, extras == expectedExtras)
     }
   }
 
@@ -108,7 +123,7 @@ object RewriteRuleTestSuite extends TestSuite {
 
           'forGenbank - {
             val c = RepairSequence.fastaToDNA(genbankString)
-            notRewritten(c)
+            notRewritten(c) in Ø
           }
 
           'forFastaGenbank - {
@@ -125,7 +140,7 @@ object RewriteRuleTestSuite extends TestSuite {
         'genbank - {
           'forFasta - {
             val c = RepairSequence.genbankToDNA(fastaString)
-            notRewritten(c)
+            notRewritten(c) in Ø
           }
 
           'forGenbank - {
@@ -182,7 +197,7 @@ object RewriteRuleTestSuite extends TestSuite {
 
         'propertyExpFilterFromOther - {
           val c = fogAtPropertyExp(longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString)))
-          notRewritten(c)
+          notRewritten(c) in Ø
         }
 
         'propertyExpFilterAll - {
@@ -220,7 +235,7 @@ object RewriteRuleTestSuite extends TestSuite {
             ))
             notRewritten(c, List(
               longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString)),
-              longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString))))
+              longhandAst.PropertyExp("other", longhandAst.PropertyValue.Literal(fastaString)))) in Ø
           }
         }
       }

@@ -18,26 +18,40 @@ trait RewriteRule[T] {
 
   def apply(t: T): MaybeRewritten[T]
 
-  def eval(t: T): Rewritten[T] = apply(t).fold(_.point[Rewritten], identity)
+//  def eval(t: T): Rewritten[T] = apply(t).fold(_.point[Rewritten], identity)
 
   def at[AT, U](at: AT)(implicit rwAt: RewriteAtBuilder[AT, U, T]): RewriteRule[U] = rwAt(at)(this)
 
   def or(rr: RewriteRule[T]): RewriteRule[T] = new RewriteRule[T] {
-    override def apply(t: T) = self apply t match {
-      case -\/(l) =>
-        rr(l)
-      case r @ \/-(_) =>
-        r
-    }
+    override def apply(t: T) = for {
+      selfRw <- self apply t
+      rrRw <- selfRw match {
+        case -\/(l) =>
+          rr apply l
+        case r@ \/-(_) =>
+          r.point[EvalState]
+      }
+    } yield rrRw
   }
 
   def andThen(rr: RewriteRule[T]): RewriteRule[T] = new RewriteRule[T] {
-    override def apply(t: T) = self(t) match {
-      case -\/(l) =>
-        rr apply l
-      case \/-(r) =>
-        \/-(r map rr.apply flatMap (_.fold(_.point[Rewritten], identity)))
-    }
+    override def apply(t: T) = for {
+      selfRw <- self apply t
+      rrRw <- selfRw fold (
+        rr apply _,
+        _.run match {
+          case (extras, t2) => for {
+            t2Rw <- rr apply t2
+          } yield t2Rw fold (
+              _.set(extras).right,
+              _.run match {
+                case (t2ex, t3) =>
+                  t3.set(extras ++ t2ex).right
+              }
+            )
+        }
+      )
+    } yield rrRw
   }
 
   def description: Option[String] = None
@@ -47,12 +61,11 @@ trait RewriteRule[T] {
 
     private def descriptionString = description getOrElse ""
 
-    override def apply(t: T) = {
-      println(s"$name <i> $descriptionString at $t")
-      val res = self(t)
-      println(s"$name <o> $descriptionString ${res.fold(_ => "unchanged", _ => "rewritten")} at $t")
-      res
-    }
+    override def apply(t: T) = for {
+      res <- self apply t
+      _ = println(s"$name <i> $descriptionString at $t")
+      _ = println(s"$name <o> $descriptionString ${res.fold(_ => "unchanged", _ => "rewritten")} at $t")
+    } yield res
   }
 }
 
@@ -73,27 +86,26 @@ object RewriteRule {
 
   case class OfType[I](i: I)
 
-  type MaybeRewritten[T] = T \/ Rewritten[T]
-  type InstanceExpWriter[T] = Writer[List[longhandAst.InstanceExp], T]
-  type Rewritten[T] = Eval.EvalStateT[InstanceExpWriter, T]
+  type MaybeRewritten[T] = Eval.EvalState[T \/ Rewritten[T]]
+  type Rewritten[T] = Writer[List[longhandAst.InstanceExp], T]
 
-  def Rewritten[T](w: InstanceExpWriter[T]): Rewritten[T] =
-    IndexedStateT[InstanceExpWriter, EvalContext, EvalContext, T](s => w.map(s -> _))
+//  def Rewritten[T](w: InstanceExpWriter[T]): Rewritten[T] =
+//    IndexedStateT[InstanceExpWriter, EvalContext, EvalContext, T](s => w.map(s -> _))
 
   def rewrite(r: RewriteRule[longhandAst.SBFile], sf: longhandAst.SBFile): EvalState[longhandAst.SBFile] = {
     var depth = 0
     def rewriteStep(sf: longhandAst.SBFile): EvalState[longhandAst.SBFile] = {
       if(depth > 3) throw new IllegalStateException("Recursed too deeply during rewrite rules. Perhaps a rewrite rule is misfiring?")
       depth += 1
-      r(sf).fold(
-        _.point[EvalState],
-        rsf =>
-          for {
-            s <- get[EvalContext]
-            (extraIs, (newC, newSf)) = rsf.run(s).run
-            r <- rewriteStep(longhandAst.SBFile(newSf.tops ::: extraIs))
-          } yield r
-      )
+      for {
+        rsf <- r(sf)
+        res <- rsf.fold(_.point[EvalState],
+          _.run match {
+            case (extras, newSf) =>
+              rewriteStep(longhandAst.SBFile(newSf.tops ::: extras))
+          }
+        )
+      } yield res
     }
     rewriteStep(sf)
   }
@@ -107,33 +119,35 @@ object RewriteRule {
     def apply(f: F): RewriteRule[T]
   }
 
-  implicit def fromRewrittenDisjunction[T]: Builder[(T => T \/ Rewritten[T]), T] = new Builder[(T) => Disjunction[T, Rewritten[T]], T] {
-    override def apply(f: (T) => Disjunction[T, Rewritten[T]]) = new RewriteRule[T] {
+  implicit def fromMaybeRewritten[T]: Builder[T => MaybeRewritten[T], T] = new Builder[(T) => MaybeRewritten[T], T] {
+    override def apply(f: (T) => MaybeRewritten[T]) = new RewriteRule[T] {
       override def apply(t: T) = f(t)
     }
   }
 
-  implicit def fromStateDisjunction[T]: Builder[(T => T \/ Eval.EvalState[T]), T] = new Builder[(T) => Disjunction[T, EvalState[T]], T] {
-    override def apply(f: (T) => Disjunction[T, EvalState[T]]) = new RewriteRule[T] {
-      override def apply(t: T) = f(t).map(_.lift : Rewritten[T])
+  implicit def fromRewrittenDisjunction[T]: Builder[(T => T \/ Rewritten[T]), T] = new Builder[(T) => Disjunction[T, Rewritten[T]], T] {
+    override def apply(f: (T) => Disjunction[T, Rewritten[T]]) = RewriteRule { (t: T) =>
+      f(t).point[EvalState]
     }
   }
 
   implicit def fromDisjunction[T]: Builder[(T => T \/ T), T] = new Builder[(T) => Disjunction[T, T], T] {
-    override def apply(f: (T) => Disjunction[T, T]) = new RewriteRule[T] {
-      override def apply(t: T): MaybeRewritten[T] = f(t).map(_.point[Rewritten])
+    override def apply(f: (T) => Disjunction[T, T]) = RewriteRule { (t: T) =>
+      f(t).map(_.point[Rewritten])
     }
   }
 
   implicit def fromState[T]: Builder[T => EvalState[T], T] = new Builder[(T) => EvalState[T], T] {
-    override def apply(f: (T) => EvalState[T]) = new RewriteRule[T] {
-      override def apply(t: T) = (f(t).lift : Rewritten[T]).right[T]
+    override def apply(f: (T) => EvalState[T]) = RewriteRule { (t: T) =>
+      for {
+        ft <- f(t)
+      } yield ft.point[Rewritten].right[T]
     }
   }
 
   implicit def fromFunc[T]: Builder[T => T, T] = new Builder[(T) => T, T] {
-    override def apply(f: (T) => T) = new RewriteRule[T] {
-      override def apply(t: T) = f(t).point[Rewritten].right[T]
+    override def apply(f: (T) => T) = RewriteRule { (t: T) =>
+      f(t).right[T]
     }
   }
 
@@ -152,14 +166,25 @@ object RewriteRule {
 
   implicit def fromFlatMap[T]: Builder[T => RewriteRule[T], T] = new Builder[(T) => RewriteRule[T], T] {
     override def apply(f: (T) => RewriteRule[T]) = RewriteRule { (t: T) =>
-      f(t)(t)
+      (f(t): RewriteRule[T])(t)
+    }
+  }
+
+  implicit def fromStateFlatMap[T]: Builder[T => EvalState[RewriteRule[T]], T] = new Builder[(T) => EvalState[RewriteRule[T]], T] {
+    override def apply(f: (T) => EvalState[RewriteRule[T]]) = RewriteRule { (t: T) =>
+      for {
+        rr <- f(t)
+        res <- rr(t)
+      } yield res
     }
   }
 
   implicit def fromOptionFlatMap[T]: Builder[T => Option[RewriteRule[T]], T] = new Builder[(T) => Option[RewriteRule[T]], T] {
-
     override def apply(f: (T) => Option[RewriteRule[T]]) = RewriteRule { (t: T) =>
-      f(t).map(_ apply t).fold(t.left[Rewritten[T]])(identity)
+      f(t) match {
+        case None => t.left[Rewritten[T]].point[EvalState]
+        case Some(rr) => rr(t)
+      }
     }
   }
 
@@ -190,7 +215,9 @@ object RewriteAtBuilder {
     override def apply(at: Lens[S, T]) = new RewriteAt[S, T] {
       override def apply(rr: RewriteRule[T]) = RewriteRule { (s: S) =>
         val lsets = at.set(_: T)(s)
-        rr(at.get(s)).bimap(
+        for {
+          rrs <- rr(at.get(s))
+        } yield rrs.bimap(
           lsets,
           _ map lsets
         )
@@ -202,12 +229,14 @@ object RewriteAtBuilder {
     override def apply(at: Prism[S, T]) = new RewriteAt[S, T] {
       override def apply(rr: RewriteRule[T]) = RewriteRule { (s: S) =>
         val psets = at.set(_: T)(s)
-        at.getOrModify(s) flatMap {
-          rr apply _ bimap(
-            psets,
-            _ map psets
-          )
-        }
+        at.getOrModify(s).fold(
+          _.left[Rewritten[S]].point[EvalState] : MaybeRewritten[S],
+          r => for {
+            rrr <- rr(r)
+          } yield rrr.fold(
+            l => psets(l).left[Rewritten[S]],
+            r => (r map psets).right[S])
+        )  : MaybeRewritten[S]
       }
     }
   }
@@ -216,7 +245,7 @@ object RewriteAtBuilder {
     override def apply(at: (T) => Boolean) = new RewriteAt[T, T] {
       override def apply(rr: RewriteRule[T]) = RewriteRule { (t: T) =>
         if(at(t)) rr(t)
-        else -\/(t)
+        else t.left[Rewritten[T]].point[EvalState]
       }
     }
   }
@@ -230,15 +259,16 @@ object RewriteAtBuilder {
   implicit def rewriteAtAllElements[T]: RewriteAtBuilder[RewriteRule.allElements.type, List[T], T] = new RewriteAtBuilder[RewriteRule.allElements.type, List[T], T] {
 
   override def apply(at: RewriteRule.allElements.type) = new RewriteAt[List[T], T] {
-      override def apply(rr: RewriteRule[T]) = RewriteRule { (ts: List[T]) =>
-        val rrts = ts map rr.apply
+      override def apply(rr: RewriteRule[T]) = RewriteRule { (ts: List[T]) => for {
+        rrts <- (ts map rr.apply).sequenceU
+      } yield
         if (rrts exists (_.isRight)) {
           (rrts collect {
             case -\/(l) => l.point[Rewritten]
             case \/-(r) => r
-          }).sequenceU.right[List[T]]: RewriteRule.MaybeRewritten[List[T]]
+          }).sequenceU.right[List[T]]
         } else {
-          (rrts collect { case -\/(l) => l }).left: RewriteRule.MaybeRewritten[List[T]]
+          (rrts collect { case -\/(l) => l }).left[Rewritten[List[T]]]
         }
       }
     }
