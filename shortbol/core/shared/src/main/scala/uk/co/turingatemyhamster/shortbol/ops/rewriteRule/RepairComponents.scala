@@ -26,16 +26,7 @@ import terms.EDAM
 import PropertyStep.PropertyStepOps
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 
-object RepairComponents {
-
-  lazy val repairAll = (RepairSequence.repairAtSequence or RepairComponentDefinition.repairAtComponentDefinition) at
-    cstrApp at
-    allElements at
-    tops
-}
-
-
-object RepairSequence {
+object RepairSequence extends InstanceRewriter {
 
   lazy val fastaToDNA = RewriteRule ({
     case StringLiteral(style, Some(Datatype(EDAM.fasta)), _) =>
@@ -65,9 +56,12 @@ object RepairSequence {
   lazy val repairAtSequence = repairToDNA at
     elements at
     ofType(Sequence)
+
+  override def instanceRewrite: RewriteRule[InstanceExp] =
+    repairAtSequence at cstrApp
 }
 
-object RepairComponentDefinition {
+object RepairComponentDefinition extends InstanceRewriter {
 
   lazy val hoistNestedSequence = RewriteRule { (pv: PropertyValue) =>
     (asNested composeLens nestedValue) getOrModify pv fold (
@@ -130,4 +124,7 @@ object RepairComponentDefinition {
       repairConstraints andThen
       componentsForRefs) at
     ofType(ComponentDefinition)
+
+  lazy val instanceRewrite =
+    repairAtComponent at body at cstrApp
 }

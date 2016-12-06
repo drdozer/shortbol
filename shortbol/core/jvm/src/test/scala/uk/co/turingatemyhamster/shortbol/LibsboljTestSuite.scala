@@ -11,7 +11,6 @@ import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
 import uk.co.turingatemyhamster.shortbol.ops._
-import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairIdentities}
 import utest._
 
 import scala.util.{Random, Try}
@@ -440,11 +439,11 @@ object LibsboljTestSuite extends TestSuite {
             |  functionalComponent = OurLacI
             |  functionalComponent = OurTetR
             |  module : Module
-            |    definition = TetR_Inverter
+            |    definition = TetR_inverter
             |    mapsTo = OurLacI mergedWith LacI
             |    mapsTo = OurTetR mergedWith TetR
             |  module : Module
-            |    definition = LacI_Inverter
+            |    definition = LacI_inverter
             |    mapsTo = OurLacI mergedWith LacI
             |    mapsTo = OurTetR mergedWith TetR
             |    """.stripMargin
@@ -478,11 +477,11 @@ object LibsboljTestSuite extends TestSuite {
             |  functionalComponent = OurLacI
             |  functionalComponent = OurTetR
             |  module : Module
-            |    definition = TetR_Inverter
+            |    definition = TetR_inverter
             |    mapsTo = OurLacI mergedWith LacI
             |    mapsTo = OurTetR mergedWith TetR
             |  module : Module
-            |    definition = LacI_Inverter
+            |    definition = LacI_inverter
             |    mapsTo = OurLacI mergedWith LacI
             |    mapsTo = OurTetR mergedWith TetR
             |    """.stripMargin

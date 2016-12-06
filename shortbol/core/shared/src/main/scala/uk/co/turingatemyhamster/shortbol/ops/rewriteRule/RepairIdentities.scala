@@ -3,7 +3,7 @@ package ops
 package rewriteRule
 
 import shorthandAst.sugar._
-import longhandAst.{InstanceExp, PropertyExp, SBFile}
+import longhandAst.{InstanceExp, PropertyExp}
 import longhandAst.sugar._
 import RewriteRule.allElements
 import pragma.DefaultPrefixPragma
@@ -15,7 +15,7 @@ import terms.SBOL.displayId
   *
   * @author Matthew Pocock
   */
-object RepairIdentities {
+object RepairIdentities extends InstanceRewriter {
 
   final private val noDisplayId = (_: List[PropertyExp]).forall(_.property != displayId)
   final private val noAbout = (_: List[PropertyExp]).forall(_.property != RDF.about)
@@ -92,7 +92,8 @@ object RepairIdentities {
     ie.cstrApp.body.collectFirst{ case PropertyExp(RDF.about, _) => () }.isEmpty
   }
 
-  lazy val repairAll: RewriteRule[SBFile] = (
-    instanceExpRequiersDisplayIdAndAbout andThen instanceExpRequiresAbout andThen recursefromInstanceExp) at
-    allElements at tops
+
+  lazy val instanceRewrite =
+    instanceExpRequiersDisplayIdAndAbout andThen instanceExpRequiresAbout andThen recursefromInstanceExp
+
 }

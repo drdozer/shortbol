@@ -14,7 +14,6 @@ import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
 import scala.util.Try
 import scopt.OptionParser
 import uk.co.turingatemyhamster.datatree.io.RdfIo
-import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairIdentities}
 
 import scala.io.Source
 

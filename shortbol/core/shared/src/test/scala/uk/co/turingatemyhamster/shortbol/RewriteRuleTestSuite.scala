@@ -5,7 +5,7 @@ import shorthandAst.sugar._
 import ops._
 import uk.co.turingatemyhamster.shortbol.longhandAst.PropertyExp
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
-import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairSequence}
+import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairSequence}
 import utest._
 import RewriteRule.{FilteringOps, Rewritten}
 
