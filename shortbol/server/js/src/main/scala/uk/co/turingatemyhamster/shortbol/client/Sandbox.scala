@@ -7,13 +7,11 @@ import fastparse.core.Parsed.Success
 import org.widok._
 import org.widok.html._
 import pl.metastack.metarx.Buffer
-import uk.co.turingatemyhamster.datatree
 import uk.co.turingatemyhamster.datatree.ast.AstDatatree
 import uk.co.turingatemyhamster.datatree.io.RdfIo
 import uk.co.turingatemyhamster.shortbol.shorthandAst.SBFile
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
-import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairIdentities}
 import uk.co.turingatemyhamster.shortbol.ops._
 
 import scala.scalajs.js

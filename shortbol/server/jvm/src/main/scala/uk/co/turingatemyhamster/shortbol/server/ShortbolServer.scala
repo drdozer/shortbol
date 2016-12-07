@@ -2,7 +2,7 @@ package uk.co.turingatemyhamster.shortbol
 package server
 
 
-import java.io.{FileWriter, StringWriter}
+import java.io.StringWriter
 import javax.xml.stream.XMLOutputFactory
 
 import akka.actor.ActorSystem
@@ -17,7 +17,6 @@ import com.typesafe.config.ConfigFactory
 import ops._
 import uk.co.turingatemyhamster.datatree
 import uk.co.turingatemyhamster.datatree.io.RdfIo
-import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairComponents, RepairIdentities}
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 
 
