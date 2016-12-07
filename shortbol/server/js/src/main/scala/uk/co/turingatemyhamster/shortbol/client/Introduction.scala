@@ -3,8 +3,6 @@ package uk.co.turingatemyhamster.shortbol.client
 import org.widok._
 import org.widok.bindings.HTML
 
-import scala.concurrent.Future
-
 /**
   *
   *

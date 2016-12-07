@@ -1,6 +1,8 @@
 package uk.co.turingatemyhamster
 package shortbol
 
+import sharedAst._
+import sharedAst.sugar._
 import shorthandAst._
 import shorthandAst.{Pragma => _}
 import shorthandAst.sugar._

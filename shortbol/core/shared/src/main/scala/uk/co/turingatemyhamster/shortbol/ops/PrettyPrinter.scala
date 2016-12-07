@@ -3,6 +3,7 @@ package shortbol
 package ops
 
 import _root_.shapeless._
+import shortbol.sharedAst._
 import shortbol.{longhandAst => lAst}
 import shortbol.{shorthandAst => sAst}
 
@@ -55,13 +56,13 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
   import PrintApp._
 
   def apply(s: sAst.SBFile) = s.append
-  def apply(s: lAst.SBFile) = lAst.sugar.toShorthand(s).append
+  def apply(s: lAst.SBFile) = lAst.Conversions.toShorthand(s).append
   def apply(t: sAst.TpeConstructor1) = t.append
   def apply(c: sAst.ConstructorApp) = c.append
   def apply(c: sAst.TopLevel.ConstructorDef) = c.append
 
-  implicit val literal = PrintApp[sAst.Literal]
-  implicit val identifier = PrintApp[sAst.Identifier]
+  implicit val literal = PrintApp[Literal]
+  implicit val identifier = PrintApp[Identifier]
   implicit val tpeConstructor = PrintApp[sAst.TpeConstructor]
   implicit val valueExp = PrintApp[sAst.ValueExp]
   implicit val topLevel = PrintApp[sAst.TopLevel]
@@ -114,21 +115,21 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     }
   }
 
-  implicit lazy val qname: PrintApp[sAst.QName] = PrintApp.using { q =>
+  implicit lazy val qname: PrintApp[QName] = PrintApp.using { q =>
     q.prefix.append
     ":".append
     q.localName.append
   }
 
-  implicit lazy val url: PrintApp[sAst.Url] = PrintApp.using { u =>
+  implicit lazy val url: PrintApp[Url] = PrintApp.using { u =>
     "<".append
     u.url.append
     ">".append
   }
 
-  implicit lazy val nsPrefx: PrintApp[sAst.NSPrefix] = PrintApp.using { _.pfx.append }
+  implicit lazy val nsPrefx: PrintApp[NSPrefix] = PrintApp.using { _.pfx.append }
 
-  implicit lazy val localName: PrintApp[sAst.LocalName] = PrintApp.using { _.name.append }
+  implicit lazy val localName: PrintApp[LocalName] = PrintApp.using { _.name.append }
 
   implicit lazy val tpeConstructor1: PrintApp[sAst.TpeConstructor1] = PrintApp.using { c =>
     c.id.append
@@ -147,13 +148,13 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     "*".append
   }
 
-  implicit lazy val stringLiteral: PrintApp[sAst.StringLiteral] = PrintApp.using { str =>
+  implicit lazy val stringLiteral: PrintApp[StringLiteral] = PrintApp.using { str =>
     str.style.append
     str.datatype.foreach(_.append)
     str.language.foreach(_.append)
   }
 
-  implicit lazy val singleLine: PrintApp[sAst.StringLiteral.SingleLine] = PrintApp.using { str =>
+  implicit lazy val singleLine: PrintApp[StringLiteral.SingleLine] = PrintApp.using { str =>
     if(str.isEscaped) {
       "{".append
       str.asString.append
@@ -165,7 +166,7 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     }
   }
 
-  implicit lazy val mutliLine: PrintApp[sAst.StringLiteral.MultiLine] = PrintApp.using { str =>
+  implicit lazy val mutliLine: PrintApp[StringLiteral.MultiLine] = PrintApp.using { str =>
     val indentS = " " * str.indent
     "{\n".append
     indentS.append
@@ -176,17 +177,17 @@ class PrettyPrinter(out: Appendable, indent: Int = 0, indentDepth: Int = 2) {
     "}".append
   }
 
-  implicit lazy val datatype: PrintApp[sAst.Datatype] = PrintApp.using { dt =>
+  implicit lazy val datatype: PrintApp[Datatype] = PrintApp.using { dt =>
     "^^".append
     dt.tpe.append
   }
 
-  implicit lazy val language: PrintApp[sAst.Language] = PrintApp.using { l =>
+  implicit lazy val language: PrintApp[Language] = PrintApp.using { l =>
     "@".append
     l.tag.append
   }
 
-  implicit lazy val integerLiteral: PrintApp[sAst.IntegerLiteral] = PrintApp.using {
+  implicit lazy val integerLiteral: PrintApp[IntegerLiteral] = PrintApp.using {
     _.i.toString.append
   }
 

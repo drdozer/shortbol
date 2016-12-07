@@ -7,7 +7,8 @@ import javax.xml.stream.XMLOutputFactory
 import org.sbolstandard.core2.{SBOLDocument, SBOLFactory}
 import uk.co.turingatemyhamster.datatree
 import uk.co.turingatemyhamster.datatree.io.RdfIo
-import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
+import uk.co.turingatemyhamster.shortbol.sharedAst.Identifier
+import uk.co.turingatemyhamster.shortbol.sharedAst.sugar._
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
 import uk.co.turingatemyhamster.shortbol.ops._
@@ -30,7 +31,7 @@ object LibsboljTestSuite extends TestSuite {
     val ds = '0' to '9'
     val as = cs ++ ds
 
-    () => (cs(r.nextInt(cs.size)) :: List.fill(7)(as(r.nextInt(as.size)))).mkString : shorthandAst.Identifier
+    () => (cs(r.nextInt(cs.size)) :: List.fill(7)(as(r.nextInt(as.size)))).mkString : Identifier
   }
 
 

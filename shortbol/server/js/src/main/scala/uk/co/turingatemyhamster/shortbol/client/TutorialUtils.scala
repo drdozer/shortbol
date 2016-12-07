@@ -4,6 +4,7 @@ import org.widok._
 import org.widok.bindings.HTML._
 
 import pl.metastack.metarx.ReadChannel
+import uk.co.turingatemyhamster.shortbol.sharedAst._
 import uk.co.turingatemyhamster.shortbol.shorthandAst._
 
 import scala.scalajs.js

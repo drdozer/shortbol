@@ -3,9 +3,9 @@ package ops
 package typecheck
 
 import monocle.Monocle.{none => _}
-import uk.co.turingatemyhamster.shortbol.longhandAst.{ConstructorApp, InstanceExp, TpeConstructor}
-import uk.co.turingatemyhamster.shortbol.shorthandAst.{Identifier, IntegerLiteral, Literal, StringLiteral}
-
+import longhandAst.{ConstructorApp, InstanceExp, TpeConstructor}
+import sharedAst.{Identifier, IntegerLiteral, Literal, StringLiteral}
+import sharedAst.sugar._
 
 trait Typer[A] {
   def exactTypeOf(a: A): Set[Identifier]

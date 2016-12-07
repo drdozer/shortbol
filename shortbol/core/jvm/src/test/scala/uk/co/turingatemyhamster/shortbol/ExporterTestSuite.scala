@@ -5,7 +5,7 @@ import javax.xml.stream.XMLOutputFactory
 
 import uk.co.turingatemyhamster.datatree
 import uk.co.turingatemyhamster.datatree.io.RdfIo
-import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
+import uk.co.turingatemyhamster.shortbol.sharedAst.sugar._
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
 import uk.co.turingatemyhamster.shortbol.ops._

@@ -2,17 +2,14 @@ package uk.co.turingatemyhamster
 package shortbol
 
 
-import datatree._
-import relations._
-import web._
-import shorthandAst.{Pragma, SBFile}
+import shorthandAst.Pragma
+import sharedAst.sugar._
 import shorthandAst.sugar._
-import ops.{Eval, EvalContext, RewriteRule, ShortbolParser}
+import ops.{EvalContext, RewriteRule, ShortbolParser}
 import ShortbolParser.POps
 import pragma._
 import uk.co.turingatemyhamster.shortbol.ops.rewriteRule._
 
-import scalaz.Scalaz._
 import scalaz._
 
 
@@ -46,7 +43,4 @@ object Fixture {
     RepairSequence, RepairComponentDefinition, RepairModule, RepairIdentities)
 
   lazy val doFixup = RewriteRule.rewrite(fixup, _: longhandAst.SBFile)
-
-//
-//  def toDatatree[DT <: Datatree](file: SBFile)(implicit  ee: ExporterEnv[DT]): DT#DocumentRoot
 }

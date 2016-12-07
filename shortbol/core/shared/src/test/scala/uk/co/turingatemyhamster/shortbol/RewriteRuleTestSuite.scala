@@ -1,7 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 
-import shorthandAst._
-import shorthandAst.sugar._
+import sharedAst._
+import sharedAst.sugar._
 import ops._
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairSequence}

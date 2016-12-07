@@ -2,6 +2,8 @@ package uk.co.turingatemyhamster.shortbol
 
 import fastparse.all._
 import fastparse.core.Parsed.{Failure, Success}
+import uk.co.turingatemyhamster.shortbol.sharedAst._
+import uk.co.turingatemyhamster.shortbol.sharedAst.sugar._
 import uk.co.turingatemyhamster.shortbol.shorthandAst._
 import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps

@@ -9,7 +9,7 @@ import fastparse.core.Parsed.{Failure, Success}
 import uk.co.turingatemyhamster.shortbol.ops._
 import uk.co.turingatemyhamster.shortbol.ops.ShortbolParser.POps
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalOps
-import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
+import uk.co.turingatemyhamster.shortbol.sharedAst.sugar._
 
 import scala.util.Try
 import scopt.OptionParser

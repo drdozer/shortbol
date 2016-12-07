@@ -1,6 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 
 import ops.AllNodes
+import sharedAst._
 import shorthandAst._
 
 import utest._

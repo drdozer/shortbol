@@ -9,6 +9,8 @@ import Scalaz._
 import shorthandAst._
 import ops._
 import Eval.EvalOps
+import sharedAst._
+import sharedAst.sugar._
 import shorthandAst.sugar._
 import pragma.{ImportPragma, Resolver}
 import ShortbolParser.POps

@@ -6,7 +6,7 @@ import scalaz._
 import monocle.{Lens, Prism}
 import RewriteRule.{FilteringEq, Logging, MaybeRewritten, Rewritten}
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
-import uk.co.turingatemyhamster.shortbol.shorthandAst.{Identifier, Literal}
+import uk.co.turingatemyhamster.shortbol.sharedAst.{Identifier, Literal}
 
 import scala.annotation.implicitNotFound
 

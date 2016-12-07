@@ -6,6 +6,7 @@ import scalaz._
 import Scalaz._
 import monocle._
 import Monocle._
+import sharedAst.sugar._
 import shorthandAst.sugar._
 import longhandAst.sugar._
 import RewriteRule.{*, Rewritten, allElements, ofType}
@@ -19,7 +20,7 @@ import ol.PropertyValue.Nested.{value => nestedValue}
 import ol.PropertyValue.Reference.{value => referenceValue}
 import longhandAst.{InstanceExp, PropertyExp, PropertyValue}
 import pragma.DefaultPrefixPragma
-import shorthandAst.{Datatype, Identifier, Literal, LocalName, QName, StringLiteral}
+import sharedAst.{Datatype, Identifier, Literal, LocalName, QName, StringLiteral}
 import terms.RDF
 import terms.SBOL._
 import terms.EDAM

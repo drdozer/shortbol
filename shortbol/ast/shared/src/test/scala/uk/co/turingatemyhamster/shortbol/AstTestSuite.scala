@@ -1,7 +1,10 @@
-package uk.co.turingatemyhamster.shortbol.shorthandAst
+package uk.co.turingatemyhamster.shortbol
 
+import sharedAst._
+import sharedAst.sugar._
+import shorthandAst._
+import shorthandAst.sugar._
 import utest._
-import sugar._
 
 /**
   *

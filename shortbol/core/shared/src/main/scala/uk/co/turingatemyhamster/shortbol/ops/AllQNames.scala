@@ -1,6 +1,7 @@
 package uk.co.turingatemyhamster.shortbol.ops
 
 import shapeless._
+import uk.co.turingatemyhamster.shortbol.sharedAst._
 import uk.co.turingatemyhamster.shortbol.shorthandAst
 
 /**
@@ -9,7 +10,7 @@ import uk.co.turingatemyhamster.shortbol.shorthandAst
   * @author Matthew Pocock
   */
 trait AllQNames[T] {
-  def apply(t: T): Seq[shorthandAst.QName]
+  def apply(t: T): Seq[QName]
 }
 
 object AllQNames extends TypeClassCompanion[AllQNames] {
@@ -50,13 +51,13 @@ object AllQNames extends TypeClassCompanion[AllQNames] {
   implicit val missInt = miss[Int]
   implicit val missBoolean = miss[Boolean]
 
-  implicit val qname: AllQNames[shorthandAst.QName] = new AllQNames[shorthandAst.QName] {
-    override def apply(t: shorthandAst.QName) = Seq(t)
+  implicit val qname: AllQNames[QName] = new AllQNames[QName] {
+    override def apply(t: QName) = Seq(t)
   }
 
-  implicit val identifier = AllQNames[shorthandAst.Identifier]
-  implicit val style = AllQNames[shorthandAst.StringLiteral.Style]
-  implicit val literal = AllQNames[shorthandAst.Literal]
+  implicit val identifier = AllQNames[Identifier]
+  implicit val style = AllQNames[StringLiteral.Style]
+  implicit val literal = AllQNames[Literal]
   implicit val tpeConstructor = AllQNames[shorthandAst.TpeConstructor]
   implicit val assignmentSeq = AllQNames[Seq[shorthandAst.Assignment]]
   implicit val instanceExpSeq = AllQNames[Seq[shorthandAst.InstanceExp]]

@@ -3,7 +3,7 @@ package ops
 
 import fastparse.all._
 import fastparse.core.{Parsed, Parser}
-import uk.co.turingatemyhamster.shortbol.shorthandAst.{AstNode, Pos, Region}
+import uk.co.turingatemyhamster.shortbol.sharedAst.{AstNode, Pos, Region}
 
 
 object ShortbolParsers {
@@ -56,35 +56,35 @@ object ShortbolParsers {
   lazy val NCNameChar = P( NCName0 | Digit | Period | Hyphen )
   lazy val NCName = P( NCName0 ~ NCNameChar.rep )
 
-  lazy val LocalName = P(NCName.! map shorthandAst.LocalName.apply)
+  lazy val LocalName = P(NCName.! map sharedAst.LocalName.apply)
 
-  lazy val NSPrefix = P( NCName.! map shorthandAst.NSPrefix.apply)
+  lazy val NSPrefix = P( NCName.! map sharedAst.NSPrefix.apply)
 
-  lazy val QName = P(NSPrefix ~ Colon ~ LocalName map (shorthandAst.QName.apply _ tupled))
+  lazy val QName = P(NSPrefix ~ Colon ~ LocalName map (sharedAst.QName.apply _ tupled))
 
   lazy val UrlUnreserved = P( NCNameChar | Tilde )
   lazy val UrlReserved = P( Bang | Star | SQuote | LEllipse | REllipse | SemiColon | Colon | At | Amph | Eq | Plus | Dollar |
     Coma | Question | Percent | Hash | LBox | RBox | BackSlash)
 
-  lazy val Url = P( Lt ~ (UrlUnreserved | UrlReserved).rep.! ~ Gt map shorthandAst.Url)
+  lazy val Url = P( Lt ~ (UrlUnreserved | UrlReserved).rep.! ~ Gt map sharedAst.Url)
 
-  lazy val Identifier: Parser[shorthandAst.Identifier] = P( Url | QName | LocalName)
+  lazy val Identifier: Parser[sharedAst.Identifier] = P( Url | QName | LocalName)
 
   lazy val quotedString = DQuote ~/ (!DQuote ~ !Nl ~ AnyChar).rep.! ~ DQuote
   lazy val QuotedStringLiteral = P(quotedString map
-    (s => shorthandAst.StringLiteral.SingleLine(s)))
+    (s => sharedAst.StringLiteral.SingleLine(s)))
 
   lazy val CurlyStringLiteral = P(LBrace ~ (!RBrace ~ !Nl ~ AnyChar).rep.! ~ RBrace map
-    (s => shorthandAst.StringLiteral.SingleLine(s, escaped = true)))
+    (s => sharedAst.StringLiteral.SingleLine(s, escaped = true)))
 
   lazy val StringLiteral = P( (QuotedStringLiteral | CurlyStringLiteral | MultiLineLiteral) ~ Datatype.? ~ Language.? map
-    (shorthandAst.StringLiteral.apply _ tupled))
+    (sharedAst.StringLiteral.apply _ tupled))
 
-  lazy val Datatype = P( "^^" ~ Identifier map shorthandAst.Datatype)
+  lazy val Datatype = P( "^^" ~ Identifier map sharedAst.Datatype)
 
   lazy val LangCode = Letter.rep(1).rep(1, sep = "-")
 
-  lazy val Language = P( "@" ~ LangCode.! map shorthandAst.Language)
+  lazy val Language = P( "@" ~ LangCode.! map sharedAst.Language)
 
   lazy val MultiLineLiteralStart = P(LBrace ~/ Space.rep ~ Nl)
   lazy val MultiLineLiteralLine = P(!MultiLineLiteralEnd ~ ((!Nl ~ AnyChar).rep ~ Nl).!)
@@ -92,11 +92,11 @@ object ShortbolParsers {
     (_.length)
   lazy val MultiLineLiteral = P(MultiLineLiteralStart ~/ MultiLineLiteralLine.rep ~ MultiLineLiteralEnd map
     { case (ss, i) =>
-      shorthandAst.StringLiteral.MultiLine(ss.to[List] map { s => if(s.length < i) s else  s substring i}, i) })
+      sharedAst.StringLiteral.MultiLine(ss.to[List] map { s => if(s.length < i) s else  s substring i}, i) })
 
   lazy val DigitSign = P(Plus | Hyphen)
-  lazy val IntegerLiteral = P((DigitSign.? ~ Digit.rep(1)).!.map(_.toInt).map(shorthandAst.IntegerLiteral))
-  lazy val Literal: Parser[shorthandAst.Literal] = StringLiteral.noCut | IntegerLiteral
+  lazy val IntegerLiteral = P((DigitSign.? ~ Digit.rep(1)).!.map(_.toInt).map(sharedAst.IntegerLiteral))
+  lazy val Literal: Parser[sharedAst.Literal] = StringLiteral.noCut | IntegerLiteral
 
   lazy val Assignment: Parser[shorthandAst.Assignment] = P(Identifier ~ Space.rep ~ Eq ~ Space.rep ~ ValueExp map
     (shorthandAst.Assignment.apply _ tupled))
@@ -236,7 +236,7 @@ object ShortbolParser extends IndentingShortbolParser(0) {
   lazy val SBFile: Parser[shorthandAst.SBFile] = P(Start ~ TopLevels ~ End map
     (tops => shorthandAst.SBFile(tops = tops)))
 
-  def positionAdder[T](in: shorthandAst.Identifier, txt: String, p: Parser[T]) = {
+  def positionAdder[T](in: sharedAst.Identifier, txt: String, p: Parser[T]) = {
     lazy val indexes = -1::buildTable(txt)
     lazy val table = indexes.zip(1 to indexes.length).reverse
 
@@ -268,7 +268,7 @@ object ShortbolParser extends IndentingShortbolParser(0) {
   }
 
   implicit class POps[T](val _p: Parser[T]) extends AnyVal {
-    def withPositions(in: shorthandAst.Identifier, txt: String) =
+    def withPositions(in: sharedAst.Identifier, txt: String) =
       positionAdder(in, txt, _p)
   }
 }

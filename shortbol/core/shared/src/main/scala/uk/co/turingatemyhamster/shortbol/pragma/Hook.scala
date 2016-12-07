@@ -1,7 +1,8 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import shorthandAst.{LocalName, Pragma}
+import sharedAst.LocalName
+import shorthandAst.Pragma
 import ops.Eval.EvalState
 
 /**

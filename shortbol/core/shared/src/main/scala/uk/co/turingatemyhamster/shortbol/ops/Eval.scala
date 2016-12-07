@@ -1,6 +1,7 @@
 package uk.co.turingatemyhamster
 package shortbol.ops
 
+import shortbol.sharedAst._
 import shortbol.{shorthandAst => sAst}
 import shortbol.{longhandAst => lAst}
 
@@ -15,15 +16,15 @@ object LogLevel {
   object Error extends LogLevel   { def pretty = "error" }
 }
 
-case class LogMessage(msg: String, level: LogLevel, region: sAst.Region, cause: Option[Throwable])
+case class LogMessage(msg: String, level: LogLevel, region: Region, cause: Option[Throwable])
 {
   def pretty = s"${level.pretty}: $msg" + cause.map(t => " because " ++ t.getMessage).getOrElse("")
 }
 
 object LogMessage {
-  def info(msg: String, region: sAst.Region, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Info, region, cause)
-  def warning(msg: String, region: sAst.Region, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Warning, region, cause)
-  def error(msg: String, region: sAst.Region, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Error, region, cause)
+  def info(msg: String, region: Region, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Info, region, cause)
+  def warning(msg: String, region: Region, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Warning, region, cause)
+  def error(msg: String, region: Region, cause: Option[Throwable] = None) = LogMessage(msg, LogLevel.Error, region, cause)
 }
 
 case class Hooks(phook: Vector[sAst.Pragma => Eval.EvalState[List[sAst.Pragma]]] = Vector.empty,
@@ -51,17 +52,17 @@ trait HooksOptics[H] {
   def withAHooks(h: H, as: (sAst.Assignment => Eval.EvalState[List[sAst.Assignment]])*): H
 }
 
-case class EvalContext(prgms: Map[sAst.Identifier, List[sAst.Pragma]] = Map.empty,
-                       cstrs: Map[sAst.Identifier, List[sAst.ConstructorDef]] = Map.empty,
-                       vlxps: Map[sAst.Identifier, List[sAst.ValueExp]] = Map.empty,
-                       insts: Map[sAst.Identifier, List[lAst.InstanceExp]] = Map.empty,
-                       qnams: Map[sAst.LocalName, Set[sAst.QName]] = Map.empty,
+case class EvalContext(prgms: Map[Identifier, List[sAst.Pragma]] = Map.empty,
+                       cstrs: Map[Identifier, List[sAst.ConstructorDef]] = Map.empty,
+                       vlxps: Map[Identifier, List[sAst.ValueExp]] = Map.empty,
+                       insts: Map[Identifier, List[lAst.InstanceExp]] = Map.empty,
+                       qnams: Map[LocalName, Set[QName]] = Map.empty,
                        hooks: Hooks = Hooks(),
                        logms: List[LogMessage] = List.empty,
-                       newLN: () => sAst.LocalName = EvalContext.localNameMaker("syntheticId"))
+                       newLN: () => LocalName = EvalContext.localNameMaker("syntheticId"))
 {
 
-  def withQNams(qs: sAst.QName*) =
+  def withQNams(qs: QName*) =
     copy(qnams = qs.foldLeft(qnams) { case (m, q) => m + (q.localName -> (m.getOrElse(q.localName, Set.empty) + q))})
 
   def withConstructors(cs: sAst.ConstructorDef*) =
@@ -79,32 +80,32 @@ case class EvalContext(prgms: Map[sAst.Identifier, List[sAst.Pragma]] = Map.empt
   def withLog(lm: LogMessage*) =
     copy(logms = logms ++ lm)
 
-  def resolveLocalName(ln: sAst.LocalName): Set[sAst.QName] =
+  def resolveLocalName(ln: LocalName): Set[QName] =
     qnams.getOrElse(ln, Set.empty)
 
 
-  def resolveValue(id: sAst.Identifier): Option[sAst.ValueExp] =
+  def resolveValue(id: Identifier): Option[sAst.ValueExp] =
     vlxps get id map (_.head) orElse { // todo: log if there are multiple elements in the list
       id match {
-        case ln : sAst.LocalName =>
+        case ln : LocalName =>
           (resolveLocalName(ln) map sAst.ValueExp.Identifier).headOption // todo: log clashes
         case _ => None
       }
     }
 
-  def resolveCstr(id: sAst.Identifier): Option[sAst.ConstructorDef] =
+  def resolveCstr(id: Identifier): Option[sAst.ConstructorDef] =
     cstrs get id map (_.head) orElse { // todo: log if there are multiple elements in the list
       id match {
-        case ln : sAst.LocalName =>
+        case ln : LocalName =>
           (resolveLocalName(ln) flatMap resolveCstr).headOption // todo: log clashes
         case _ => None
       }
     }
 
-  def resolveInst(id: sAst.Identifier): Option[lAst.InstanceExp] =
+  def resolveInst(id: Identifier): Option[lAst.InstanceExp] =
     insts get id map (_.head) orElse { // todo: log if there are multiple elements in the list
       id match {
-        case ln : sAst.LocalName =>
+        case ln : LocalName =>
           (resolveLocalName(ln) flatMap resolveInst).headOption // todo: log clashes
         case _ => None
       }
@@ -127,7 +128,7 @@ object EvalContext {
   def localNameMaker(pfx: String) = {
     var i = 0
     () => {
-      val ln = sAst.LocalName(s"${pfx}_$i")
+      val ln = LocalName(s"${pfx}_$i")
       i += 1
       ln
     }
@@ -295,7 +296,7 @@ object Eval {
     }
   }
 
-  implicit val literal: Aux[sAst.Literal, sAst.Literal] = identityEval
+  implicit val literal: Aux[Literal, Literal] = identityEval
 
   // fixme: see if this is redundant
   implicit val sbFile: Aux[sAst.SBFile, lAst.SBFile] = new Eval[sAst.SBFile] {
@@ -449,7 +450,7 @@ object Eval {
       cd <- withStack(vscd._2.args, vscd._1)(vscd._2.cstrApp.eval)
     } yield (cd.cstr, cd.body)
 
-    def withStack[T](names: List[sAst.Identifier], values: List[sAst.ValueExp])(sf: EvalState[T]) = for {
+    def withStack[T](names: List[Identifier], values: List[sAst.ValueExp])(sf: EvalState[T]) = for {
       ec <- get[EvalContext]
       _ <- modify ((_: EvalContext).withAssignments(names zip values map (sAst.Assignment.apply _).tupled :_*))
       v <- sf
@@ -482,7 +483,7 @@ object Eval {
       }
     } yield ts
 
-    def resolveWithAssignment(id: sAst.Identifier): EvalState[Option[sAst.ConstructorDef]] = for {
+    def resolveWithAssignment(id: Identifier): EvalState[Option[sAst.ConstructorDef]] = for {
       c <- cstr(id)
       cc <- c match {
         case Some(_) =>
@@ -516,12 +517,12 @@ object Eval {
     typeClass.project[sAst.TpeConstructor, g.Repr, (lAst.TpeConstructor, List[lAst.PropertyExp]), U](e, g.to, _.unify)
   }
 
-  implicit val identifier: Aux[sAst.Identifier, sAst.Identifier] = new Eval[sAst.Identifier] {
-    override type Result = sAst.Identifier
+  implicit val identifier: Aux[Identifier, Identifier] = new Eval[Identifier] {
+    override type Result = Identifier
 
-    def apply(id: sAst.Identifier) = resolveWithAssignment(id)
+    def apply(id: Identifier) = resolveWithAssignment(id)
 
-    def resolveWithAssignment(id: sAst.Identifier): State[EvalContext, sAst.Identifier] = for {
+    def resolveWithAssignment(id: Identifier): State[EvalContext, Identifier] = for {
       b <- resolveBinding(id)
       rb <- b match {
         case Some(sAst.ValueExp.Identifier(rid)) =>
@@ -544,7 +545,7 @@ object Eval {
         resolveWithAssignment(i)
     }
 
-    def resolveWithAssignment(id: sAst.Identifier): State[EvalContext, sAst.ValueExp] = for {
+    def resolveWithAssignment(id: Identifier): State[EvalContext, sAst.ValueExp] = for {
       b <- resolveBinding(id)
       rb <- b match {
         case Some(sAst.ValueExp.Identifier(rid)) =>
@@ -560,19 +561,19 @@ object Eval {
   def as[T, U](implicit e: Aux[U, U], to: T <:< U): Aux[T, U] =
     typeClass.project[T, U, U, U](e, to, identity)
 
-  implicit val localName: Aux[sAst.LocalName, sAst.Identifier] = as[sAst.LocalName, sAst.Identifier]
-  implicit val qname: Aux[sAst.QName, sAst.Identifier] = as[sAst.QName, sAst.Identifier]
-  implicit val url: Aux[sAst.Url, sAst.Identifier] = as[sAst.Url, sAst.Identifier]
+  implicit val localName: Aux[LocalName, Identifier] = as[LocalName, Identifier]
+  implicit val qname: Aux[QName, Identifier] = as[QName, Identifier]
+  implicit val url: Aux[Url, Identifier] = as[Url, Identifier]
 
-  def cstr(id: sAst.Identifier): State[EvalContext, Option[sAst.ConstructorDef]] =
+  def cstr(id: Identifier): State[EvalContext, Option[sAst.ConstructorDef]] =
     gets ((_: EvalContext).resolveCstr(id))
 
-  def inst(id: sAst.Identifier): State[EvalContext, Option[lAst.InstanceExp]] =
+  def inst(id: Identifier): State[EvalContext, Option[lAst.InstanceExp]] =
     gets ((_: EvalContext).resolveInst(id))
 
-  def resolveBinding(id: sAst.Identifier): State[EvalContext, Option[sAst.ValueExp]] =
+  def resolveBinding(id: Identifier): State[EvalContext, Option[sAst.ValueExp]] =
     gets ((_: EvalContext).resolveValue(id))
 
-  def nextIdentifier: State[EvalContext, sAst.LocalName] =
+  def nextIdentifier: State[EvalContext, LocalName] =
     gets ((_: EvalContext).newLN) map (_.apply())
 }

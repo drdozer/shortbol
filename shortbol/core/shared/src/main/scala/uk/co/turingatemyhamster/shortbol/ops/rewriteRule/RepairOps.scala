@@ -5,7 +5,7 @@ package rewriteRule
 import longhandAst.{ConstructorApp, PropertyExp, PropertyValue}
 import optics.longhand.PropertyValue.asReference
 import optics.longhand.PropertyValue.Reference.{value => referenceValue}
-import shorthandAst.{Identifier, LocalName, QName}
+import sharedAst.{Identifier, LocalName, QName}
 
 import scala.annotation.implicitNotFound
 

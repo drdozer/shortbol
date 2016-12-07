@@ -5,14 +5,15 @@ package rewriteRule
 import scalaz._
 import Scalaz._
 import monocle.Monocle._
+import sharedAst.Identifier
+import sharedAst.sugar._
 import shorthandAst.sugar._
 import longhandAst.sugar._
 import RewriteRule.{allElements, ofType}
 import optics.{longhand => ol}
 import ol.SBFile._
 import ol.InstanceExp._
-import longhandAst.{InstanceExp, PropertyExp, PropertyValue}
-import shorthandAst.Identifier
+import longhandAst.{PropertyExp, PropertyValue}
 import terms.RDF
 import terms.SBOL._
 import PropertyStep.PropertyStepOps

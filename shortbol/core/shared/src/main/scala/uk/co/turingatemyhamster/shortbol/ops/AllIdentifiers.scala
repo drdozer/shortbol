@@ -1,10 +1,11 @@
 package uk.co.turingatemyhamster.shortbol.ops
 
 import shapeless._
+import uk.co.turingatemyhamster.shortbol.sharedAst._
 import uk.co.turingatemyhamster.shortbol.shorthandAst
 
 trait AllIdentifiers[T] {
-  def apply(t: T): Seq[shorthandAst.Identifier]
+  def apply(t: T): Seq[Identifier]
 }
 
 object AllIdentifiers extends TypeClassCompanion[AllIdentifiers] {
@@ -44,11 +45,11 @@ object AllIdentifiers extends TypeClassCompanion[AllIdentifiers] {
   implicit val missInt = miss[Int]
   implicit val missBoolean = miss[Boolean]
 
-  implicit val identifier: AllIdentifiers[shorthandAst.Identifier] = new AllIdentifiers[shorthandAst.Identifier] {
-    override def apply(t: shorthandAst.Identifier) = Seq(t)
+  implicit val identifier: AllIdentifiers[Identifier] = new AllIdentifiers[Identifier] {
+    override def apply(t: Identifier) = Seq(t)
   }
-  implicit val style = AllIdentifiers[shorthandAst.StringLiteral.Style]
-  implicit val literal = AllIdentifiers[shorthandAst.Literal]
+  implicit val style = AllIdentifiers[StringLiteral.Style]
+  implicit val literal = AllIdentifiers[Literal]
   implicit val tpeConstructor = AllIdentifiers[shorthandAst.TpeConstructor]
   implicit val valueExp = AllIdentifiers[shorthandAst.ValueExp]
   implicit val constructorApp = AllIdentifiers[shorthandAst.ConstructorApp]

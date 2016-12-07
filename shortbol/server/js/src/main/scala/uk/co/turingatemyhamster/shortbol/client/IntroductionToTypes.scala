@@ -3,7 +3,7 @@ package client
 
 import org.widok._
 
-import shorthandAst.sugar._
+import sharedAst.sugar._
 
 /**
   *

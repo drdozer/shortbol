@@ -1,7 +1,10 @@
 package uk.co.turingatemyhamster.shortbol.pragma
+
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
-import uk.co.turingatemyhamster.shortbol.shorthandAst._
+import uk.co.turingatemyhamster.shortbol.sharedAst._
 import sugar._
+import uk.co.turingatemyhamster.shortbol.shorthandAst.Pragma
+
 import scalaz.Scalaz._
 import scalaz._
 

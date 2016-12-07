@@ -1,8 +1,9 @@
 package uk.co.turingatemyhamster
 package shortbol
 
-import shorthandAst._
-import shorthandAst.sugar._
+import sharedAst._
+import sharedAst.sugar._
+import shorthandAst.SBFile
 import ops._
 import utest._
 import EvalTestSuite.parse
@@ -20,7 +21,7 @@ object AllIdentifiersSuite extends TestSuite {
             |foo:me : foaf:Person""".stripMargin)
         val is = AllIdentifiers[SBFile].apply(f)
         assert(is == List[Identifier](
-          "prefix", "foo", Url("http://some.com/stuff#"), ("foo":#"me"), ("foaf":#"Person")))
+          "prefix", "foo", Url("http://some.com/stuff#"), "foo":#"me", "foaf":#"Person"))
       }
 
       * - {

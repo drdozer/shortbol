@@ -2,6 +2,7 @@ package uk.co.turingatemyhamster.shortbol
 
 import java.io.StringWriter
 
+import sharedAst._
 import shorthandAst._
 import uk.co.turingatemyhamster.shortbol.ops.{PrettyPrinter, ShortbolParser}
 import utest._

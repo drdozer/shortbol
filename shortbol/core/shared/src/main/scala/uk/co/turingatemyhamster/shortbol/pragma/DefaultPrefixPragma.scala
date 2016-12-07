@@ -1,10 +1,11 @@
 package uk.co.turingatemyhamster.shortbol
 package pragma
 
-import shorthandAst._
+import sharedAst._
 import sugar._
 import ops._
 import ops.Eval._
+import uk.co.turingatemyhamster.shortbol.shorthandAst.{Assignment, ConstructorDef, Pragma, ValueExp}
 
 import scalaz.Scalaz._
 import scalaz._

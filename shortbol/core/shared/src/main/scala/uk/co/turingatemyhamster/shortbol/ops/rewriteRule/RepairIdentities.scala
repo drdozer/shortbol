@@ -2,7 +2,10 @@ package uk.co.turingatemyhamster.shortbol
 package ops
 package rewriteRule
 
-import shorthandAst.sugar._
+import monocle.Monocle._
+
+import sharedAst._
+import sharedAst.sugar._
 import longhandAst.{InstanceExp, PropertyExp}
 import longhandAst.sugar._
 import RewriteRule.allElements
@@ -34,16 +37,16 @@ object RepairIdentities extends InstanceRewriter {
     } yield (displayId := slLit(id.name)) ::: ps
   } at noDisplayId
 
-  def bodyRequiresAbout(parentId: shorthandAst.Identifier): RewriteRule[List[PropertyExp]] = RewriteRule { (ps: List[PropertyExp]) =>
+  def bodyRequiresAbout(parentId: Identifier): RewriteRule[List[PropertyExp]] = RewriteRule { (ps: List[PropertyExp]) =>
     for {
-      longhandAst.PropertyExp(_, longhandAst.PropertyValue.Literal(shorthandAst.StringLiteral(s, _, _))) <- ps find (_.property == displayId)
+      longhandAst.PropertyExp(_, longhandAst.PropertyValue.Literal(StringLiteral(s, _, _))) <- ps find (_.property == displayId)
       about <- parentId match {
-        case shorthandAst.LocalName(_) =>
+        case LocalName(_) =>
           None
-        case shorthandAst.QName(pfx, shorthandAst.LocalName(ln)) =>
+        case QName(pfx, LocalName(ln)) =>
           Some(pfx :# s"$ln/${s.asString}")
-        case shorthandAst.Url(url) =>
-          Some(shorthandAst.Url(s"$url/${s.asString}"))
+        case Url(url) =>
+          Some(Url(s"$url/${s.asString}"))
       }
     } yield {
       (RDF.about := about) ::: ps
@@ -73,9 +76,9 @@ object RepairIdentities extends InstanceRewriter {
       } yield {
         val withAbout = (RDF.about := id) ::: bdy
         id match {
-          case shorthandAst.LocalName(ln) =>
+          case LocalName(ln) =>
             (displayId := slLit(ln)) ::: withAbout
-          case shorthandAst.QName(_, shorthandAst.LocalName(ln)) =>
+          case QName(_, LocalName(ln)) =>
             (displayId := slLit(ln)) ::: withAbout
           case _ =>
             withAbout

@@ -2,6 +2,7 @@ package uk.co.turingatemyhamster.shortbol.ops
 
 import scalaz.Scalaz._
 import shapeless._
+import uk.co.turingatemyhamster.shortbol.sharedAst._
 import uk.co.turingatemyhamster.shortbol.shorthandAst
 import uk.co.turingatemyhamster.shortbol.longhandAst
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
@@ -16,7 +17,7 @@ trait ChangeIdentifiers[T] {
 }
 
 object ChangeIdentifiers {
-  case class at(transform: shorthandAst.Identifier => EvalState[shorthandAst.Identifier]) extends TypeClassCompanion[ChangeIdentifiers]
+  case class at(transform: Identifier => EvalState[Identifier]) extends TypeClassCompanion[ChangeIdentifiers]
   {
     self =>
 
@@ -58,7 +59,7 @@ object ChangeIdentifiers {
       }
     }
 
-    implicit def deriveNodeInstance[F <: shorthandAst.AstNode, G]
+    implicit def deriveNodeInstance[F <: AstNode, G]
     (implicit gen: Generic.Aux[F, G], cg: Lazy[ChangeIdentifiers[G]]): ChangeIdentifiers[F] = {
       val fg = typeClass.project(cg.value, gen.to _, gen.from _)
       new ChangeIdentifiers[F] {
@@ -78,11 +79,11 @@ object ChangeIdentifiers {
     implicit val missInt = miss[Int]
     implicit val missBoolean = miss[Boolean]
 
-    implicit val identifier: ChangeIdentifiers[shorthandAst.Identifier] = new ChangeIdentifiers[shorthandAst.Identifier] {
-      override def apply(t: shorthandAst.Identifier) = transform(t)
+    implicit val identifier: ChangeIdentifiers[Identifier] = new ChangeIdentifiers[Identifier] {
+      override def apply(t: Identifier) = transform(t)
     }
-    implicit val style = self[shorthandAst.StringLiteral.Style]
-    implicit val literal = self[shorthandAst.Literal]
+    implicit val style = self[StringLiteral.Style]
+    implicit val literal = self[Literal]
     implicit val assignment = self[shorthandAst.Assignment]
     implicit val tpeConstructor = self[shorthandAst.TpeConstructor]
     implicit val instanceExp = self[longhandAst.InstanceExp]

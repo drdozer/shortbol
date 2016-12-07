@@ -1,7 +1,7 @@
 package uk.co.turingatemyhamster.shortbol
 package terms
 
-import shorthandAst.{sugar, NSPrefix}
+import sharedAst.{sugar, NSPrefix}
 
 import sugar._
 

@@ -1,9 +1,8 @@
 package uk.co.turingatemyhamster.shortbol.ops.rewriteRule
 
-import uk.co.turingatemyhamster.shortbol.longhandAst.{ConstructorApp, PropertyExp, PropertyValue}
+import uk.co.turingatemyhamster.shortbol.longhandAst.PropertyExp
 import uk.co.turingatemyhamster.shortbol.ops.{RewriteAt, RewriteAtBuilder, RewriteRule}
 import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.RepairOps.{ConstructorAppPath, ReferencePath}
-import uk.co.turingatemyhamster.shortbol.shorthandAst.Identifier
 
 
 case class PropertyStep [F, G](f: F, g: G)

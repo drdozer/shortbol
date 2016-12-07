@@ -1,14 +1,10 @@
 package uk.co.turingatemyhamster.shortbol.client
 
-import fastparse.core.Parsed.Success
 import org.widok._
 import org.widok.bindings.HTML
-import pl.metastack.metarx.ReadChannel
-import uk.co.turingatemyhamster.shortbol.shorthandAst._
-import sugar._
-
-import scala.concurrent.Future
-import scala.scalajs.js
+import TutorialUtils._
+import uk.co.turingatemyhamster.shortbol.sharedAst.sugar._
+import uk.co.turingatemyhamster.shortbol.shorthandAst.sugar._
 
 /**
   *
@@ -16,7 +12,6 @@ import scala.scalajs.js
   * @author Matthew Pocock
   */
 case class YourFirstScript() extends TutorialContent {
-  import TutorialUtils._
 
   override def navigationEntry: View = "Your First Script"
 

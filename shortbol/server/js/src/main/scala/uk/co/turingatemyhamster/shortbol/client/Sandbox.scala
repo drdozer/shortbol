@@ -90,7 +90,7 @@ object Sandbox extends PageApplication {
     def processShortbol(): Unit = {
       val txt = editor.getSession().getValue().asInstanceOf[String]
 
-      ShortbolParser.SBFile.withPositions(shorthandAst.LocalName("shortbol_editor"), txt) match {
+      ShortbolParser.SBFile.withPositions(sharedAst.LocalName("shortbol_editor"), txt) match {
         case s: Success[SBFile] =>
           val (c1, v1) = s.value.eval.run(Fixture.configuredContext)
 

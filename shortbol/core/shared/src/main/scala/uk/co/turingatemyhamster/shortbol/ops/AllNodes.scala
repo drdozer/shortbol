@@ -1,12 +1,12 @@
 package uk.co.turingatemyhamster.shortbol.ops
 
 import shapeless._
+import uk.co.turingatemyhamster.shortbol.sharedAst._
 import uk.co.turingatemyhamster.shortbol.shorthandAst
-import uk.co.turingatemyhamster.shortbol.shorthandAst.AstNode
 import uk.co.turingatemyhamster.shortbol.longhandAst
 
 trait AllNodes[T] {
-  def apply(t: T): Seq[shorthandAst.AstNode]
+  def apply(t: T): Seq[AstNode]
 }
 
 object AllNodes {
@@ -60,19 +60,19 @@ object AllNodes {
   implicit val missInt: AllNodes[Int] = miss[Int]
   implicit val missBoolean: AllNodes[Boolean] = miss[Boolean]
 
-  implicit val localName = AllNodes[shorthandAst.LocalName]
-  implicit val nsPrefix = AllNodes[shorthandAst.NSPrefix]
-  implicit val qname = AllNodes[shorthandAst.QName]
-  implicit val url = AllNodes[shorthandAst.Url]
-  implicit val identifier = AllNodes[shorthandAst.Identifier]
-  implicit val singleLine = AllNodes[shorthandAst.StringLiteral.SingleLine]
-  implicit val multiLine = AllNodes[shorthandAst.StringLiteral.MultiLine]
-  implicit val style = AllNodes[shorthandAst.StringLiteral.Style]
-  implicit val datatype = AllNodes[shorthandAst.Datatype]
-  implicit val language = AllNodes[shorthandAst.Language]
-  implicit val stringLiteral = AllNodes[shorthandAst.StringLiteral]
-  implicit val integerLiteral = AllNodes[shorthandAst.IntegerLiteral]
-  implicit val literal = AllNodes[shorthandAst.Literal]
+  implicit val localName = AllNodes[LocalName]
+  implicit val nsPrefix = AllNodes[NSPrefix]
+  implicit val qname = AllNodes[QName]
+  implicit val url = AllNodes[Url]
+  implicit val identifier = AllNodes[Identifier]
+  implicit val singleLine = AllNodes[StringLiteral.SingleLine]
+  implicit val multiLine = AllNodes[StringLiteral.MultiLine]
+  implicit val style = AllNodes[StringLiteral.Style]
+  implicit val datatype = AllNodes[Datatype]
+  implicit val language = AllNodes[Language]
+  implicit val stringLiteral = AllNodes[StringLiteral]
+  implicit val integerLiteral = AllNodes[IntegerLiteral]
+  implicit val literal = AllNodes[Literal]
   implicit val valueExp = AllNodes[shorthandAst.ValueExp]
   implicit val tpeConstructor1 = AllNodes[shorthandAst.TpeConstructor1]
   implicit val tpeConstructorStar = AllNodes[shorthandAst.TpeConstructorStar]
