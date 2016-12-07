@@ -126,5 +126,5 @@ object RepairComponentDefinition extends InstanceRewriter {
     ofType(ComponentDefinition)
 
   lazy val instanceRewrite =
-    repairAtComponent at body at cstrApp
+    repairAtComponentDefinition at cstrApp
 }
