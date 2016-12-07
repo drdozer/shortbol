@@ -17,57 +17,54 @@ import terms.RDF
 import terms.SBOL._
 import PropertyStep.PropertyStepOps
 
+case class RepairMapsTo(componentProperty: Identifier) {
+
+  def defToAbout(ps: List[PropertyExp]): Map[Identifier, Identifier] = (for {
+    cds <- ps collect { case PropertyExp(`componentProperty`, PropertyValue.Nested(ca)) => ca }
+    defnt <- cds.body collect { case PropertyExp(`definition`, PropertyValue.Reference(r)) => r }
+    about <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
+  } yield (defnt, about)).toMap
+
+  lazy val repairReferences = new {
+    def at [L](loc: L)(implicit locRR: RewriteAtBuilder[L, List[PropertyExp], PropertyValue.Reference]) =
+    RewriteRule { (ps: List[PropertyExp]) =>
+      val d2a = defToAbout(ps)
+
+      RewriteRule { (ref: PropertyValue.Reference) =>
+        d2a get ref.value map PropertyValue.Reference
+      } at loc
+    }
+  }
+
+  lazy val repairMapsToRemote = RewriteRule { (ps: List[PropertyExp]) =>
+    for {
+      remoteRef <- (RepairOps deReference definition in ps).point[Eval.EvalState]
+      remoteMDs <- remoteRef.traverseU(r => Eval.inst(r).map(_.to[List]))
+    } yield {
+      val d2a = remoteMDs.flatten.map(i => defToAbout(i.cstrApp.body)).foldLeft(Map.empty[Identifier, Identifier])(_ ++ _)
+
+      RewriteRule { (ref: PropertyValue.Reference) =>
+        d2a get ref.value map PropertyValue.Reference
+      } at (mapsTo --> remote)
+    }
+  }
+}
+
 /**
   * Created by nmrp3 on 17/11/16.
   */
 object RepairModule extends InstanceRewriter {
 
-  private def defToAbout(ps: List[PropertyExp]): Map[Identifier, Identifier] = (for {
-    cds <- ps collect { case PropertyExp(`functionalComponent`, PropertyValue.Nested(ca)) => ca }
-    defnt <- cds.body collect { case PropertyExp(`definition`, PropertyValue.Reference(r)) => r }
-    about <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
-  } yield (defnt, about)).toMap
+  lazy val repairMapsTo = RepairMapsTo(functionalComponent)
 
-  lazy val repairParticipantsAndMapsToLocal = RewriteRule { (ps: List[PropertyExp]) =>
-    val d2a = defToAbout(ps)
+  lazy val repairParticipantsAndMapsToLocal = repairMapsTo.repairReferences at (
+    interaction --> participation --> participant,
+    module --> mapsTo --> local
+  )
 
-    RewriteRule { (ref: PropertyValue.Reference) =>
-      d2a get ref.value map PropertyValue.Reference
-    } at (
-      interaction --> participation --> participant,
-      module --> mapsTo --> local
-    )
-  }
+  lazy val repairModuleMapsToRemote = repairMapsTo.repairMapsToRemote at module
 
-  // @ module: Module
-  //
-  // Follow `definition` to an instance of ModuleDefinition.
-  // @ mapsTo
-  // find
-  lazy val repairMapsToRemote = RewriteRule { (ps: List[PropertyExp]) =>
-    for {
-      remoteRef <- (RepairOps deReference definition in ps).point[Eval.EvalState]
-      _ = println(s"remoteRef: $remoteRef")
-      remoteMDs <- remoteRef.traverseU(r => Eval.inst(r).map(_.to[List]))
-      _ = println(s"remote module definition: $remoteMDs")
-    } yield {
-      // There should be 0 or 1 remoteModuleDefinitions that is the resolved ModuleDefinition for definition
-      // Chase all the functionalComponents
-      // Extract definition -> rdf:about
-
-
-      val d2a = remoteMDs.flatten.map(i => defToAbout(i.cstrApp.body)).foldLeft(Map.empty[Identifier, Identifier])(_ ++ _)
-      println(s"build d2a dictionary: $d2a")
-
-      RewriteRule { (ref: PropertyValue.Reference) =>
-        println(s"Resolving ${ref.value} to ${d2a.get(ref.value)}")
-        d2a get ref.value map PropertyValue.Reference
-      } at (
-        mapsTo --> remote
-      )
-    }
-  } at module
-
+  lazy val repairFunctionalComponentMapsToRemote = repairMapsTo.repairMapsToRemote at functionalComponent
 
   lazy val componentsForRefs = RepairOps build { (ref: Identifier) =>
     println("Repairing component for ref $ref")
@@ -111,8 +108,9 @@ object RepairModule extends InstanceRewriter {
       repairAtComponent andThen
         componentsForRefs andThen
         repairParticipantsAndMapsToLocal andThen
-        repairMapsToRemote andThen
-        repairAtModule
+        repairModuleMapsToRemote andThen
+        repairAtModule andThen
+        repairFunctionalComponentMapsToRemote
       ) at
       ofType(ModuleDefinition)
 

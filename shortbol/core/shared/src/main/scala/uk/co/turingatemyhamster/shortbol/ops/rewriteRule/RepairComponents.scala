@@ -63,6 +63,8 @@ object RepairSequence extends InstanceRewriter {
 
 object RepairComponentDefinition extends InstanceRewriter {
 
+  lazy val repairMapsTo = RepairMapsTo(component)
+
   lazy val hoistNestedSequence = RewriteRule { (pv: PropertyValue) =>
     (asNested composeLens nestedValue) getOrModify pv fold (
       _ => pv.left[Rewritten[PropertyValue]].point[EvalState],
@@ -75,17 +77,8 @@ object RepairComponentDefinition extends InstanceRewriter {
     )
   } at sequence
 
-  lazy val repairConstraints = RewriteRule { (ps: List[PropertyExp]) =>
-    val defToAbout = (for {
-      cds <- ps collect { case PropertyExp(`component`, PropertyValue.Nested(ca)) => ca }
-      defnt <- cds.body collect { case PropertyExp(`definition`, PropertyValue.Reference(r)) => r }
-      about <- cds.body collect { case PropertyExp(RDF.about, PropertyValue.Reference(r)) => r }
-    } yield (defnt, about)).toMap
-
-    RewriteRule { (ref: PropertyValue.Reference) =>
-      defToAbout get ref.value map PropertyValue.Reference
-    } at ((sequenceConstraint, sequenceAnnotation) --> *)
-  }
+  lazy val repairConstraints = repairMapsTo.repairReferences at (
+    (sequenceConstraint, sequenceAnnotation) --> *)
 
   lazy val componentsForRefs = RepairOps build { (ref: Identifier) =>
     component := Component(
@@ -113,10 +106,11 @@ object RepairComponentDefinition extends InstanceRewriter {
           access := access_public,
           definition := ref)) : PropertyValue
     }
-  }
+  } at component
 
-  lazy val repairAtComponent = replaceComponentReferenceWithComponent at
-    component
+  lazy val repairComponentMapsToRemote = repairMapsTo.repairMapsToRemote at component
+
+  lazy val repairAtComponent = replaceComponentReferenceWithComponent andThen repairComponentMapsToRemote
 
   lazy val repairAtComponentDefinition = (
     hoistNestedSequence andThen
