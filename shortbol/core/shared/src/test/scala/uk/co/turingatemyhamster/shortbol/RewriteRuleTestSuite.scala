@@ -3,7 +3,6 @@ package uk.co.turingatemyhamster.shortbol
 import shorthandAst._
 import shorthandAst.sugar._
 import ops._
-import uk.co.turingatemyhamster.shortbol.longhandAst.PropertyExp
 import uk.co.turingatemyhamster.shortbol.ops.Eval.EvalState
 import uk.co.turingatemyhamster.shortbol.ops.rewriteRule.{RepairSequence}
 import utest._
