@@ -1,15 +1,10 @@
 package uk.co.turingatemyhamster.shortbol
 package ops
+package typecheck
 
-import scala.reflect.runtime.universe.TypeTag
-import monocle.{Monocle, Getter}
-import Monocle.{none => _, _}
-
-import longhandAst._
-import shorthandAst.{Identifier, Literal, IntegerLiteral, StringLiteral}
-import shorthandAst.sugar._
-
-import scalaz.Scalaz._
+import monocle.Monocle.{none => _}
+import uk.co.turingatemyhamster.shortbol.longhandAst.{ConstructorApp, InstanceExp, TpeConstructor}
+import uk.co.turingatemyhamster.shortbol.shorthandAst.{Identifier, IntegerLiteral, Literal, StringLiteral}
 
 
 trait Typer[A] {
