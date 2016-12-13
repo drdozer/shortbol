@@ -2,102 +2,99 @@ package uk.co.turingatemyhamster.shortbol
 package ops
 
 import scala.reflect.runtime.universe.TypeTag
-import shorthandAst._
-import Eval.EvalOps
-import sugar._
+import _root_.shapeless._
 
-import scalaz.{-\/, Applicative, IList, NonEmptyList, Scalaz, Validation, ValidationNel, Writer, \/, \/-}
-import Scalaz._
-import monocle._
-import Monocle.{none => _, _}
-import monocle.macros._
+import longhandAst._
 
 
-//sealed trait ConstraintViolation[A] {
-//  def at: A
-//
-//  def in[X, K](in: X, key: K, setter: Option[Setter[X, A]])
-//              (implicit aTpe: TypeTag[X], kTpe: TypeTag[K], bTpe: TypeTag[A]): ConstraintViolation[X] =
-//    NestedViolation[X, K, A](in, key, this)(setter)
-//
-//  def prettyPrint: String
-//
-//  def recoverWith[C <: ConstraintViolation[X], X](r: ConstraintRecovery[C, X]): Option[ConstraintRecovery.Recovered[A]]
-//}
-//
-//
-///** Attempt to recover a constraint violation.
-//  *
-//  * If it an recover it, return the recovered value, otherwise return `None`.
-//  *
-//  * @param recover
-//  * @param cTT
-//  * @param xTT
-//  * @tparam C
-//  * @tparam X
-//  */
-//case class ConstraintRecovery[C <: ConstraintViolation[X], X](recover: C => Option[ConstraintRecovery.Recovered[X]])(implicit val cTT: TypeTag[C], val xTT: TypeTag[X]) {
-//  def tryRecover[CC <: ConstraintViolation[XX], XX](cc: CC)(implicit ccTT: TypeTag[CC], xxTT: TypeTag[XX]): Option[ConstraintRecovery.Recovered[XX]] =
-//  {
-//    println(s"ConstraintRecovery tryRecover @\n\t$ccTT <:< $cTT = ${ccTT.tpe <:< cTT.tpe}\n\t$xTT <:< $xxTT = ${xTT.tpe <:< xxTT.tpe}")
-//    if(ccTT.tpe <:< cTT.tpe && xTT.tpe <:< xxTT.tpe) recover(cc.asInstanceOf[C]) map (_.asInstanceOf[ConstraintRecovery.Recovered[XX]])
-//    else Scalaz.none
-//  }
-//}
-//
-//object ConstraintRecovery {
-//  type Recovered[X] = (Option[ValueRecovery[_]], X)
-//
-//  def nested[A, K, B](recover: NestedViolation[A, K, B] => Option[Recovered[A]])(implicit aTT: TypeTag[A], kTT: TypeTag[K], bTT: TypeTag[B]) = apply(recover)
-//}
-//
-//case class ValueRecovery[X](recover: X => Option[ConstraintRecovery.Recovered[X]])(implicit val xTT: TypeTag[X]) {
-//  def tryRecover[XX](xx: XX)(implicit xxTT: TypeTag[XX]): Option[ConstraintRecovery.Recovered[XX]] =
-//    if(xTT.tpe <:< xxTT.tpe) recover(xx.asInstanceOf[X]) map (_.asInstanceOf[ConstraintRecovery.Recovered[XX]])
-//    else Scalaz.none
-//}
-//
-//object ConstraintViolation {
-//  def failure[A](rule: Constraint[A], at: A)(implicit aTT: TypeTag[A]): ConstraintViolation[A] =
-//    ConstraintFailure(rule, at)
-//}
-//
-//case class ConstraintFailure[A](rule: Constraint[A], at: A)
-//                               (implicit cfaTT: TypeTag[ConstraintFailure[A]], aTT: TypeTag[A]) extends ConstraintViolation[A] {
-//  override def prettyPrint: String = s"failed(${rule.prettyPrint} at $at"
-//
-//  override def recoverWith[C <: ConstraintViolation[X], X](r: ConstraintRecovery[C, X]) =
-//    r tryRecover this
-//}
-//
-//case class NestedViolation[A, K, B](at: A, key: K, because: ConstraintViolation[B])(setter: Option[Setter[A, B]])
-//                                   (implicit val nvTT: TypeTag[NestedViolation[A, K, B]], aTT: TypeTag[A]) extends ConstraintViolation[A] {
-//  def prettyIn: String = {
-//    val s = at.toString
-//    if(s.length > 40) s.substring(0, 36) + " ..." else s
-//  }
-//  override def prettyPrint: String = s"violation($key of $prettyIn because ${because.prettyPrint})"
-//
-//  override def recoverWith[C <: ConstraintViolation[X], X](r: ConstraintRecovery[C, X]) = {
-//    r tryRecover[NestedViolation[A, K, B], A] this orElse {
-//      if(setter.isEmpty) println(s"Stopping here as we have no setter to traverse $key into ${because.prettyPrint}.")
-//      for {
-//        s <- setter
-//        (rr, b) <- because.recoverWith(r)
-//      } yield {
-//        println("Recursing nested recovery:")
-//        val ss = s.set(b)(at)
-//        println(s"Recovered recursive: $ss")
-//        rr flatMap (_ tryRecover ss) getOrElse
-//          (rr, ss)
-//      }
-//    }
-//  }
-//}
+sealed trait Violation[Path <: HList, Value] {
+  def path: Path
+  def value: Value
+
+  def prettyPrint: StringBuilder
+
+  def @: [Step, Within](s: Step, w: Within) = NestedViolation(s, w, this)
+}
+
+case class NestedViolation[Step, Suffix <: HList, Within, At](step: Step, value: Within, because: Violation[Suffix, At])
+  extends Violation[Step :: Suffix, Within]
+{
+  val path: Step :: Suffix = step :: because.path
+
+  override def prettyPrint: StringBuilder = because.prettyPrint append " at " append step
+}
+
+case class ConstraintViolation[Value](value: Value, cause: Constraint[Value]) extends Violation[HNil, Value] {
+  override def path: HNil = HNil
+
+  override def prettyPrint: StringBuilder = new StringBuilder() append cause.prettyPrint append " in " append value
+}
+
+trait Constraint[At] {
+  self =>
+
+  type Path <: HList
+
+  def apply(at: At): List[Violation[Path, At]]
+
+  def prettyPrint: StringBuilder
+
+  final def @:[T, P <: HList, V](t: T)(implicit b: ConstraintBuilder[T, P, Path, V, At]): Constraint.Aux[P, V] = b(t, this)
+
+  def && (other: Constraint.Aux[Path, At]) = new Constraint[At] {
+    override type Path = self.Path
+
+    override def apply(at: At): List[Violation[Path, At]] = self(at) ++ other(at)
+
+    override def prettyPrint: StringBuilder = self.prettyPrint append other.prettyPrint
+  }
+}
+
+object Constraint {
+  type Aux[P <: HList, At] = Constraint[At] { type Path = P }
+}
+
+trait ConstraintBuilder[T, Path <: HList, Suffix <: HList, Within, At] {
+  def apply(t: T, cat: Constraint.Aux[Suffix, At]): Constraint.Aux[Path, Within]
+}
+
+object ConstraintBuilder {
+
+  implicit def fromSfxGetter[Step, Suffix <: HList, Within, At]: ConstraintBuilder[(Step, Within => At), Step :: Suffix, Suffix, Within, At] = new ConstraintBuilder[(Step, (Within) => At), ::[Step, Suffix], Suffix, Within, At] {
+    override def apply(t: (Step, (Within) => At),
+                       cat: Constraint.Aux[Suffix, At]): Constraint.Aux[Step :: Suffix, Within] = new Constraint[Within] {
+      override type Path = Step :: Suffix
+
+      override def apply(within: Within): scala.List[Violation[Step :: Suffix, Within]] = cat(t._2(within)) map (_.@:(t._1, within))
+
+      override def prettyPrint: StringBuilder = cat.prettyPrint append " at " append t._1
+    }
+  }
+
+  import sharedAst.Identifier
+  import longhandAst.PropertyExp
+  implicit def fromProperty[I <: Identifier, Suffix <: HList]: ConstraintBuilder[I, (I, List[Int]) :: Suffix, Suffix, List[PropertyExp], List[PropertyExp]] = new ConstraintBuilder[I, ::[(I, List[Int]), Suffix], Suffix, List[PropertyExp], List[PropertyExp]] {
+
+    override def apply(propId: I,
+                       cat: Constraint.Aux[Suffix, List[PropertyExp]]): Constraint.Aux[(I, List[Int]) :: Suffix, List[PropertyExp]] = new Constraint[List[PropertyExp]] {
+      override type Path = (I, List[Int]) :: Suffix
+
+      override def apply(at: List[PropertyExp]): List[Violation[Path, List[PropertyExp]]] = {
+        val (is, pes) = (for {
+          (pe@PropertyExp(p, _), i) <- at.zipWithIndex if p == propId
+        } yield (i, pe)).unzip
+
+        cat(pes) map (_.@:(propId -> is, at))
+      }
+
+      override def prettyPrint: scala.StringBuilder = cat.prettyPrint append " at " append propId
+    }
+  }
+}
+
 //
 //import Constraint.ValidatedConstraints
 //
-//trait Constraint[A] {
 //  self =>
 //
 //  def apply(a: A): ValidatedConstraints[A]
@@ -309,60 +306,71 @@ import monocle.macros._
 //  override def prettyPrint: String = s"($eA != _)"
 //}
 //
-//case class MemberOf[A](a: A)(implicit aTT: TypeTag[A]) extends Constraint[Set[A]] {
-//  override def apply(as: Set[A]) =
-//    if(as contains a) as.successNel else ConstraintViolation.failure(this, as).failureNel
+case class SetContainsMember[A](a: A) extends Constraint[Set[A]] {
+  override type Path = HNil
+
+  override def apply(as: Set[A]) =
+    if(as contains a) Nil else ConstraintViolation(as, this) :: Nil
 //
 //  override def not = NotMemberOf(a)
+
+  override def prettyPrint: StringBuilder = new StringBuilder() append "set contains " append a
+}
 //
-//  override def prettyPrint: String = s"($a in _)"
-//}
-//
-//case class NotMemberOf[A](a: A)(implicit aTT: TypeTag[A]) extends Constraint[Set[A]] {
-//  override def apply(as: Set[A]) =
-//    if(as contains a) ConstraintViolation.failure(this, as).failureNel else as.successNel
-//
+case class NotMemberOf[A](a: A)(implicit aTT: TypeTag[A]) extends Constraint[Set[A]] {
+  override type Path = HNil
+
+  override def apply(as: Set[A]) =
+    if(as contains a) ConstraintViolation(as, this) :: Nil else Nil
+
 //  override def not = MemberOf(a)
-//
-//  override def prettyPrint: String = s"($a not_in _)"
-//}
-//
-//case class LessThan(min: Int) extends Constraint[Int] {
-//  override def apply(a: Int) =
-//    if(a < min) a.successNel else ConstraintViolation.failure(this, a).failureNel
-//
+
+  override def prettyPrint: StringBuilder = new StringBuilder() append "set doesn't contain " append a
+}
+
+case class LessThan(min: Int) extends Constraint[Int] {
+  override type Path = HNil
+
+  override def apply(a: Int) =
+    if(a < min) Nil else ConstraintViolation(a, this) :: Nil
+
 //  override def not = NotLessThan(min)
-//
-//  override def prettyPrint: String = s"(_ < $min)"
-//}
-//
-//case class NotLessThan(min: Int) extends Constraint[Int] {
-//  override def apply(a: Int) =
-//    if(a < min) ConstraintViolation.failure(this, a).failureNel else a.successNel
-//
+
+  override def prettyPrint: StringBuilder = new StringBuilder() append "_ < " append min
+}
+
+case class NotLessThan(min: Int) extends Constraint[Int] {
+  override type Path = HNil
+
+  override def apply(a: Int) =
+    if(a < min) ConstraintViolation(a, this) :: Nil else Nil
+
 //  override def not = LessThan(min)
-//
-//  override def prettyPrint: String = s"(_ >= $min)"
-//}
-//
-//case class GreaterThan[A](max: Int) extends Constraint[Int] {
-//  override def apply(a: Int) =
-//    if(a > max) a.successNel else ConstraintViolation.failure(this, a).failureNel
-//
-//
+
+  override def prettyPrint: StringBuilder = new StringBuilder() append "_ >= " append min
+}
+
+case class GreaterThan[A](max: Int) extends Constraint[Int] {
+  override type Path = HNil
+
+  override def apply(a: Int) =
+    if(a > max) Nil else ConstraintViolation(a, this) :: Nil
+
 //  override def not = NotGreaterThan(max)
-//
-//  override def prettyPrint: String = s"(_ > $max)"
-//}
-//
-//case class NotGreaterThan[A](max: Int) extends Constraint[Int] {
-//  override def apply(a: Int) =
-//    if(a > max) ConstraintViolation.failure(this, a).failureNel else a.successNel
-//
+
+  override def prettyPrint: StringBuilder = new StringBuilder() append "_ > " append max
+}
+
+case class NotGreaterThan[A](max: Int) extends Constraint[Int] {
+  override type Path = HNil
+
+  override def apply(a: Int) =
+    if(a > max) ConstraintViolation(a, this) :: Nil else Nil
+
 //  override def not = GreaterThan(max)
-//
-//  override def prettyPrint: String = s"(_ <= $max)"
-//}
+
+  override def prettyPrint: StringBuilder = new StringBuilder() append "_ <= " append max
+}
 //
 //case class InPrism[A, B, K](key: K, bC: Constraint[B])
 //                           (prism: Prism[A, B])
@@ -440,9 +448,13 @@ import monocle.macros._
 //  override def prettyPrint: String = s"at($key -> ${bC.prettyPrint})"
 //}
 //
-//trait ConstraintSystem {
-//  def fromContext(ctxt: EvalContext): Constraint[TopLevel.InstanceExp]
-//}
+trait ConstraintSystem {
+
+  type Report
+
+  def validate(ctxt: EvalContext): InstanceExp => Report
+
+}
 
 //object ConstraintSystem {
 //  def apply(cs: ConstraintSystem*) = new {

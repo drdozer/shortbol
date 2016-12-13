@@ -3,9 +3,11 @@ package ops
 package typecheck
 
 import monocle.Monocle.{none => _}
-import longhandAst.{ConstructorApp, InstanceExp, TpeConstructor}
+import longhandAst._
 import sharedAst.{Identifier, IntegerLiteral, Literal, StringLiteral}
 import sharedAst.sugar._
+import uk.co.turingatemyhamster.shortbol.longhandAst.InstanceExp
+
 
 trait Typer[A] {
   def exactTypeOf(a: A): Set[Identifier]
@@ -32,95 +34,84 @@ object Typer {
   }
 
 }
-//
-//case class OwlTyper(ctxt: EvalContext) {
-//
-//  val allClassIds = for {
-//        is <- ctxt.insts.values.to[List]
-//        _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.id}")
-//        InstanceExp(clsId, ConstructorApp(TpeConstructor1(OWL.`owl_class`, _), _)) <- is
-//  } yield clsId
-//
-//  val classHierarchy = (for {
-//    is <- ctxt.insts.values.to[List]
-//    _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.id}")
-//    InstanceExp(clsId, ConstructorApp(TpeConstructor1(OWL.`owl_class`, _), clsBdy)) <- is
-//    BodyStmt.Assignment(Assignment(OWL.`owl_subClassOf`, ValueExp.Identifier(superType))) <- clsBdy
-//  } yield clsId -> superType)
-//    .foldLeft(Map.empty[Identifier, List[Identifier]])((m, ii) => m + (ii._1 -> (ii._2 :: m.getOrElse(ii._1, Nil))))
-//
-//  val flatHierarchy = {
-//    val cache = scala.collection.mutable.Map.empty[Identifier, Set[Identifier]]
-//
-//    def unwrap(i: Identifier): Set[Identifier] = cache.getOrElseUpdate(
-//      i,
-//      Set(i) ++ (classHierarchy.getOrElse(i, Nil) flatMap unwrap))
-//
-//    allClassIds foreach unwrap
-//
-//    Map(cache.to[Seq] :_*)
-//  }
-//
-//  def byType[A](tpe: Identifier)(implicit ty: Typer[A], aTpe: TypeTag[A]) =
-//    ('type, Getter((a: A) => {
-//      ty exactTypeOf a flatMap (ta =>
-//        flatHierarchy.getOrElse(ta, Set(ta)))
-//    })) @: MemberOf(tpe)
-//
-//}
-//
-//
-//
-///**
-//  *
-//  *
-//  * @author Matthew Pocock
-//  */
-//object OWL extends ConstraintSystem {
-//  val owl = "owl": NSPrefix
-//  val owl_class = owl :# "Class"
-//  val owl_propertyRestriction = owl :# "propertyRestriction"
-//  val owl_minCardinality = owl :# "minCardinality"
-//  val owl_maxCardinality = owl :# "maxCardinality"
-//  val owl_exactCardinality = owl :# "exactCardinality"
-//  val owl_allValuesFrom = owl :# "allValuesFrom"
-//  val owl_subClassOf = owl :# "subClassOf"
-//
-//  def bySize[T](c: Constraint[Int])(implicit tTpe: TypeTag[T]) = ('size, Getter((_: List[T]).size)) @: c
-//
-//  def minCardinalityConstraint(propId: Identifier, propRes: BodyStmt): Option[Constraint[List[BodyStmt]]] =
-//    propRes match {
-//      case BodyStmt.Assignment(Assignment(`owl_minCardinality`, ValueExp.Literal(IntegerLiteral(c)))) =>
-//        ((propId,
-//          each[List[BodyStmt], BodyStmt] composeOptional optics.bodyStmt.propValue(propId) ) @:
-//          ('size, Getter((_: List[optics.bodyStmt.PropValue]).length)) @:
-//            NotLessThan(c)).some
-//      case _ =>
-//        none
-//    }
-//
-//  def maxCardinalityConstraint(propId: Identifier, propRes: BodyStmt): Option[Constraint[List[BodyStmt]]] =
-//    propRes match {
-//      case BodyStmt.Assignment(Assignment(`owl_maxCardinality`, ValueExp.Literal(IntegerLiteral(c)))) =>
-//        ((propId,
-//          each[List[BodyStmt], BodyStmt] composeOptional optics.bodyStmt.propValue(propId) ) @:
-//          ('size, Getter((_: List[optics.bodyStmt.PropValue]).length)) @:
-//            NotGreaterThan(c)).some
-//      case _ =>
-//        none
-//    }
-//
-//  def exactCardinalityConstraint(propId: Identifier, propRes: BodyStmt): Option[Constraint[List[BodyStmt]]] =
-//    propRes match {
-//      case BodyStmt.Assignment(Assignment(`owl_exactCardinality`, ValueExp.Literal(IntegerLiteral(c)))) =>
-//        ((propId,
-//          each[List[BodyStmt], BodyStmt] composeOptional optics.bodyStmt.propValue(propId) ) @:
-//          ('size, Getter((_: List[optics.bodyStmt.PropValue]).length)) @:
-//          Constraint.applyAll(NotLessThan(c) :: NotGreaterThan(c) :: Nil)).some
-//      case _ =>
-//        none
-//    }
-//
+
+case class OwlTyper(ctxt: EvalContext) {
+
+  val allClassIds = for {
+        is <- ctxt.insts.values.to[List]
+        _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.identifier}")
+        InstanceExp(clsId, ConstructorApp(TpeConstructor(terms.OWL.`class`), _)) <- is
+  } yield clsId
+
+  val classHierarchy = (for {
+    is <- ctxt.insts.values.to[List]
+    _ = if(is.size > 1) throw new IllegalStateException(s"Multiple definitions for ${is.head.identifier}")
+    InstanceExp(clsId, ConstructorApp(TpeConstructor(terms.OWL.`class`), clsBdy)) <- is
+    PropertyExp(terms.OWL.`subClassOf`, PropertyValue.Reference(superType)) <- clsBdy
+  } yield clsId -> superType)
+    .foldLeft(Map.empty[Identifier, List[Identifier]])((m, ii) => m + (ii._1 -> (ii._2 :: m.getOrElse(ii._1, Nil))))
+
+  val flatHierarchy = {
+    val cache = scala.collection.mutable.Map.empty[Identifier, Set[Identifier]]
+
+    def unwrap(i: Identifier): Set[Identifier] = cache.getOrElseUpdate(
+      i,
+      Set(i) ++ (classHierarchy.getOrElse(i, Nil) flatMap unwrap))
+
+    allClassIds foreach unwrap
+
+    Map(cache.to[Seq] :_*)
+  }
+
+  def byType[A](tpe: Identifier)(implicit ty: Typer[A]) =
+    ('type,
+      (a: A) =>
+        ty exactTypeOf a flatMap (ta =>
+          flatHierarchy.getOrElse(ta, Set(ta)))
+    ) @: SetContainsMember(tpe)
+
+}
+
+
+
+/**
+  *
+  *
+  * @author Matthew Pocock
+  */
+object OWL extends ConstraintSystem {
+
+  /// fixme: Make a sane type that catalogues the various validations
+  type Report = Nothing
+
+  override def validate(ctxt: EvalContext): (InstanceExp) => Nothing = (ie: InstanceExp) => ???
+
+  def bySize[T](c: Constraint[Int]) = ('size, (_: List[T]).size) @: c
+
+  def minCardinalityConstraint(propId: Identifier, propRes: PropertyExp): Option[Constraint[List[PropertyExp]]] =
+    propRes match {
+      case PropertyExp(terms.OWL.minCardinality, PropertyValue.Literal(IntegerLiteral(c))) =>
+        Some(propId @: bySize(NotLessThan(c)))
+      case _ =>
+        None
+    }
+
+  def maxCardinalityConstraint(propId: Identifier, propRes: PropertyExp): Option[Constraint[List[PropertyExp]]] =
+    propRes match {
+      case PropertyExp(terms.OWL.maxCardinality, PropertyValue.Literal(IntegerLiteral(c))) =>
+        Some(propId @: bySize(NotGreaterThan(c)))
+      case _ =>
+        None
+    }
+
+  def exactCardinalityConstraint(propId: Identifier, propRes: PropertyExp): Option[Constraint[List[PropertyExp]]] =
+    propRes match {
+      case PropertyExp(terms.OWL.exactCardinality, PropertyValue.Literal(IntegerLiteral(c))) =>
+        Some(propId @: bySize(NotLessThan(c) && NotGreaterThan(c)))
+      case _ =>
+        None
+    }
+
 //
 //  class ContextConstraints(ctxt: EvalContext) extends Constraint[TopLevel.InstanceExp] {
 //    val typer = OwlTyper(ctxt)
@@ -230,4 +221,4 @@ object Typer {
 //  }
 //
 //  override def fromContext(ctxt: EvalContext): ContextConstraints = new ContextConstraints(ctxt)
-//}
+}
