@@ -33,7 +33,7 @@ object Shortbol {
       .text("export the longhand reperesentation, after fixup rules are applied")
     opt[Boolean]("exportRdf")
       .action((e, c) => c.copy(exportRdf = e))
-      .text("export the SBOl rdf representation")
+      .text("export the SBOL rdf representation")
     opt[Boolean]("exportLog")
       .action((e, c) => c.copy(exportLog = e))
       .text("export logs")
